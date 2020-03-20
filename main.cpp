@@ -104,6 +104,8 @@ Epetra_SerialSymDenseMatrix& createSimpleMatrix(int systemSize){
 
 void SetUpMatrix() {
   // Hier wollen wir die Konstitutivematrix A aufstellen
+  // A ist symmetrisch und beschreibt das Materialgesetz
+  // Für A muss nur die untere Dreiecksmatrix befüllt werden
 }
 
 /*------------------------------------------*/
@@ -125,6 +127,7 @@ void LinearSolve(Epetra_SerialSymDenseMatrix& matrix,
 
   // Gebe dem Lösungsalgorithmus die zu lösende Matrix
   int err = solver.SetMatrix(matrix);
+  // err != 0 dann ist etwas schief gelaufen.. vielleicht Abfrage hinzufügen
 
   // Gebe dem Lösungsalgorithmus den x vektor, in den die lösung reingeschrieben
   // werden soll und die rechte Seite b
@@ -207,6 +210,7 @@ int main(int argc, char* argv[]) {
 
     // Rufe die anderen Funktionen in der richtigen Reihenfolge
 
+    // Topology ist keine symmetrische Matrix
     Epetra_SerialSymDenseMatrix topology;
 
     topology = CreateTopology(systemsize, topology);
