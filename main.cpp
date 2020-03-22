@@ -71,15 +71,6 @@ Epetra_SerialSymDenseMatrix& CreateTopology(int systemsize, Epetra_SerialSymDens
         //Fatal Error, catch it!
         std::cout << e.what(); // Opens a standart error message box, at least StackOverflow said that.
     }
-
-    // Place elements into the matrix -> Should happen in the loop already!
-    // int dimension = sqrt(position); // square matrix, allowed then.
-    // topology.shape(dimension);
-    // for (int i = 0; i < dimension; i++) {
-    //    for (int j = 0; j < dimension; j++) {
-    //        topology(i, j) = elements[i + j]; // Enters value for line i, colloumn j - just as read into the elements-array.
-    //    }
-    //}
     return topology;
   // 3. wollen wir vielleich die Funktion aus ranmid2d_MP nachimplementieren (Später)
 }
@@ -104,8 +95,6 @@ Epetra_SerialSymDenseMatrix& createSimpleMatrix(int systemSize){
 
 void SetUpMatrix() {
   // Hier wollen wir die Konstitutivematrix A aufstellen
-  // A ist symmetrisch und beschreibt das Materialgesetz
-  // Für A muss nur die untere Dreiecksmatrix befüllt werden
 }
 
 /*------------------------------------------*/
@@ -122,47 +111,41 @@ void Warmstart() {
 void LinearSolve(Epetra_SerialSymDenseMatrix& matrix,
                  Epetra_SerialDenseMatrix& vector_x,
                  Epetra_SerialDenseMatrix& vector_b) {
-  // Erstelle ein Objekt des Lösungsalgorithmus für Ax=b
-  Epetra_SerialSpdDenseSolver solver;
+    Epetra_SerialSpdDenseSolver solver;
+    int err = solver.SetMatrix(matrix);
+    if (err != 0) { std::cout << "Error settiing up matrix solver (1)"; }
+    
+    err = solver.SetVectors(vector_x, vector_b);
+    if (err != 0 = ) { std::cout << "Error setting up maxtix solver (2)"; }
 
-  // Gebe dem Lösungsalgorithmus die zu lösende Matrix
-  int err = solver.SetMatrix(matrix);
-  // err != 0 dann ist etwas schief gelaufen.. vielleicht Abfrage hinzufügen
-
-  // Gebe dem Lösungsalgorithmus den x vektor, in den die lösung reingeschrieben
-  // werden soll und die rechte Seite b
-  err = solver.SetVectors(vector_x, vector_b);
-
-  // Löse das gegebene Gleichungssystem
-  err = solver.Solve();
-
-  // Gebe die Lösung in das Terminal aus (zum debuggen)
-  std::cout << vector_x << std::endl;
+    err = solver.Solve();
+    if (err != 0) { std::cout << "Error setting up matrix solver (3)"; }
+    std::cout << vector_x << std::endl;
 }
 
 /*------------------------------------------*/
 
 void NonlinearSolve(int systemsize, Epetra_SerialSymDenseMatrix& matrix) {
-  // Erstelle 2 Matrix objekte
-  Epetra_SerialDenseMatrix vector_x;
-  Epetra_SerialDenseMatrix vector_b;
+    // Erstelle 2 Matrix objekte
+    Epetra_SerialDenseMatrix vector_x;
+    Epetra_SerialDenseMatrix vector_b;
 
-  // todo das ist nicht die wirkliche Matrixgröße, wie sie in MATLAB
-  // implementiert ist!
+    // todo das ist nicht die wirkliche Matrixgröße, wie sie in MATLAB
+    // implementiert ist!
 
-  // Bringe die matrizen in die richtige Vektorform
-  vector_x.Shape(systemsize, 1);
-  vector_b.Shape(systemsize, 1);
+    // Bringe die matrizen in die richtige Vektorform
+    vector_x.Shape(systemsize, 1);
+    vector_b.Shape(systemsize, 1);
 
-  // Befülle die rechte Seite b
-  for (int i = 0; i < systemsize; i++) {
-    vector_b(i, 0) = 1;
-  }
+    // Befülle die rechte Seite b
+    for (int i = 0; i < systemsize; i++) {
+        vector_b(i, 0) = 1;
+    }
 
-  // Rufe den linearen Lösungsalgorithmus
-  LinearSolve(matrix, vector_x, vector_b);
+    // Rufe den linearen Lösungsalgorithmus
+    LinearSolve(matrix, vector_x, vector_b);
 
-  // Hier soll die Funktion nnls rein
+    // Hier soll die Funktion nnls rein
 }
 /*------------------------------------------*/
 
@@ -191,26 +174,22 @@ int main(int argc, char* argv[]) {
     // double scalefactor = zref(max(max(z)), - mean(mean(z))) -> mean, max, min in anderem Projekt erstellt, dort überprüfen und anschließend hier einfügen!
     // z = scalefactor * z; -> Skalare Mutiplikation! Durch eine Loop laufen lassen, um dies in C++ zu schaffen!
     // WICHTIGER HINWEIS: z ist eine Matrix, kein Vektor!
-
-    // int systemsize = pow(2, nn); //helper for dimension, outdated
-
-    // TODO: Matrix, welche ich bekommen habe sollte nn=2 sein?
-
-    // Definiere die Parameter
     double k_el = lato * E / alpha;
     double delta = lato / pow(2, nn + 1);
     double nnodi = pow(pow(2, nn + 1), 2);
-    vector<vector<double>> x; //All Rows are identical
-    vector<vector<double>> y; //All Colloums are identical
-    // Access: x [Row][Colloum]!
+    
+    // Meshgrid-Command
+    // Identical Vectors/Matricies, therefore only created one here.
+    vector<double> x;
+    iterator = 0;
+    for (int i = delta / 2, i < (lato - delta / 2), i = i + delta) {
+        x[iterator] = i;
+        iterator += 1;
+    }
+    
+    
+    // delete(iterator); Delete-Operator checken!
 
-
-    // Translation in Progress, Vector sufficient?
-    //[x,y]=meshgrid(delta/2:delta:(lato-delta/2),delta/2:delta:(lato-delta/2));
-
-    // Rufe die anderen Funktionen in der richtigen Reihenfolge
-
-    // Topology ist keine symmetrische Matrix
     Epetra_SerialSymDenseMatrix topology;
 
     topology = CreateTopology(systemsize, topology);
