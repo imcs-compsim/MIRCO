@@ -72,7 +72,6 @@ Epetra_SerialSymDenseMatrix& CreateTopology(int systemsize, Epetra_SerialSymDens
         std::cout << e.what(); // Opens a standart error message box, at least StackOverflow said that.
     }
     return topology;
-  // 3. wollen wir vielleich die Funktion aus ranmid2d_MP nachimplementieren (Später)
 }
 
 // Used to be in "CreateTopology", now moved here for code structure.
@@ -93,8 +92,15 @@ Epetra_SerialSymDenseMatrix& createSimpleMatrix(int systemSize){
 
 /*------------------------------------------*/
 
-void SetUpMatrix() {
-  // Hier wollen wir die Konstitutivematrix A aufstellen
+Epetra_SerialDenseMatrix SetUpMatrix(double delta, double E, int systemsize) {
+    // Hier wollen wir die Konstitutivematrix A aufstellen
+    EpetraSerialDenseMatrix A;
+    double pi = atan(1) * 4;
+    double raggio = delta / 2;
+    double C = 1 / (E * pi * raggio);
+    A.shape(systemsize);
+
+    return A;
 }
 
 /*------------------------------------------*/
@@ -126,6 +132,13 @@ void LinearSolve(Epetra_SerialSymDenseMatrix& matrix,
 /*------------------------------------------*/
 
 void NonlinearSolve(int systemsize, Epetra_SerialSymDenseMatrix& matrix) {
+    // nnls(A,b,y0,nnlstol,maxiter);
+    // A:Konstruktivmatrix
+    // b:
+    // y0:
+    // nnlstol:
+    // maxiter:
+    
     // Erstelle 2 Matrix objekte
     Epetra_SerialDenseMatrix vector_x;
     Epetra_SerialDenseMatrix vector_b;
@@ -146,6 +159,11 @@ void NonlinearSolve(int systemsize, Epetra_SerialSymDenseMatrix& matrix) {
     LinearSolve(matrix, vector_x, vector_b);
 
     // Hier soll die Funktion nnls rein
+    
+    //numel(b)
+
+    Epetra_SerialDenseMatrix vector_c;
+
 }
 /*------------------------------------------*/
 
@@ -171,9 +189,6 @@ int main(int argc, char* argv[]) {
     // vector<double> z = radmid2d_MP(nn, H, 1, 1, rnd); -> Noch zu definieren!
 
     int zref = 50; // Reference for the Scaling, former value = 25
-    // double scalefactor = zref(max(max(z)), - mean(mean(z))) -> mean, max, min in anderem Projekt erstellt, dort überprüfen und anschließend hier einfügen!
-    // z = scalefactor * z; -> Skalare Mutiplikation! Durch eine Loop laufen lassen, um dies in C++ zu schaffen!
-    // WICHTIGER HINWEIS: z ist eine Matrix, kein Vektor!
     double k_el = lato * E / alpha;
     double delta = lato / pow(2, nn + 1);
     double nnodi = pow(pow(2, nn + 1), 2);
@@ -191,8 +206,82 @@ int main(int argc, char* argv[]) {
     // delete(iterator); Delete-Operator checken!
 
     Epetra_SerialSymDenseMatrix topology;
-
+    
     topology = CreateTopology(systemsize, topology);
+    double zmax = 0;
+    double zmean = 0;
+    // topology.N() should send dimension of matrix
+    for (int i = 1; i < topology.N() + 1; i++) {
+        for (int j = 1; j < topology.N() + 1; j++) {
+            zmean = zmean + topology(i, j);
+            if (zmax < topology(i, j)) {
+                zmax = topology(i, j);
+            }
+        }
+    }
+    zmean = zmean / pow(topology.N(), 2);
+    double scalefactor = zref / (zmax - zmean);
+    // z = scalefactor * z;
+    for (int i = 1; i < topology.N() + 1; i++) {
+        for (int j = 1; j < topology.N() + 1; j++) {
+            topology(i, j) = z * topology(i, j);
+        }
+    }
 
+    // setting minimum heigth to zero
+    zmin = zmax;
+    for (int i = 1; i < topology.N() + 1; i++) {
+        for (int j = 1; j < topology.N() + 1; j++) {
+            if (zmin > topology(i, j)) {
+                zmin = topology(i, j);
+            }
+        }
+    }
+
+    // z = z - min(min(z))
+    for (int i = 1; i < topology.N() + 1; i++) {
+        for (int j = 1; j < topology.N() + 1; j++) {
+            topology(i, j) = topology(i, j) - zmin;
+        }
+    }
+    // recalculate mean, max, min
+    zmax = 0;
+    zmin = topology(1, 1);
+    zmean = 0;
+    for (int i = 1; i < topology.N() + 1; i++) {
+        for (int j = 1; j < topology.N() + 1; j++) {
+            zmean = zmean + topology(i, j);
+            if (zmax < topology(i, j)) {
+                zmax = topology(i, j);
+            }
+            if (zmin > topology(i, j)) {
+                zmin = toplogy(i, j);
+            }
+        }
+    }
+    zmean = zmean / pow(topology.N(), 2);
+
+    // create 5 vectors
+    Epetra_SerialDenseMatrix nfaux;
+    nfaux.shape(csteps, 1);
+    Epetra_SerialDenseMatrix Delta;
+    Delta.shape(csteps, 1);
+    Epetra_SerialDenseMatrix force;
+    force.shape(csteps, 1);
+    Epetra_SerialDenseMatrix area;
+    area.shape(csteps, 1);
+    Epetra_SerialDenseMatrix w_el;
+    w_el.shape(csteps, 1);
+
+    for (int i = 1; i < csteps + 1; i++) {
+        nfaux(i, 1) = 0;
+        Delta(i, 1) = 0;
+        force(i, 1) = 0;
+        area(i, 1) = 0;
+        w_el(i, 1) = 0;
+    }
+    
+    // rms = std(z(:));
+    // z(:) appends all colloums to each other, vector as output
     NonlinearSolve(systemsize, topology);
 }
