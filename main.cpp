@@ -5,7 +5,7 @@
 #include "include/Epetra_SerialSpdDenseSolver.h"
 #include "include/Epetra_SerialSymDenseMatrix.h"
 
-using namespace std
+using namespace std;
 
 
 /**
@@ -78,6 +78,7 @@ Epetra_SerialSymDenseMatrix& CreateTopology(int systemsize, Epetra_SerialSymDens
 /**
 * Outdated version to create a Matrix. Use @CreateTopology to readin matrix.
 */
+/* This won't compile.
 Epetra_SerialSymDenseMatrix& createSimpleMatrix(int systemSize){
     // Shapes a matrix to be a square Matrix. Main diagonal will be 2's, rest is 1's.
     topology.Shape(systemSize);
@@ -89,16 +90,17 @@ Epetra_SerialSymDenseMatrix& createSimpleMatrix(int systemSize){
         }
     }
 }
+*/
 
 /*------------------------------------------*/
 
 Epetra_SerialDenseMatrix SetUpMatrix(double delta, double E, int systemsize) {
     // Hier wollen wir die Konstitutivematrix A aufstellen
-    EpetraSerialDenseMatrix A;
+    Epetra_SerialDenseMatrix A;
     double pi = atan(1) * 4;
     double raggio = delta / 2;
     double C = 1 / (E * pi * raggio);
-    A.shape(systemsize);
+    A.Shape(systemsize);
 
     return A;
 }
@@ -197,7 +199,7 @@ int main(int argc, char* argv[]) {
     // Identical Vectors/Matricies, therefore only created one here.
     vector<double> x;
     iterator = 0;
-    for (int i = delta / 2, i < (lato - delta / 2), i = i + delta) {
+    for (int i = delta / 2; i < (lato - delta / 2); i = i + delta) {
         x[iterator] = i;
         iterator += 1;
     }
@@ -210,6 +212,9 @@ int main(int argc, char* argv[]) {
     topology = CreateTopology(systemsize, topology);
     double zmax = 0;
     double zmean = 0;
+
+    // Can also use zmatrix = topology.NormInf() and
+    // zmean = topology.NormOne()/pow(topology.N(), 2)
     // topology.N() should send dimension of matrix
     for (int i = 1; i < topology.N() + 1; i++) {
         for (int j = 1; j < topology.N() + 1; j++) {
@@ -220,6 +225,10 @@ int main(int argc, char* argv[]) {
         }
     }
     zmean = zmean / pow(topology.N(), 2);
+
+/* Only needed once ranmid2d_NP is implemented to create new topology? Put in CreateTopology
+    once we are there.
+
     double scalefactor = zref / (zmax - zmean);
     // z = scalefactor * z;
     for (int i = 1; i < topology.N() + 1; i++) {
@@ -260,19 +269,21 @@ int main(int argc, char* argv[]) {
         }
     }
     zmean = zmean / pow(topology.N(), 2);
+*/
 
     // create 5 vectors
     Epetra_SerialDenseMatrix nfaux;
-    nfaux.shape(csteps, 1);
+    nfaux.Shape(csteps, 1);
     Epetra_SerialDenseMatrix Delta;
-    Delta.shape(csteps, 1);
+    Delta.Shape(csteps, 1);
     Epetra_SerialDenseMatrix force;
-    force.shape(csteps, 1);
+    force.Shape(csteps, 1);
     Epetra_SerialDenseMatrix area;
-    area.shape(csteps, 1);
+    area.Shape(csteps, 1);
     Epetra_SerialDenseMatrix w_el;
-    w_el.shape(csteps, 1);
+    w_el.Shape(csteps, 1);
 
+  //Initialization not necessary, since Shape() takes care of that
     for (int i = 1; i < csteps + 1; i++) {
         nfaux(i, 1) = 0;
         Delta(i, 1) = 0;
