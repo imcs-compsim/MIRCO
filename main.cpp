@@ -1,5 +1,6 @@
-#include <cmath>
+#include <cmath> //pow
 #include <cstdio>
+#include <iostream> //ifstream
 #include <fstream> //ifstream
 #include <string> //std::to_string, std::stod
 #include "include/Epetra_SerialSpdDenseSolver.h"
@@ -74,7 +75,6 @@ Epetra_SerialSymDenseMatrix& CreateTopology(int systemsize, Epetra_SerialSymDens
     return topology;
 }
 
-// Used to be in "CreateTopology", now moved here for code structure.
 /**
 * Outdated version to create a Matrix. Use @CreateTopology to readin matrix.
 */
@@ -135,7 +135,7 @@ void LinearSolve(Epetra_SerialSymDenseMatrix& matrix,
 
 void NonlinearSolve(int systemsize, Epetra_SerialSymDenseMatrix& matrix) {
     // nnls(A,b,y0,nnlstol,maxiter);
-    // A:Konstruktivmatrix
+    // A: Konstruktivmatrix
     // b:
     // y0:
     // nnlstol:
@@ -213,34 +213,34 @@ int main(int argc, char* argv[]) {
     double zmax = 0;
     double zmean = 0;
 
+    zmean = topology.NormOne() / pow(topology.N(), 2);
+
     // Can also use zmatrix = topology.NormInf() and
     // zmean = topology.NormOne()/pow(topology.N(), 2)
     // topology.N() should send dimension of matrix
     for (int i = 1; i < topology.N() + 1; i++) {
         for (int j = 1; j < topology.N() + 1; j++) {
-            zmean = zmean + topology(i, j);
             if (zmax < topology(i, j)) {
                 zmax = topology(i, j);
             }
         }
     }
-    zmean = zmean / pow(topology.N(), 2);
 
 /* Only needed once ranmid2d_NP is implemented to create new topology? Put in CreateTopology
     once we are there.
 
     double scalefactor = zref / (zmax - zmean);
     // z = scalefactor * z;
-    for (int i = 1; i < topology.N() + 1; i++) {
-        for (int j = 1; j < topology.N() + 1; j++) {
+    for (int i = 0; i < topology.N(); i++) {
+        for (int j = 0; j < topology.N(); j++) {
             topology(i, j) = z * topology(i, j);
         }
     }
 
     // setting minimum heigth to zero
     zmin = zmax;
-    for (int i = 1; i < topology.N() + 1; i++) {
-        for (int j = 1; j < topology.N() + 1; j++) {
+    for (int i = 0; i < topology.N(); i++) {
+        for (int j = 0; j < topology.N(); j++) {
             if (zmin > topology(i, j)) {
                 zmin = topology(i, j);
             }
@@ -248,17 +248,17 @@ int main(int argc, char* argv[]) {
     }
 
     // z = z - min(min(z))
-    for (int i = 1; i < topology.N() + 1; i++) {
-        for (int j = 1; j < topology.N() + 1; j++) {
+    for (int i = 0; i < topology.N(); i++) {
+        for (int j = 0; j < topology.N(); j++) {
             topology(i, j) = topology(i, j) - zmin;
         }
     }
     // recalculate mean, max, min
     zmax = 0;
-    zmin = topology(1, 1);
+    zmin = topology(0, 0);
     zmean = 0;
-    for (int i = 1; i < topology.N() + 1; i++) {
-        for (int j = 1; j < topology.N() + 1; j++) {
+    for (int i = 0; i < topology.N(); i++) {
+        for (int j = 0; j < topology.N(); j++) {
             zmean = zmean + topology(i, j);
             if (zmax < topology(i, j)) {
                 zmax = topology(i, j);
@@ -270,7 +270,7 @@ int main(int argc, char* argv[]) {
     }
     zmean = zmean / pow(topology.N(), 2);
 */
-
+    // TODO: Might change this to flat variables for debugging
     // create 5 vectors
     Epetra_SerialDenseMatrix nfaux;
     nfaux.Shape(csteps, 1);
@@ -282,17 +282,28 @@ int main(int argc, char* argv[]) {
     area.Shape(csteps, 1);
     Epetra_SerialDenseMatrix w_el;
     w_el.Shape(csteps, 1);
-
-  //Initialization not necessary, since Shape() takes care of that
-    for (int i = 1; i < csteps + 1; i++) {
-        nfaux(i, 1) = 0;
-        Delta(i, 1) = 0;
-        force(i, 1) = 0;
-        area(i, 1) = 0;
-        w_el(i, 1) = 0;
-    }
     
+    // For (maybe) future loop: Here!
+    // for (int s = 0; s < csteps; s++){
+
+    // Delta(1) = ampface * (0.5) * zmean * 1 / csteps;
+    // Delta (s) = ampface * (0.5) * zmean * s / csteps;
+    Delta(0) = 39.202067343593399;
+    int errf = 100000000;
+    float to1 = 0.01;
+
+    // Implementation of Warmstart, TODO: moving soon!
+    int w_el0 = 0;
+    int k = 0;
+    while (errf > to1) {
+        k += 1;
+
+    }
+
     // rms = std(z(:));
     // z(:) appends all colloums to each other, vector as output
+
+    // End of loop:
+    // }
     NonlinearSolve(systemsize, topology);
 }
