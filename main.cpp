@@ -94,7 +94,7 @@ Epetra_SerialSymDenseMatrix& createSimpleMatrix(int systemSize){
 
 /*------------------------------------------*/
 
-Epetra_SerialDenseMatrix SetUpMatrix(double delta, double E, int systemsize) {
+Epetra_SerialSymDenseMatrix SetUpMatrix(double delta, double E, int systemsize) {
     // Hier wollen wir die Konstitutivematrix A aufstellen
     Epetra_SerialDenseMatrix A;
     double pi = atan(1) * 4;
@@ -102,6 +102,19 @@ Epetra_SerialDenseMatrix SetUpMatrix(double delta, double E, int systemsize) {
     double C = 1 / (E * pi * raggio);
     A.Shape(systemsize);
 
+    for (int i = 0; i < systemsize; i++) {
+        A(i, i) = 1 * C;
+    }
+
+    for (int i = 0; i < systemsize; i++){
+        for (int j = 0; j < systemsize; j++) {
+            if (i != j) {
+                r = (xv0[j, k] - xv0[i, k]) * (yv0[j ,k] - yv0[i, k]);
+                A(i, j) = C * asin(raggio / r);
+                A(j, i) = A(i, j);
+            }
+        }
+    }
     return A;
 }
 
@@ -136,11 +149,11 @@ void LinearSolve(Epetra_SerialSymDenseMatrix& matrix,
 void NonlinearSolve(int systemsize, Epetra_SerialSymDenseMatrix& matrix) {
     // nnls(A,b,y0,nnlstol,maxiter);
     // A: Konstruktivmatrix
-    // b:
+    // b: k-te Spalte von b0
     // y0:
-    // nnlstol:
-    // maxiter:
-    
+    double nnlstol = 1.0000e-08;
+    double maxiter = 10000;
+
     // Erstelle 2 Matrix objekte
     Epetra_SerialDenseMatrix vector_x;
     Epetra_SerialDenseMatrix vector_b;
@@ -205,11 +218,11 @@ int main(int argc, char* argv[]) {
     }
     
     
-    // delete(iterator); Delete-Operator checken!
+    // TODO:delete(iterator); Delete-Operator checken!
 
     Epetra_SerialSymDenseMatrix topology;
-    
     topology = CreateTopology(systemsize, topology);
+
     double zmax = 0;
     double zmean = 0;
 
@@ -270,40 +283,57 @@ int main(int argc, char* argv[]) {
     }
     zmean = zmean / pow(topology.N(), 2);
 */
-    // TODO: Might change this to flat variables for debugging
-    // create 5 vectors
-    Epetra_SerialDenseMatrix nfaux;
-    nfaux.Shape(csteps, 1);
-    Epetra_SerialDenseMatrix Delta;
-    Delta.Shape(csteps, 1);
-    Epetra_SerialDenseMatrix force;
-    force.Shape(csteps, 1);
-    Epetra_SerialDenseMatrix area;
-    area.Shape(csteps, 1);
-    Epetra_SerialDenseMatrix w_el;
-    w_el.Shape(csteps, 1);
+    vector<double> nfaux (csteps), Delta (csteps), force (csteps), area (csteps), w_el (csteps);
+    
     
     // For (maybe) future loop: Here!
     // for (int s = 0; s < csteps; s++){
 
-    // Delta(1) = ampface * (0.5) * zmean * 1 / csteps;
-    // Delta (s) = ampface * (0.5) * zmean * s / csteps;
-    Delta(0) = 39.202067343593399;
+    // Delta(0) = ampface * (0.5) * zmean * 1 / csteps;
+    // Delta(s) = ampface * (0.5) * zmean * s / csteps;
+    Delta[0] = 39.202067343593399;
     int errf = 100000000;
     float to1 = 0.01;
 
     // Implementation of Warmstart, TODO: moving soon!
-    int w_el0 = 0;
+    int w_el0 = 0; // Change w_el0 to vector for loop
     int k = 0;
+    vector<int> n0;
+    Epetra_SerialDenseMatrix xv0, yv0, b0;
+    // TODO: Shape();
     while (errf > to1) {
         k += 1;
 
-    }
+        // [ind1,ind2]=find(z>=(zmax-(Delta(s)+w_el0(k))));
+        vector<int> col, row;
+        int counter = 0;
+        double value = zmax - Delta(0) + w_el0; // Change w_el0 to w_el0(k) for loop
+        for (int i = 0; i < topology.N(); i++) {
+            for (int j = 0; j < topology.N(); j++) {
+                if ((topology(i, j) > value) || (topology(i, j) == value)) {
+                    col[counter] = i;
+                    row[counter] = j;
+                    counter += 1;
+                }
+            }
+        }
+        n0[k] = col.size();
 
-    // rms = std(z(:));
-    // z(:) appends all colloums to each other, vector as output
+        for (int i = 0, i < n0[k]; i++) {
+            xv0(i, k) = x[row[i]];
+            yv0(i, k) = y[row[i]];
+            b0(i, k) = Delta[0] + w_el0 - (zmax - topology(row[i], col[i]));
+        }
+
+        // Construction of the Matrix H = A
+
+        A = SetUpMatrix(delta, E, n0[k]);
+
+
+
+        NonlinearSolve(no[k], topology);
+    }
 
     // End of loop:
     // }
-    NonlinearSolve(systemsize, topology);
 }
