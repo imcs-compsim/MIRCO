@@ -12,7 +12,11 @@ using namespace std;
 /**
 * Outdated function, implemented into Main-method for code structure.
 */
-void SetParameters() {}
+/*
+This should not compile
+    void SetParameters() {}
+*/
+
 
 /*------------------------------------------*/
 
@@ -75,25 +79,6 @@ Epetra_SerialSymDenseMatrix& CreateTopology(int systemsize, Epetra_SerialSymDens
     return topology;
 }
 
-/**
-* Outdated version to create a Matrix. Use @CreateTopology to readin matrix.
-*/
-/* This won't compile.
-Epetra_SerialSymDenseMatrix& createSimpleMatrix(int systemSize){
-    // Shapes a matrix to be a square Matrix. Main diagonal will be 2's, rest is 1's.
-    topology.Shape(systemSize);
-    for (int i = 0; i < systemSize; i++) {
-        topology(i, i) = 2;
-        for (int j = 0; j < i; j++) {
-            topology(i, j) = 1;
-            topology(j, i) = 1;
-        }
-    }
-}
-*/
-
-/*------------------------------------------*/
-
 Epetra_SerialSymDenseMatrix SetUpMatrix(double delta, double E, int systemsize) {
     // Hier wollen wir die Konstitutivematrix A aufstellen
     Epetra_SerialDenseMatrix A;
@@ -120,10 +105,42 @@ Epetra_SerialSymDenseMatrix SetUpMatrix(double delta, double E, int systemsize) 
 
 /*------------------------------------------*/
 
-void Warmstart() {
-  // Das Programm ist effizienter, wenn wir einen warmstart machen. Das Ergebnis
-  // sollte sich aber nicht ändern. Diese Funktion kann also auch erst ganz zum
-  // Schluss implementiert werden.
+Epetra_SerialDenseMatrix Warmstart(Epetra_SerialDenseMatrix xv0, Epetra_SerialDenseMatrix yv0, Epetra_SerialDenseMatrix xvf,
+    Epetra_SerialDenseMatrix yvf, Epetra_SerialDenseMatrix pf) {
+    Epetra_SerialDenseMatrix x0; x0.Shape(xv0.N(), 1);
+    Epetra_SerialDenseMatrix combinedMatrix;
+    combinedMatrix.Shape(2 * xv0.N(), xv0.N());
+    // matfin = [xv0, yv0]
+    for (int i = 0; i < xv0.N(); i++) {
+        for (int j = 0; j < xv0.N(); j++) {
+            combinedMatrix(i, j) = xv0(i, j);
+        }
+    }
+    for (int i = xv0.N(); i < yv0.N() * 2; i++) {
+        for (int j = 0; j < yv0.N(); j++) {
+            combinedMatrix(i, j) = yv0(i - xv0.N(), j);
+        }
+    }
+
+    // loop
+    vector<int> index;
+    int counter = 0;
+    for (int i = 0; i < pf.N(); i++) {
+        // ind=find(matfin(:,1)==xvf(i) & matfin(:,2)==yvf(i));
+        for (int j = 0; j < xvf.N(); j++) {
+            if ((combinedMatrix(j, 1) == xvf(i) && (combinedMatrix(j, 2) == yvf(i)) {
+                index[counter] = j;
+            }
+        }
+
+        // x0(ind,1)=pf(i);
+        for (int y = 0; y < counter; y++) {
+            x0(y, 1) = pf(y);
+        }
+        index.clear();
+        counter = 0;
+    }
+    return x0;
 }
 
 /*------------------------------------------*/
@@ -295,11 +312,10 @@ int main(int argc, char* argv[]) {
     int errf = 100000000;
     float to1 = 0.01;
 
-    // Implementation of Warmstart, TODO: moving soon!
     int w_el0 = 0; // Change w_el0 to vector for loop
     int k = 0;
     vector<int> n0;
-    Epetra_SerialDenseMatrix xv0, yv0, b0;
+    Epetra_SerialDenseMatrix xv0, yv0, b0, x0;
     // TODO: Shape();
     while (errf > to1) {
         k += 1;
@@ -329,7 +345,13 @@ int main(int argc, char* argv[]) {
 
         A = SetUpMatrix(delta, E, n0[k]);
 
-
+        if (flagwarm == 1 && k > 1) {
+            // x0=warm_x(xv0(1:n0(k),k),yv0(1:n0(k),k),xvf(1:nf(k-1),k-1),yvf(1:nf(k-1),k-1),pf(1:nf(k-1),k-1));
+        //} elseif (flagwarm == 1 && k == 1 && s > 1){
+            // x0=warm_x(xv0(1:n0(k),k),yv0(1:n0(k),k),xvfaux(1:nfaux(s-1),s-1),yvfaux(1:nfaux(s-1),s-1),pfaux(1:nfaux(s-1),s-1));
+        } else {
+            x0.Shape(b0.N());
+        }
 
         NonlinearSolve(no[k], topology);
     }
