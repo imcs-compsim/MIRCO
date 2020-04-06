@@ -24,14 +24,14 @@ This should not compile
 * Readin Matrix from a file. Elements have to be separated by a ';'.
 * TODO: Change this to spaces.
 */
-Epetra_SerialSymDenseMatrix& CreateTopology(int systemsize, Epetra_SerialSymDenseMatrix& topology, string filePath) {
+void CreateTopology(int systemsize, Epetra_SerialDenseMatrix& topology, string filePath) {
     // Readin for amount of lines -> dimension of matrix
     ifstream reader(filePath);
     string blaLine;
     int dimension = 0;
-    while (getLine(reader, blaLine){dimension += 1;}
+    while (getLine(reader, blaLine)){dimension += 1;}
     reader.close();
-    topology.shape(lineAmount);
+    topology.Shape(dimension, dimension);
     int lineCounter = 0;
     float elements[264];
     int position = 0;
@@ -76,12 +76,11 @@ Epetra_SerialSymDenseMatrix& CreateTopology(int systemsize, Epetra_SerialSymDens
         //Fatal Error, catch it!
         std::cout << e.what(); // Opens a standart error message box, at least StackOverflow said that.
     }
-    return topology;
 }
 
 Epetra_SerialSymDenseMatrix SetUpMatrix(double delta, double E, int systemsize) {
     // Hier wollen wir die Konstitutivematrix A aufstellen
-    Epetra_SerialDenseMatrix A;
+    Epetra_SerialSymDenseMatrix A;
     double pi = atan(1) * 4;
     double raggio = delta / 2;
     double C = 1 / (E * pi * raggio);
@@ -92,12 +91,9 @@ Epetra_SerialSymDenseMatrix SetUpMatrix(double delta, double E, int systemsize) 
     }
 
     for (int i = 0; i < systemsize; i++){
-        for (int j = 0; j < systemsize; j++) {
-            if (i != j) {
+        for (int j = 0; j < i; j++) {
                 r = (xv0[j, k] - xv0[i, k]) * (yv0[j ,k] - yv0[i, k]);
                 A(i, j) = C * asin(raggio / r);
-                A(j, i) = A(i, j);
-            }
         }
     }
     return A;
@@ -128,7 +124,7 @@ Epetra_SerialDenseMatrix Warmstart(Epetra_SerialDenseMatrix xv0, Epetra_SerialDe
     for (int i = 0; i < pf.N(); i++) {
         // ind=find(matfin(:,1)==xvf(i) & matfin(:,2)==yvf(i));
         for (int j = 0; j < xvf.N(); j++) {
-            if ((combinedMatrix(j, 1) == xvf(i) && (combinedMatrix(j, 2) == yvf(i)) {
+            if ((combinedMatrix(j, 1) == xvf(i)) && (combinedMatrix(j, 2) == yvf(i))) {
                 index[counter] = j;
             }
         }
@@ -151,10 +147,10 @@ void LinearSolve(Epetra_SerialSymDenseMatrix& matrix,
                  Epetra_SerialDenseMatrix& vector_b) {
     Epetra_SerialSpdDenseSolver solver;
     int err = solver.SetMatrix(matrix);
-    if (err != 0) { std::cout << "Error settiing up matrix solver (1)"; }
+    if (err != 0) { std::cout << "Error setting up matrix solver (1)"; }
     
     err = solver.SetVectors(vector_x, vector_b);
-    if (err != 0 = ) { std::cout << "Error setting up maxtix solver (2)"; }
+    if (err != 0 ) { std::cout << "Error setting up maxtix solver (2)"; }
 
     err = solver.Solve();
     if (err != 0) { std::cout << "Error setting up matrix solver (3)"; }
@@ -163,7 +159,7 @@ void LinearSolve(Epetra_SerialSymDenseMatrix& matrix,
 
 /*------------------------------------------*/
 
-void NonlinearSolve(int systemsize, Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatrix b0, Epetra_SerialDenseMatrix x0, Epetra_SerialDenseMatrix* w, int* iter) {
+void NonlinearSolve(int systemsize, Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatrix& b0, Epetra_SerialDenseMatrix& x0, Epetra_SerialDenseMatrix& w, int iter) {
     double nnlstol = 1.0000e-08;
     double maxiter = 10000;
     bool init = false;
@@ -187,7 +183,7 @@ void NonlinearSolve(int systemsize, Epetra_SerialSymDenseMatrix& matrix, Epetra_
     }
 
     if (counter == 0) {
-        w->Shape(b0.N(), b0.M());
+        w.Shape(b0.N(), b0.M());
         for (int x = 0; x < b0.N(); x++) {
             for (int y = 0; y < b0.M(); y++) {
                 w(x, y) = -b0(x, y);
@@ -197,7 +193,7 @@ void NonlinearSolve(int systemsize, Epetra_SerialSymDenseMatrix& matrix, Epetra_
         for (int i = 0; i < counter; i++) {
             P[i] = positions[i];
         }
-        w->Shape(counter, 1);
+        w.Shape(counter, 1);
         init = true;
     }
     
@@ -340,7 +336,7 @@ int main(int argc, char* argv[]) {
     // TODO:delete(iterator); Delete-Operator checken!
 
     Epetra_SerialSymDenseMatrix topology;
-    topology = CreateTopology(systemsize, topology);
+    topology = CreateTopology(systemsize, topology); // hard-code file path for debugging? Nicer, hand into main as command line argument
 
     double zmax = 0;
     double zmean = 0;
@@ -402,7 +398,7 @@ int main(int argc, char* argv[]) {
         }
         zmean = zmean / pow(topology.N(), 2);
     */
-    vector<double> nfaux(csteps), Delta(csteps), force(csteps), area(csteps), w_el(csteps);
+    vector<double> nfaux(csteps), Delta(csteps), force(csteps), area(csteps);
 
 
     // For (maybe) future loop: Here!
@@ -420,7 +416,7 @@ int main(int argc, char* argv[]) {
     vector<int> n0;
     Epetra_SerialDenseMatrix xv0, yv0, b0, x0, nf, xvfaux, yvfaux, pfaux;
     // TODO: Shape();
-    nf.Shape(csteps, 1); xvfaux.Shape(csteps); yvfaux.Shape(csteps); pfaux.Shape(csteps);
+    nf.Shape(csteps, 1); xvfaux.Shape(csteps, 1); yvfaux.Shape(csteps, 1); pfaux.Shape(csteps, 1);
     while (errf > to1) {
         k += 1;
 
@@ -439,7 +435,7 @@ int main(int argc, char* argv[]) {
         }
         n0[k] = col.size();
 
-        for (int i = 0, i < n0[k]; i++) {
+        for (int i = 0; i < n0[k]; i++) {
             xv0(i, k) = x[row[i]];
             yv0(i, k) = y[row[i]];
             b0(i, k) = Delta[0] + w_el[k] - (zmax - topology(row[i], col[i]));
@@ -447,7 +443,7 @@ int main(int argc, char* argv[]) {
 
         // Construction of the Matrix H = A
 
-        Epetra_SerialDenseMatrix A = SetUpMatrix(delta, E, n0[k]);
+        Epetra_SerialSymDenseMatrix A = SetUpMatrix(delta, E, n0[k]);
 
         if (flagwarm == 1 && k > 1) {
             // x0=warm_x(xv0(1:n0(k),k),yv0(1:n0(k),k),xvf(1:nf(k-1),k-1),yvf(1:nf(k-1),k-1),pf(1:nf(k-1),k-1));
@@ -455,7 +451,7 @@ int main(int argc, char* argv[]) {
             // x0=warm_x(xv0(1:n0(k),k),yv0(1:n0(k),k),xvfaux(1:nfaux(s-1),s-1),yvfaux(1:nfaux(s-1),s-1),pfaux(1:nfaux(s-1),s-1));
         }
         else {
-            x0.Shape(b0.N());
+            x0.Shape(b0.N(), 1);
         }
 
         vector<double> b0new;
@@ -464,7 +460,7 @@ int main(int argc, char* argv[]) {
         }
         Epetra_SerialDenseMatrix* w, matrix;
         int* iter;
-        A = NonlinearSolve(A.N(), A, b0new, x0, w, iter);
+        NonlinearSolve(A.N(), A, b0new, x0, w, iter);
 
         // res1=A*sol-b0(:,k)-wsol;
         // Linear solve?
@@ -514,7 +510,7 @@ int main(int argc, char* argv[]) {
     // Mean pressure
     double sigmaz = force / pow(lato, 2);
     // Pressure unit per depth
-    double pressz = sigmaz // ????
+    double pressz = sigmaz; // ????
 
     // End of Code
 }
