@@ -99,6 +99,56 @@ void CreateTopology(int systemsize, Epetra_SerialDenseMatrix& topology, string f
     }
 }
 
+void createTopology(int systemsize, Epetra_SerialDenseMatrix& topology) {
+    // Idea: GENERATING a topology, instead of I/O-Topology!
+    // TODO: Insert ranmid2d_MP-Method here!
+
+     /* Only needed once ranmid2d_NP is implemented to create new topology? Put in CreateTopology
+        once we are there.
+
+        double scalefactor = zref / (zmax - zmean);
+        // z = scalefactor * z;
+        for (int i = 0; i < topology.N(); i++) {
+            for (int j = 0; j < topology.N(); j++) {
+                topology(i, j) = z * topology(i, j);
+            }
+        }
+
+        // setting minimum heigth to zero
+        zmin = zmax;
+        for (int i = 0; i < topology.N(); i++) {
+            for (int j = 0; j < topology.N(); j++) {
+                if (zmin > topology(i, j)) {
+                    zmin = topology(i, j);
+                }
+            }
+        }
+
+        // z = z - min(min(z))
+        for (int i = 0; i < topology.N(); i++) {
+            for (int j = 0; j < topology.N(); j++) {
+                topology(i, j) = topology(i, j) - zmin;
+            }
+        }
+        // recalculate mean, max, min
+        zmax = 0;
+        zmin = topology(0, 0);
+        zmean = 0;
+        for (int i = 0; i < topology.N(); i++) {
+            for (int j = 0; j < topology.N(); j++) {
+                zmean = zmean + topology(i, j);
+                if (zmax < topology(i, j)) {
+                    zmax = topology(i, j);
+                }
+                if (zmin > topology(i, j)) {
+                    zmin = toplogy(i, j);
+                }
+            }
+        }
+        zmean = zmean / pow(topology.N(), 2);
+    */
+}
+
 Epetra_SerialSymDenseMatrix SetUpMatrix(double delta, double E, int systemsize) {
     // Hier wollen wir die Konstitutivematrix A aufstellen
     Epetra_SerialSymDenseMatrix A;
@@ -123,7 +173,7 @@ Epetra_SerialSymDenseMatrix SetUpMatrix(double delta, double E, int systemsize) 
 /*------------------------------------------*/
 
 Epetra_SerialDenseMatrix Warmstart(Epetra_SerialDenseMatrix xv0, Epetra_SerialDenseMatrix yv0, Epetra_SerialDenseMatrix xvf,
-    Epetra_SerialDenseMatrix yvf, Epetra_SerialDenseMatrix pf) {
+        Epetra_SerialDenseMatrix yvf, Epetra_SerialDenseMatrix pf) {
     Epetra_SerialDenseMatrix x0; x0.Shape(xv0.N(), 1);
     Epetra_SerialDenseMatrix combinedMatrix;
     combinedMatrix.Shape(2 * xv0.N(), xv0.N());
@@ -290,12 +340,11 @@ void NonlinearSolve(int systemsize, Epetra_SerialSymDenseMatrix& matrix, Epetra_
         }
     }
 
-    // Erstelle 2 Matrix objekte
+    // TODO: This part here is still unused!
     Epetra_SerialDenseMatrix vector_x;
     Epetra_SerialDenseMatrix vector_b;
 
-    // todo das ist nicht die wirkliche Matrixgröße, wie sie in MATLAB
-    // implementiert ist!
+    // TODO: das ist nicht die wirkliche Matrixgröße, wie sie in MATLAB implementiert ist!
 
     // Bringe die matrizen in die richtige Vektorform
     vector_x.Shape(systemsize, 1);
@@ -308,13 +357,7 @@ void NonlinearSolve(int systemsize, Epetra_SerialSymDenseMatrix& matrix, Epetra_
 
     // Rufe den linearen Lösungsalgorithmus
     LinearSolve(matrix, vector_x, vector_b);
-
-    // Hier soll die Funktion nnls rein
-    
-    //numel(b)
-
     Epetra_SerialDenseMatrix vector_c;
-
 }
 /*------------------------------------------*/
 
@@ -331,10 +374,7 @@ int main(int argc, char* argv[]) {
         x[iterator] = i;
         iterator += 1;
     }
-
-
-    // TODO:delete(iterator); Delete-Operator checken!
-
+    string randomPath = "C:\..."; // TODO: Change this before debugging!
     Epetra_SerialSymDenseMatrix topology;
     topology = CreateTopology(systemsize, topology); // hard-code file path for debugging? Nicer, hand into main as command line argument
 
@@ -354,52 +394,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    /* Only needed once ranmid2d_NP is implemented to create new topology? Put in CreateTopology
-        once we are there.
-
-        double scalefactor = zref / (zmax - zmean);
-        // z = scalefactor * z;
-        for (int i = 0; i < topology.N(); i++) {
-            for (int j = 0; j < topology.N(); j++) {
-                topology(i, j) = z * topology(i, j);
-            }
-        }
-
-        // setting minimum heigth to zero
-        zmin = zmax;
-        for (int i = 0; i < topology.N(); i++) {
-            for (int j = 0; j < topology.N(); j++) {
-                if (zmin > topology(i, j)) {
-                    zmin = topology(i, j);
-                }
-            }
-        }
-
-        // z = z - min(min(z))
-        for (int i = 0; i < topology.N(); i++) {
-            for (int j = 0; j < topology.N(); j++) {
-                topology(i, j) = topology(i, j) - zmin;
-            }
-        }
-        // recalculate mean, max, min
-        zmax = 0;
-        zmin = topology(0, 0);
-        zmean = 0;
-        for (int i = 0; i < topology.N(); i++) {
-            for (int j = 0; j < topology.N(); j++) {
-                zmean = zmean + topology(i, j);
-                if (zmax < topology(i, j)) {
-                    zmax = topology(i, j);
-                }
-                if (zmin > topology(i, j)) {
-                    zmin = toplogy(i, j);
-                }
-            }
-        }
-        zmean = zmean / pow(topology.N(), 2);
-    */
     vector<double> nfaux(csteps), Delta(csteps), force(csteps), area(csteps);
-
 
     // For (maybe) future loop: Here!
     // for (int s = 0; s < csteps; s++){
