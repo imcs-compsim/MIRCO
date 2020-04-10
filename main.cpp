@@ -12,17 +12,38 @@ using namespace std;
 /**
 * Outdated function, implemented into Main-method for code structure.
 */
-/*
-This should not compile
-    void SetParameters() {}
-*/
+    void SetParameters(int& E1, int& E2, int& csteps, int& flagwarm, int& lato, int& zref, int& ampface,
+            double& nu1, double& nu2, double& G1, double& G2, double& E, double& G, double& nu, double& alpha,
+            double& H, double& rnd, double& k_el, double& delta, double& nnodi) {
+        E1 = 1; E2 = 1;
+        nu1 = 0.3; nu2 = 0.3;
+        G1 = E1 / (2 * (1 + nu1));
+        G2 = E2 / (2 * (1 + nu2));
+        E = pow(((1 - nu1 ^ 2) / E1 + (1 - pow(nu2, 2)) / E2), -1);
+        G = pow(((2 - nu1) / (4 * G1) + (2 - nu2) / (4 * G2)), -1);
+        nu = E / (2 * G) - 1;
+
+        vector<double> alpha_con = { 0.778958541513360, 0.805513388666376, 0.826126871395416, 0.841369158110513,
+        0.851733020725652, 0.858342234203154, 0.862368243479785, 0.864741597831785 };
+        int nn = 2; // Matrix sent has the parameter nn=2!
+        alpha = alpha_con[nn];
+        csteps = 50;
+        ampface = 1;
+        flagwarm = 1;
+        lato = 1000; // Lateral side of the surface [micrometers]
+        H = 0.1; // Hurst Exponent (D = 3 - H)
+        rnd = 95.0129;
+        zref = 50; // Reference for the Scaling, former value = 25
+        k_el = lato * E / alpha;
+        delta = lato / pow(2, nn + 1);
+        nnodi = pow(pow(2, nn + 1), 2);
+    }
 
 
 /*------------------------------------------*/
 
 /**
 * Readin Matrix from a file. Elements have to be separated by a ';'.
-* TODO: Change this to spaces.
 */
 void CreateTopology(int systemsize, Epetra_SerialDenseMatrix& topology, string filePath) {
     // Readin for amount of lines -> dimension of matrix
@@ -298,30 +319,9 @@ void NonlinearSolve(int systemsize, Epetra_SerialSymDenseMatrix& matrix, Epetra_
 /*------------------------------------------*/
 
 int main(int argc, char* argv[]) {
-    int E1 = 1, E2 = 1;
-    double nu1 = 0.3, nu2 = 0.3;
-    double G1 = E1 / (2 * (1 + nu1)), G2 = E2 / (2 * (1 + nu2));
-    double E = pow(((1 - nu1 ^ 2) / E1 + (1 - pow(nu2, 2)) / E2), -1);
-    double G = pow(((2 - nu1) / (4 * G1) + (2 - nu2) / (4 * G2)), -1);
-    double nu = E / (2 * G) - 1;
-
-    vector<double> alpha_con = { 0.778958541513360, 0.805513388666376, 0.826126871395416, 0.841369158110513,
-    0.851733020725652, 0.858342234203154, 0.862368243479785, 0.864741597831785 };
-    int nn = 2; // Matrix sent has the parameter nn=2!
-    double alpha = alpha_con[nn];
-    int csteps = 50;
-    double ampface = 1;
-    int flagwarm = 1;
-    int lato = 1000; // Lateral side of the surface [micrometers]
-    double H = 0.1; // Hurst Exponent (D = 3 - H)
-    double rnd = 95.0129;
-
-    // vector<double> z = radmid2d_MP(nn, H, 1, 1, rnd); -> Noch zu definieren!
-
-    int zref = 50; // Reference for the Scaling, former value = 25
-    double k_el = lato * E / alpha;
-    double delta = lato / pow(2, nn + 1);
-    double nnodi = pow(pow(2, nn + 1), 2);
+    int E1, E2, csteps, flagwarm, lato, zref, ampface;
+    double nu1, nu2, G1, G2, E, G, nu, alpha, H, rnd, k_el, delta, nnodi;
+    SetParameters(&E1, &E2, &csteps, &flagwarm, &lato, &zref, &ampface, &nu1, &nu2, &G1, &G2, &E, &G, &nu, &alpha, &H, &rnd, &k_el, &delta, &nnodi);
 
     // Meshgrid-Command
     // Identical Vectors/Matricies, therefore only created one here.
