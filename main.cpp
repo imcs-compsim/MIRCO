@@ -376,7 +376,9 @@ int main(int argc, char* argv[]) {
     }
     string randomPath = "C:\..."; // TODO: Change this before debugging!
     Epetra_SerialSymDenseMatrix topology;
-    topology = CreateTopology(systemsize, topology); // hard-code file path for debugging? Nicer, hand into main as command line argument
+    topology = CreateTopology(systemsize, topology, randomPath); 
+    // TODO: Remove 3rd argument when ranmid2d_MP is implemented!
+    // hard-code file path for debugging? Nicer, hand into main as command line argument
 
     double zmax = 0;
     double zmean = 0;
