@@ -235,10 +235,8 @@ void NonlinearSolve(int systemsize, Epetra_SerialSymDenseMatrix& matrix, Epetra_
     double maxiter = 10000;
     bool init = false;
     int n0 = b0.N() * b0.M();
-    vector<int> P(n0), y(n0); // Zeilenvektoren
+    vector<int> P(n0), y0(n0); // Zeilenvektoren
     iter = 0;
-
-
     // Initialize active set
 
     // !!! This seems absolute garbage: !!!
@@ -347,7 +345,7 @@ void NonlinearSolve(int systemsize, Epetra_SerialSymDenseMatrix& matrix, Epetra_
     // TODO: das ist nicht die wirkliche Matrixgröße, wie sie in MATLAB implementiert ist!
 
     // Bringe die matrizen in die richtige Vektorform
-    vector_x.Shape(systemsize, 1);
+    vector_x.Shape(systemsize, 1); // vector_x = 
     vector_b.Shape(systemsize, 1);
 
     // Befülle die rechte Seite b
@@ -382,7 +380,6 @@ int main(int argc, char* argv[]) {
 
     double zmax = 0;
     double zmean = 0;
-
     zmean = topology.NormOne() / pow(topology.N(), 2);
 
     // Can also use zmatrix = topology.NormInf() and
@@ -400,7 +397,6 @@ int main(int argc, char* argv[]) {
 
     // For (maybe) future loop: Here!
     // for (int s = 0; s < csteps; s++){
-
     // Delta(0) = ampface * (0.5) * zmean * 1 / csteps;
     // Delta(s) = ampface * (0.5) * zmean * s / csteps;
     Delta[0] = 39.202067343593399;
