@@ -174,7 +174,6 @@ Epetra_SerialSymDenseMatrix SetUpMatrix(Epetra_SerialDenseMatrix xv0, Epetra_Ser
 }
 
 /*------------------------------------------*/
-// pf, xvf, yvf -> wird dann in der Main implementiert werden müssen! (TODO)
 Epetra_SerialDenseMatrix Warmstart(Epetra_SerialDenseMatrix xv0, Epetra_SerialDenseMatrix yv0, Epetra_SerialDenseMatrix &xvf,
         Epetra_SerialDenseMatrix &yvf, Epetra_SerialDenseMatrix& pf) {
     Epetra_SerialDenseMatrix x0; x0.Shape(xv0.N(), 1);
@@ -203,7 +202,7 @@ Epetra_SerialDenseMatrix Warmstart(Epetra_SerialDenseMatrix xv0, Epetra_SerialDe
             }
         }
 
-        // x0(ind,1)=pf(i); TODO
+        // x0(ind,1)=pf(i);
         for (int y = 0; y < counter; y++) {
             x0(y, 1) = pf(y, 1);
         }
@@ -296,7 +295,7 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
         while (aux2 == true) {
             iter += 1;
             for (int x = 0; x < counter; x++) {
-                s[P[x]] = matrix(P[x], P[x]) / b0(P[x], 1); // Soll das hier b0(P[x], 1) sein? war keine Spalte im Code angegeben!
+                s[P[x]] = matrix(P[x], P[x]) / b0(P[x], P[x]);
                 // This has issues with counter > matrix.rank();
             }
 
@@ -306,11 +305,19 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
             }
             if (allBigger == true) {
                 aux2 = false;
-                // Linear solve für w=A(:,P(1:nP))*y(P(1:nP))-b; ? TODO!!
-                
-                
-                
-                return y; // TODO: Return in einer Void-Funktion?
+                int sum = 0;
+                // w=A(:,P(1:nP))*y(P(1:nP))-b;
+                if (matrix.M() != y.N()) { throw new exception("Fehler 2: Ungültige Matrixdimension!"); }
+                for (int a = 0; a < matrix.N(); a++) {  // A = matrix
+                    for (int b = 0; b < counter; b++) { // counter = nP!
+                        for (int i = 0; i < matrix.M(); i++) {
+                            sum += matrix(a, i) * y(i, b) - b; // b -> in this version just scalar value
+                        }
+                        w(a, b) = sum;
+                        sum = 0;
+                    }
+                }
+                aux1 = true; // Exit condition
             } else {
                 for (int i = 0; i < counter; i++) {
                     if (s[P[i]] < nnlstol) {
@@ -441,7 +448,7 @@ int main(int argc, char* argv[]) {
         // Construction of the Matrix H = A
         Epetra_SerialSymDenseMatrix A = SetUpMatrix(xv0, yv0, delta, E, n0[k], k);
 
-        // TODO: Fertig machen! // TODO: xvf, yvf, pf werden vor der Initialisierung verwendet!
+        // WARNING: xvf, yvf, pf werden vor der Initialisierung verwendet!
         Epetra_SerialDenseMatrix xv0t, yv0t, xvft, yvft, pft, xvfauxt, yvfauxt, pfauxt; // Temporary variables for warmup
         if (flagwarm == 1 && k > 1) {
             // x0=warm_x(xv0(1:n0(k),k),yv0(1:n0(k),k),xvf(1:nf(k-1),k-1),yvf(1:nf(k-1),k-1),pf(1:nf(k-1),k-1));
