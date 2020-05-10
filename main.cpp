@@ -240,11 +240,8 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
     y.Shape(n0, 1);
     vector<int> P(n0), yf(n0);
     iter = 0;
-    // Initialize active set, y0 -> changed to yf (done, namechange)
-
-    // !!! This seems absolute garbage: !!!
-    // inz=find(y0>=nnlstol);
-    // nP = numel(inz);
+    Epetra_SerialDenseMatrix vector_x, vector_b, solverMatrix;
+    // Initialize active set
     int counter = 0;
     vector<int> positions;
     for (int i = 0; i < yf.size(); i++) {
@@ -294,15 +291,28 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
         double eps = 2.2204e-16, alphai = 0, alpha = 100000000, a = 0;
         while (aux2 == true) {
             iter += 1;
+
+            // Linear Solver; s(P(1:nP))=A(P(1:nP),P(1:nP))\b(P(1:nP));
+            solverMatrix.Shape(P[counter], P[counter]); // Initializing vectors for linear solve.
             for (int x = 0; x < counter; x++) {
-                s[P[x]] = matrix(P[x], P[x]) / b0(P[x], P[x]);
-                // This has issues with counter > matrix.rank();
+                for (int y = 0; y < counter; y++) {
+                    solverMatrix(x, y) = matrix(x, y);
+                }
             }
+            for (int x = 0; x < counter; x++) {
+                vector_b(x, 1) = b0(P[x], P[x]);
+            }
+            vector_b.Shape(P[counter], 1); vector_x.Shape(P[counter], 1);
+
+            // This has issues with counter > matrix.rank();
+            LinearSolve(matrix, vector_x, vector_b);
+            s = vector_x;
 
             bool allBigger = true;
             for (int x = 0; x < counter; x++) {
                 if (s[P[x]] < nnlstol) { allBigger = false; }
             }
+
             if (allBigger == true) {
                 aux2 = false;
                 int sum = 0;
@@ -351,23 +361,7 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
             }
         }
     }
-
-    // TODO: This part here is still unused!
-    Epetra_SerialDenseMatrix vector_x;
-    Epetra_SerialDenseMatrix vector_b;
-
-    // Bringe die Matrizen in die richtige Vektorform
-    vector_x.Shape(matrix.N(), 1); // vector_x = 
-    vector_b.Shape(matrix.N(), 1);
-
-    // Befülle die rechte Seite b
-    for (int i = 0; i < matrix.N(); i++) {
-        vector_b(i, 0) = 1;
-    }
-
-    // Rufe den linearen Lösungsalgorithmus
-    LinearSolve(matrix, vector_x, vector_b);
-    Epetra_SerialDenseMatrix vector_c;
+    
 }
 /*------------------------------------------*/
 
