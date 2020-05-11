@@ -266,7 +266,7 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
         init = true;
     }
     
-    vector<double> s(n0);
+    Epetra_SerialDenseMatrix s0; // Replacement for s
     bool aux1 = true, aux2 = true;
     while (aux1 == true) {
         // [wi,i]=min(w);
@@ -289,11 +289,14 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
         }
         int j = 0;
         double eps = 2.2204e-16, alphai = 0, alpha = 100000000, a = 0;
+        vector_b.Shape(P[counter], 1); vector_x.Shape(P[counter], 1);
+        s.Shape(P[counter], 1);
+        solverMatrix.Shape(P[counter], P[counter]);
         while (aux2 == true) {
             iter += 1;
 
             // Linear Solver; s(P(1:nP))=A(P(1:nP),P(1:nP))\b(P(1:nP));
-            solverMatrix.Shape(P[counter], P[counter]); // Initializing vectors for linear solve.
+            // Initializing vectors for linear solve.
             for (int x = 0; x < counter; x++) {
                 for (int y = 0; y < counter; y++) {
                     solverMatrix(x, y) = matrix(x, y);
@@ -302,11 +305,9 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
             for (int x = 0; x < counter; x++) {
                 vector_b(x, 1) = b0(P[x], P[x]);
             }
-            vector_b.Shape(P[counter], 1); vector_x.Shape(P[counter], 1);
-
             // This has issues with counter > matrix.rank();
             LinearSolve(matrix, vector_x, vector_b);
-            s = vector_x;
+            s0 = vector_x;
 
             bool allBigger = true;
             for (int x = 0; x < counter; x++) {
@@ -330,8 +331,8 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
                 aux1 = true; // Exit condition
             } else {
                 for (int i = 0; i < counter; i++) {
-                    if (s[P[i]] < nnlstol) {
-                        alphai = y(P[i], 1) / (eps + y(P[i], 1) - s[P[i]]);
+                    if (s0(P[i], 1´) < nnlstol) {
+                        alphai = y(P[i], 1) / (eps + y(P[i], 1) - s0(P[i]], 1));
                         if (alphai < alpha) {
                             alpha = alphai;
                             j = 1;
@@ -342,12 +343,12 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
 
             while (a < counter) {
                 a += 1;
-                y(P[a], 1) = y(P[a], 1) + alpha * (s[P[a]] - y(P[a], 1));
+                y(P[a], 1) = y(P[a], 1) + alpha * (s0(P[a], 1) - y(P[a], 1));
             }
 
             if (j > 0) {
                 // jth entry in P leaves active set
-                s[P[j]] = 0;
+                s(P[j], 1) = 0;
                 vector<int> P2 = P;
                 for (int i = j; i < (counter - 1); i++) {
                     P2[i + 1] = P[i];
