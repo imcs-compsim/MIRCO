@@ -25,7 +25,7 @@ using namespace std;
         G = pow(((2 - nu1) / (4 * G1) + (2 - nu2) / (4 * G2)), -1);
         nu = E / (2 * G) - 1;
 
-        vector<double> alpha_con = { 0.778958541513360, 0.805513388666376, 0.826126871395416, 0.841369158110513,
+        vector<double> alpha_con{ 0.778958541513360, 0.805513388666376, 0.826126871395416, 0.841369158110513,
         0.851733020725652, 0.858342234203154, 0.862368243479785, 0.864741597831785 };
         int nn = 2; // Matrix sent has the parameter nn=2!
         alpha = alpha_con[nn];
@@ -325,10 +325,10 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
             if (allBigger == true) {
                 aux2 = false;
                 // Linear solve für w=A(:,P(1:nP))*y(P(1:nP))-b; ? TODO!!
-                
-                
-                
-                return y; // TODO: Return in einer Void-Funktion?
+
+
+
+                return; // TODO: Return in einer Void-Funktion?
             } else {
                 for (int i = 0; i < counter; i++) {
                     if (s[P[i]] < nnlstol) {
