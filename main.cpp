@@ -234,6 +234,9 @@ void LinearSolve(Epetra_SerialSymDenseMatrix& matrix,
 
 void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatrix& b0, 
                     Epetra_SerialDenseMatrix& x0, Epetra_SerialDenseMatrix& w, int iter, Epetra_SerialDenseMatrix& y) {
+    Epetra_SerialDenseMatrix vector_x;
+    Epetra_SerialDenseMatrix vector_b;
+    Epetra_SerialSymDenseMatrix local_matrix;
     double nnlstol = 1.0000e-08;
     double maxiter = 10000;
     bool init = false;
@@ -295,10 +298,25 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
         double eps = 2.2204e-16, alphai = 0, alpha = 100000000, a = 0;
         while (aux2 == true) {
             iter += 1;
-            for (int x = 0; x < counter; x++) {
-                s[P[x]] = matrix(P[x], P[x]) / b0(P[x], 1); // Soll das hier b0(P[x], 1) sein? war keine Spalte im Code angegeben!
-                // This has issues with counter > matrix.rank();
-            }
+
+            // Bringe die Matrizen in die richtige Vektorform
+             vector_x.Shape(counter, 1);
+             vector_b.Shape(counter, 1);
+             local_matrix.Shape(counter, counter);
+
+             for (int x = 0; x < counter; x++) {
+               vector_b(x, 1) = b0(P[x], 1);
+               for (int x = 0; x < counter; x++) {
+                 local_matrix(x, x) = matrix(P[x], P[x]);
+               }
+             }
+
+             // Rufe den linearen Lösungsalgorithmus
+             LinearSolve(matrix, vector_x, vector_b);
+
+             for (int x = 0; x < counter; x++) {
+               s[P[x]] = vector_b(x, 1);
+             }
 
             bool allBigger = true;
             for (int x = 0; x < counter; x++) {
@@ -344,23 +362,6 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
             }
         }
     }
-
-    // TODO: This part here is still unused!
-    Epetra_SerialDenseMatrix vector_x;
-    Epetra_SerialDenseMatrix vector_b;
-
-    // Bringe die Matrizen in die richtige Vektorform
-    vector_x.Shape(matrix.N(), 1); // vector_x = 
-    vector_b.Shape(matrix.N(), 1);
-
-    // Befülle die rechte Seite b
-    for (int i = 0; i < matrix.N(); i++) {
-        vector_b(i, 0) = 1;
-    }
-
-    // Rufe den linearen Lösungsalgorithmus
-    LinearSolve(matrix, vector_x, vector_b);
-    Epetra_SerialDenseMatrix vector_c;
 }
 /*------------------------------------------*/
 
