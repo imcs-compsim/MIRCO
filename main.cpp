@@ -488,7 +488,7 @@ int main(int argc, char* argv[]) {
         NonlinearSolve(A, b0new, x0, w, iter, y); // y -> sol, w -> wsol
         
         Epetra_SerialDenseMatrix res1;
-        if (A.M() != y.N()) { throw new exception("Error 1: Matrix dimensions imcompatible"); }
+        if (A.M() != y.N()) { std::runtime_error("Error 1: Matrix dimensions imcompatible"); }
         res1.Shape(A.N(), y.M());
         // res1=A*sol-b0(:,k)-wsol;
         // For some weird reason, adding a vector to a matrix adds it to every coloum/row (???)
