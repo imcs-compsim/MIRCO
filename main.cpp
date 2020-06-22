@@ -378,7 +378,7 @@ int main(int argc, char* argv[]) {
         x[iterator] = i;
         iterator += 1;
     }
-    string randomPath = "C:\..."; // TODO: Change this before debugging!
+    string randomPath = "sup2.dat"; // TODO: Change this before debugging!
     Epetra_SerialSymDenseMatrix topology, y;
     CreateTopology(topology.N(), topology, randomPath); 
     // TODO: Remove 3rd argument when ranmid2d_MP is implemented!
