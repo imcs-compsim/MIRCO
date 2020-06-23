@@ -102,11 +102,11 @@ void CreateTopology(int systemsize, Epetra_SerialDenseMatrix& topology, string f
     }
 }
 
-void createTopology(int systemsize, Epetra_SerialDenseMatrix& topology) {
+/*void createTopology(int systemsize, Epetra_SerialDenseMatrix& topology) {
     // Idea: GENERATING a topology, instead of I/O-Topology!
     // TODO: Insert ranmid2d_MP-Method here!
 
-     /* Only needed once ranmid2d_NP is implemented to create new topology? Put in CreateTopology
+      Only needed once ranmid2d_NP is implemented to create new topology? Put in CreateTopology
         once we are there.
 
         double scalefactor = zref / (zmax - zmean);
@@ -149,8 +149,8 @@ void createTopology(int systemsize, Epetra_SerialDenseMatrix& topology) {
             }
         }
         zmean = zmean / pow(topology.N(), 2);
-    */
 }
+*/
 
 Epetra_SerialSymDenseMatrix SetUpMatrix(Epetra_SerialDenseMatrix xv0, Epetra_SerialDenseMatrix yv0, double delta, 
                                             double E, int systemsize, int k) {
