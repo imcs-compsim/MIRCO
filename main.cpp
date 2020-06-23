@@ -174,7 +174,6 @@ Epetra_SerialSymDenseMatrix SetUpMatrix(Epetra_SerialDenseMatrix xv0, Epetra_Ser
 }
 
 /*------------------------------------------*/
-// pf, xvf, yvf -> wird dann in der Main implementiert werden müssen! (TODO)
 Epetra_SerialDenseMatrix Warmstart(Epetra_SerialDenseMatrix xv0, Epetra_SerialDenseMatrix yv0, Epetra_SerialDenseMatrix &xvf,
         Epetra_SerialDenseMatrix &yvf, Epetra_SerialDenseMatrix& pf) {
     Epetra_SerialDenseMatrix x0; x0.Shape(xv0.N(), 1);
@@ -203,7 +202,7 @@ Epetra_SerialDenseMatrix Warmstart(Epetra_SerialDenseMatrix xv0, Epetra_SerialDe
             }
         }
 
-        // x0(ind,1)=pf(i); TODO
+        // x0(ind,1)=pf(i);
         for (int y = 0; y < counter; y++) {
             x0(y, 1) = pf(y, 1);
         }
@@ -234,9 +233,6 @@ void LinearSolve(Epetra_SerialSymDenseMatrix& matrix,
 
 void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatrix& b0, 
                     Epetra_SerialDenseMatrix& x0, Epetra_SerialDenseMatrix& w, int iter, Epetra_SerialDenseMatrix& y) {
-    Epetra_SerialDenseMatrix vector_x;
-    Epetra_SerialDenseMatrix vector_b;
-    Epetra_SerialSymDenseMatrix local_matrix;
     double nnlstol = 1.0000e-08;
     double maxiter = 10000;
     bool init = false;
@@ -244,11 +240,10 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
     y.Shape(n0, 1);
     vector<int> P(n0), yf(n0);
     iter = 0;
-    // Initialize active set, y0 -> changed to yf (done, namechange)
+    Epetra_SerialSymDenseMatrix solverMatrix;
+    Epetra_SerialDenseMatrix vector_x, vector_b;
 
-    // !!! This seems absolute garbage: !!!
-    // inz=find(y0>=nnlstol);
-    // nP = numel(inz);
+    // Initialize active set
     int counter = 0;
     vector<int> positions;
     for (int i = 0; i < yf.size(); i++) {
@@ -269,11 +264,12 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
         for (int i = 0; i < counter; i++) {
             P[i] = positions[i];
         }
-        w.Shape(counter, 1);
+        w.Shape(b0.N(), b0.M());
         init = true;
     }
     
-    vector<double> s(n0);
+    Epetra_SerialDenseMatrix s0; // Replacement for s
+    s0.Shape(counter, 1);
     bool aux1 = true, aux2 = true;
     while (aux1 == true) {
         // [wi,i]=min(w);
@@ -285,7 +281,7 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
             }
         }
 
-        if ((counter == n0) || ( minValue > -nnlstol) || ((iter == maxiter) || (iter > maxiter)) && (init == false)) {
+        if (((counter == n0) || ( minValue > -nnlstol) || (iter >= maxiter)) && (init == false)) {
             aux1 = false;
         } else {
             if (init == false) {
@@ -299,40 +295,49 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
         while (aux2 == true) {
             iter += 1;
 
-            // Bringe die Matrizen in die richtige Vektorform
+             //Shape Vectors for linear solve
              vector_x.Shape(counter, 1);
              vector_b.Shape(counter, 1);
-             local_matrix.Shape(counter, counter);
+             solverMatrix.Shape(counter, counter);
 
              for (int x = 0; x < counter; x++) {
-               vector_b(x, 1) = b0(P[x], 1);
-               for (int x = 0; x < counter; x++) {
-                 local_matrix(x, x) = matrix(P[x], P[x]);
+               for (int y = 0; y < counter; y++) {
+                 solverMatrix(x, y) = matrix(P[x], P[y]);
                }
              }
 
-             // Rufe den linearen Lösungsalgorithmus
-             LinearSolve(matrix, vector_x, vector_b);
+            for (int x = 0; x < counter; x++) {
+                vector_b(x, 1) = b0(P[x], 1);
+            }
+
+             // Call linear solve
+             LinearSolve(solverMatrix, vector_x, vector_b);
 
              for (int x = 0; x < counter; x++) {
-               s[P[x]] = vector_b(x, 1);
+               s0(P[x], 1) = vector_b(x, 1);
              }
 
             bool allBigger = true;
             for (int x = 0; x < counter; x++) {
-                if (s[P[x]] < nnlstol) { allBigger = false; }
+                if (s0(P[x], 1) < nnlstol) { allBigger = false; }
             }
+
             if (allBigger == true) {
                 aux2 = false;
-                // Linear solve für w=A(:,P(1:nP))*y(P(1:nP))-b; ? TODO!!
-
-
-
-                return; // TODO: Return in einer Void-Funktion?
-            } else {
+                // w=A(:,P(1:nP))*y(P(1:nP))-b;
+                if (matrix.M() != y.N()) { std::runtime_error("Fehler 2: Ungültige Matrixdimension!"); }
+                for (int a = 0; a < matrix.N(); a++) {  // A = matrix
+                    w(a,1) = 0;
+                    for (int i = 0; i < matrix.M(); i++) {
+                      w(a, 1) += matrix(a, P[i]) * y(P[i], 1) - b0(a, 1);
+                  }
+                }
+                aux1 = true; // Exit condition
+            }
+            else {
                 for (int i = 0; i < counter; i++) {
-                    if (s[P[i]] < nnlstol) {
-                        alphai = y(P[i], 1) / (eps + y(P[i], 1) - s[P[i]]);
+                    if (s0(P[i], 1) < nnlstol) {
+                        alphai = y(P[i], 1) / (eps + y(P[i], 1) - s0(P[i], 1));
                         if (alphai < alpha) {
                             alpha = alphai;
                             j = 1;
@@ -343,12 +348,12 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
 
             while (a < counter) {
                 a += 1;
-                y(P[a], 1) = y(P[a], 1) + alpha * (s[P[a]] - y(P[a], 1));
+                y(P[a], 1) = y(P[a], 1) + alpha * (s0(P[a], 1) - y(P[a], 1));
             }
 
             if (j > 0) {
                 // jth entry in P leaves active set
-                s[P[j]] = 0;
+                s0(P[j], 1) = 0;
                 vector<int> P2 = P;
                 for (int i = j; i < (counter - 1); i++) {
                     P2[i + 1] = P[i];
@@ -446,7 +451,6 @@ int main(int argc, char* argv[]) {
 
         //Second predictor for the contact set
         //@{
-        // TODO: Fertig machen! // TODO: xvf, yvf, pf werden vor der Initialisierung verwendet!
         Epetra_SerialDenseMatrix xv0t, yv0t, xvft, yvft, pft, xvfauxt, yvfauxt, pfauxt; // Temporary variables for warmup
         if (flagwarm == 1 && k > 1) {
             // x0=warm_x(xv0(1:n0(k),k),yv0(1:n0(k),k),xvf(1:nf(k-1),k-1),yvf(1:nf(k-1),k-1),pf(1:nf(k-1),k-1));
