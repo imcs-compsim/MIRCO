@@ -405,14 +405,14 @@ int main(int argc, char* argv[]) {
     // Delta(0) = ampface * (0.5) * zmean * 1 / csteps;
     // Delta(s) = ampface * (0.5) * zmean * s / csteps;
     Delta[0] = 39.202067343593399;
-    int errf = 100000000;
-    float to1 = 0.01;
-    vector<double> force0(csteps), area0(csteps), w_el0(csteps);
+    int errf = 100000000; // todo Put this into SetParameters
+    float to1 = 0.01; // todo Put this into SetParameters
+    vector<double> force0(csteps), area0(csteps), w_el0(csteps); // todo completely remove loop, csteps, ect from code! -> every vector with length csteps is now a scalar
     vector<int> w_el; // Change w_el to vector for loop
     w_el[0] = 0;
     int k = 0;
     vector<int> n0;
-    Epetra_SerialDenseMatrix xv0, yv0, b0, x0, nf, xvfaux, yvfaux, pfaux, xvf, yvf, pf;
+    Epetra_SerialDenseMatrix xv0, yv0, b0, x0, nf, xvfaux, yvfaux, pfaux, xvf, yvf, pf; // todo We need to shape all of them!
     nf.Shape(csteps, 1); xvfaux.Shape(csteps, 1); yvfaux.Shape(csteps, 1); pfaux.Shape(csteps, 1);
     while (errf > to1) {
         k += 1;
@@ -486,11 +486,11 @@ int main(int argc, char* argv[]) {
 
         Epetra_SerialDenseMatrix b0new; b0new.Shape(b0.M(), 1);
         for (int i = 0; i < b0.M(); i++) {
-            b0new(i, 1) = b0(i, k);
+            b0new(i, 1) = b0(i, k);  //todo Why is this necessary?
         }
 
         Epetra_SerialDenseMatrix w;
-        int iter;
+        int iter; // todo This is only given to the NonlinearSolve function in MATLAB to be able to print it later on. Let's not do this here.
         NonlinearSolve(A, b0new, x0, w, iter, y); // y -> sol, w -> wsol
         
         //Compute residual
@@ -499,7 +499,7 @@ int main(int argc, char* argv[]) {
         if (A.M() != y.N()) { std::runtime_error("Error 1: Matrix dimensions incompatible"); }
         res1.Shape(A.N(), y.M());
         // res1=A*sol-b0(:,k)-wsol;
-        // For some weird reason, adding a vector to a matrix adds it to every coloum/row (???)
+        // For some weird reason, adding a vector to a matrix adds it to every column/row (???) todo Not really. Change this and use library functions instead
         int sum = 0;
         for (int x = 0; x < A.N(); x++) {
             for (int z = 0; z < y.M(); z++) {
@@ -550,6 +550,7 @@ int main(int argc, char* argv[]) {
 
     }
 
+    //Todo we do not need all this stuff, if we do not use a global loop. Just remove this.
     // Change this for global loop!
     for (int i = 0; i < nf(k, 1); i++) {
         xvfaux(i, 0) = xvf(i, k);
