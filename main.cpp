@@ -377,17 +377,17 @@ int main(int argc, char* argv[]) {
     for (int i = delta / 2; i < (lato - delta / 2); i = i + delta) {
         x.push_back(i);
     }
+
+    //Setup the topology
     string randomPath = "sup2.dat"; // TODO: Change this before debugging!
     Epetra_SerialSymDenseMatrix topology, y;
     CreateTopology(topology.N(), topology, randomPath); 
     // TODO: Remove 3rd argument when ranmid2d_MP is implemented!
-    // hard-code file path for debugging? Nicer, hand into main as command line argument
 
     double zmax = 0;
     double zmean = 0;
     zmean = topology.NormOne() / pow(topology.N(), 2);
-
-    // Can also use zmatrix = topology.NormInf() and
+    // Can also use zmax = topology.NormInf() and
     // zmean = topology.NormOne()/pow(topology.N(), 2)
     // topology.N() should send dimension of matrix
     for (int i = 1; i < topology.N() + 1; i++) {
@@ -417,6 +417,9 @@ int main(int argc, char* argv[]) {
     while (errf > to1) {
         k += 1;
 
+        //First Predictor for contact set
+        //All points, for which the gap is bigger than the displacement of the rigid indenter, cannot be in contact and are thus not checked in the nonlinear solve
+        //@{
         // [ind1,ind2]=find(z>=(zmax-(Delta(s)+w_el(k))));
         vector<int> col, row;
         int counter = 0;
@@ -436,10 +439,13 @@ int main(int argc, char* argv[]) {
             yv0(i, k) = y(row[i], 1);
             b0(i, k) = Delta[0] + w_el[k] - (zmax - topology(row[i], col[i]));
         }
+        //}
 
         // Construction of the Matrix H = A
         Epetra_SerialSymDenseMatrix A = SetUpMatrix(xv0, yv0, delta, E, n0[k], k);
 
+        //Second predictor for the contact set
+        //@{
         // TODO: Fertig machen! // TODO: xvf, yvf, pf werden vor der Initialisierung verwendet!
         Epetra_SerialDenseMatrix xv0t, yv0t, xvft, yvft, pft, xvfauxt, yvfauxt, pfauxt; // Temporary variables for warmup
         if (flagwarm == 1 && k > 1) {
@@ -476,17 +482,21 @@ int main(int argc, char* argv[]) {
         else {
             x0.Shape(b0.N(), 1);
         }
+        //}
 
         Epetra_SerialDenseMatrix b0new; b0new.Shape(b0.M(), 1);
         for (int i = 0; i < b0.M(); i++) {
             b0new(i, 1) = b0(i, k);
         }
+
         Epetra_SerialDenseMatrix w;
         int iter;
         NonlinearSolve(A, b0new, x0, w, iter, y); // y -> sol, w -> wsol
         
+        //Compute residual
+        //@{
         Epetra_SerialDenseMatrix res1;
-        if (A.M() != y.N()) { std::runtime_error("Error 1: Matrix dimensions imcompatible"); }
+        if (A.M() != y.N()) { std::runtime_error("Error 1: Matrix dimensions incompatible"); }
         res1.Shape(A.N(), y.M());
         // res1=A*sol-b0(:,k)-wsol;
         // For some weird reason, adding a vector to a matrix adds it to every coloum/row (???)
@@ -500,7 +510,10 @@ int main(int argc, char* argv[]) {
                 sum = 0;
             }
         }
+        //}
 
+        //Compute number of contact nodes
+        //@{
         int cont = 0;
         xvf.Shape(A.N(), k); yvf.Shape(A.N(), k); pf.Shape(A.N(), k);
         for (int i = 0; i < A.N(); i++) {
@@ -512,12 +525,19 @@ int main(int argc, char* argv[]) {
             }
         }
         nf(k, 1) = cont;
+        //}
+
+        //Compute contact force and contact area
         force0[k] = 0;
         for (int i = 0; i < nf(k, 1); i++) {
             force0[k] = force0[k] + pf(i, k);
             area0[k] = nf(k, 1) * (pow(delta, 2) / pow(lato, 2)) * 100;
         }
+
+        //Compute contact pressure
         w_el0[k + 1] = force0[k] / k_el;
+
+        //Compute error because of nonlinear correction
         if (k > 1) {
             // errf(k) = abs((force0(k)-force0(k-1))/force0(k));
             errf = (force0[k] - force0[k - 1]) / force0[k];
