@@ -373,10 +373,9 @@ int main(int argc, char* argv[]) {
     // Meshgrid-Command
     // Identical Vectors/Matricies, therefore only created one here.
     vector<double> x;
-    int iterator = 0;
+
     for (int i = delta / 2; i < (lato - delta / 2); i = i + delta) {
-        x[iterator] = i;
-        iterator += 1;
+        x.push_back(i);
     }
     string randomPath = "sup2.dat"; // TODO: Change this before debugging!
     Epetra_SerialSymDenseMatrix topology, y;
@@ -424,10 +423,9 @@ int main(int argc, char* argv[]) {
         double value = zmax - Delta[0] + w_el[k];
         for (int i = 0; i < topology.N(); i++) {
             for (int j = 0; j < topology.N(); j++) {
-                if ((topology(i, j) > value) || (topology(i, j) == value)) {
-                    col[counter] = i;
-                    row[counter] = j;
-                    counter += 1;
+                if ((topology(i, j) >= value)) {
+                    col.push_back(i);
+                    row.push_back(j);
                 }
             }
         }
