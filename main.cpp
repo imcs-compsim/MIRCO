@@ -503,7 +503,7 @@ int main(int argc, char* argv[]) {
         if (A.M() != y.N()) { std::runtime_error("Error 1: Matrix dimensions incompatible"); }
         res1.Shape(A.N(), y.M());
         // res1=A*sol-b0(:,k)-wsol;
-        // For some weird reason, adding a vector to a matrix adds it to every column/row (???) todo Not really. Change this and use library functions instead
+        // For some weird reason, adding a vector to a matrix adds it to every column/row (???) TODO Not really, res1 is a vector, z is a vector
         int sum = 0;
         for (int x = 0; x < A.N(); x++) {
             for (int z = 0; z < y.M(); z++) {
