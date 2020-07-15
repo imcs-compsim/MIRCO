@@ -80,6 +80,7 @@ void CreateTopology(int systemsize, Epetra_SerialDenseMatrix& topology, string f
                 line = line.substr(separatorPosition + 1, line.length());
                 if (line.length() < 2) { i = -1; } // exit condition to avoid error's, non-scientific!
                 if (container == "" || container == ";") { i = -1; } // exit condition to avoid duplication of values!
+
                 if (container.substr(0, 1) == "-") { // Substring Double-Value!
                     negative = true;
                     container = container.substr(1, container.length() - 1);
@@ -293,7 +294,7 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
             vector_b.Shape(counter, 1);
             local_matrix.Shape(counter, counter);
 
-            for (int x = 0; x < counter; x++) {
+            for (int x = 0; x < counter, x++) {
                 vector_b(x, 1) = b0(P[x], 1);
                 for (int y = 0; y < counter; y++) {
                     local_matrix(x, y) = matrix(P[x], P[y]);
@@ -397,7 +398,7 @@ int main(int argc, char* argv[]) {
     Delta[0] = 39.202067343593399;
 
     double force0, area0, w_el0;
-    int w_el = 0;
+    w_el = 0;
     int k = 0;
     vector<int> n0;
     Epetra_SerialDenseMatrix xv0, yv0, b0, x0, nf, xvfaux, yvfaux, pfaux, xvf, yvf, pf; // x0: initialized in Warmstart!
