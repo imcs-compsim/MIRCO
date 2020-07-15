@@ -2,3 +2,5 @@ include/
 *.o
 bem
 BEM_routines
+.cproject
+.project
