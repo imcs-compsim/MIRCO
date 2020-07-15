@@ -230,8 +230,6 @@ void LinearSolve(Epetra_SerialSymDenseMatrix& matrix,
 
 void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatrix& b0,
     Epetra_SerialDenseMatrix& x0, Epetra_SerialDenseMatrix& w, Epetra_SerialDenseMatrix& y) {
-    Epetra_SerialDenseMatrix vector_x;
-    Epetra_SerialDenseMatrix vector_b;
     Epetra_SerialSymDenseMatrix local_matrix;
     double nnlstol = 1.0000e-08;
     double maxiter = 10000;
