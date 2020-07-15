@@ -1,0 +1,1 @@
+#include "Thyra_DefaultClusteredSpmdProductVectorSpace_decl.hpp"

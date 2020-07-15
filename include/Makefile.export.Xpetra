@@ -1,0 +1,110 @@
+##############################################################################
+#
+# Make variables for use by Trilinos/Xpetra clients. 
+#
+# Do not edit: This file was generated automatically by CMake.
+#
+##############################################################################
+
+
+## ---------------------------------------------------------------------------
+## Compilers used by Trilinos/Xpetra build
+## ---------------------------------------------------------------------------
+
+Xpetra_CXX_COMPILER=/usr/bin/mpic++
+
+Xpetra_C_COMPILER=/usr/bin/mpicc
+
+Xpetra_FORTRAN_COMPILER=/usr/bin/mpif90
+Xpetra_Fortran_COMPILER=/usr/bin/mpif90
+
+
+## ---------------------------------------------------------------------------
+## Compiler flags used by Trilinos/Xpetra build
+## ---------------------------------------------------------------------------
+
+## Set compiler flags, including those determined by build type
+Xpetra_CXX_FLAGS= -pedantic -Wall -Wno-long-long -Wwrite-strings -Wshadow -Woverloaded-virtual  -std=c++11 -O3
+Xpetra_CXX_COMPILER_FLAGS= -pedantic -Wall -Wno-long-long -Wwrite-strings -Wshadow -Woverloaded-virtual  -std=c++11 -O3
+
+Xpetra_C_FLAGS= -pedantic -Wall -Wno-long-long -std=c99 -O3
+Xpetra_C_COMPILER_FLAGS= -pedantic -Wall -Wno-long-long -std=c99 -O3
+
+Xpetra_FORTRAN_FLAGS= -O3
+Xpetra_Fortran_COMPILER_FLAGS= -O3
+
+## Extra link flags (e.g., specification of fortran libraries)
+Xpetra_EXTRA_LD_FLAGS=
+
+## This is the command-line entry used for setting rpaths. In a build
+## with static libraries it will be empty. 
+Xpetra_SHARED_LIB_RPATH_COMMAND=
+Xpetra_BUILD_SHARED_LIBS=OFF
+
+Xpetra_LINKER=/usr/bin/ld
+Xpetra_AR=/usr/bin/ar
+
+## ---------------------------------------------------------------------------
+## Set library specifications and paths 
+## ---------------------------------------------------------------------------
+
+## The project version number
+Xpetra_VERSION=12.3
+
+## List of package include dirs
+Xpetra_INCLUDE_DIRS= -I/rzhome/nas/compsim/public/lib/Q1_2015/TPL/trilinos-build/include
+
+## List of package library paths
+Xpetra_LIBRARY_DIRS= -L/rzhome/nas/compsim/public/lib/Q1_2015/TPL/trilinos-build/lib
+
+## List of package libraries
+Xpetra_LIBRARIES= -lxpetra-sup -lxpetra-ext -lxpetra -lepetraext -ltpetraext -ltpetrainout -ltpetra -lkokkostsqr -ltpetrakernels -ltpetraclassiclinalg -ltpetraclassicnodeapi -ltpetraclassic -ltriutils -lepetra -lteuchoskokkoscomm -lteuchoskokkoscompat -lteuchosremainder -lteuchosnumerics -lteuchoscomm -lteuchosparameterlist -lteuchoscore -lkokkosalgorithms -lkokkoscontainers -lkokkoscore
+
+## Specification of directories for TPL headers
+Xpetra_TPL_INCLUDE_DIRS= -I/rzhome/nas/compsim/public/lib/Q1_2015/TPL/include -I/usr/include
+
+## Specification of directories for TPL libraries
+Xpetra_TPL_LIBRARY_DIRS=
+
+## List of required TPLs
+Xpetra_TPL_LIBRARIES= /rzhome/nas/compsim/public/lib/Q1_2015/TPL/lib/libumfpack.a /rzhome/nas/compsim/public/lib/Q1_2015/TPL/lib/libamd.a /usr/lib/liblapack.so /usr/lib/libblas.so
+
+## ---------------------------------------------------------------------------
+## MPI specific variables
+##   These variables are provided to make it easier to get the mpi libraries
+##   and includes on systems that do not use the mpi wrappers for compiling
+## ---------------------------------------------------------------------------
+
+Xpetra_MPI_LIBRARIES=
+Xpetra_MPI_LIBRARY_DIRS=
+Xpetra_MPI_INCLUDE_DIRS=
+Xpetra_MPI_EXEC=/usr/bin/mpiexec
+Xpetra_MPI_EXEC_MAX_NUMPROCS=4
+Xpetra_MPI_EXEC_NUMPROCS_FLAG=-np
+
+## ---------------------------------------------------------------------------
+## Set useful general variables 
+## ---------------------------------------------------------------------------
+
+## The packages enabled for this project
+Xpetra_PACKAGE_LIST= Xpetra EpetraExt Tpetra TpetraCore TpetraTSQR TpetraKernels TpetraClassic Triutils Epetra Teuchos TeuchosKokkosComm TeuchosKokkosCompat TeuchosRemainder TeuchosNumerics TeuchosComm TeuchosParameterList TeuchosCore KokkosAlgorithms KokkosContainers KokkosCore
+
+## The TPLs enabled for this project
+Xpetra_TPL_LIST= UMFPACK Boost LAPACK BLAS MPI Pthread
+
+## ---------------------------------------------------------------------------
+## Deprecated variables
+##   These variables from the autotools version of Makefile.export.<package>
+##   have been deprecated. To help avoid confusion with projects that haven't
+##   migrated to the new version of the variable names when the don't compile.
+##   This will put an obvious statement in the link line that these Trilinos
+##   Makefile variables are no longer used. Without this there would be a link
+##   error with no obvious reason as to why other than the lack of Trilinos libs
+##   which would be confusing since the link line in the Makefile would have 
+##   stated to put them on the line.
+## ---------------------------------------------------------------------------
+
+XPETRA_LIBS="The Trilinos variable XPETRA_LIBS has been deprecated. Please see the documentation on the Makefile.export capability for instructions on how to transition to the new system."
+XPETRA_INCLUDES="The Trilinos variable XPETRA_INCLUDES has been deprecated. Please see the documentation on the Makefile.export capability for instructions on how to transition to the new system."
+
+

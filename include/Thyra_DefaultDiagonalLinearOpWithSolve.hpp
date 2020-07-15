@@ -1,0 +1,1 @@
+#include "Thyra_DefaultDiagonalLinearOpWithSolve_decl.hpp"
