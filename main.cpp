@@ -243,8 +243,8 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
     // Initialize active set
     vector<int> positions;
     int counter = 0;
-    for (int i = 0; i < y0.size(); i++) {
-        if ((y0(i, 1) == nnlstol) || (yf(i, 1) > nnlstol)) {
+    for (int i = 0; i < y0.M(); i++) {
+        if ((y0(i, 1) == nnlstol) || (y0(i, 1) > nnlstol)) {
             positions.push_back(i);
             counter += 1;
         }
@@ -277,10 +277,9 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
             }
         }
 
-        if ((counter == n0) || (minValue > -nnlstol)) && (init == false)) {
+        if ((counter == n0) || (minValue > -nnlstol) && (init == false)) {
             aux1 = false;
-        }
-        else {
+        } else {
             if (init == false) {
                 // Index #i enter active index
                 counter += 1;
@@ -294,7 +293,7 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
             vector_b.Shape(counter, 1);
             solverMatrix.Shape(counter, counter);
 
-            for (int x = 0; x < counter, x++) {
+            for (int x = 0; x < counter; x++) {
                 vector_b(x, 1) = b0(P[x], 1);
                 for (int z = 0; z < counter; z++) {
                     solverMatrix(x, z) = matrix(P[x], P[z]);
@@ -309,7 +308,7 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
 
             bool allBigger = true;
             for (int x = 0; x < counter; x++) {
-                if (s(P[x], 1) < nnlstol) { allBigger = false; }
+                if (s0(P[x], 1) < nnlstol) { allBigger = false; }
             }
 
             if (allBigger == true) {
@@ -375,7 +374,7 @@ int main(int argc, char* argv[]) {
     for (int i = delta / 2; i < (lato - delta / 2); i = i + delta) { x.push_back(i); }
 
     // Setup Topology
-    string randomPath = "C:\..."; // TODO: Change this before debugging!
+    string randomPath = "/home/bartsch/BEM/sub.dat"; // TODO: Change this before debugging!
     Epetra_SerialSymDenseMatrix topology, y;
     CreateTopology(topology.N(), topology, randomPath);
     // TODO: Remove 3rd argument when ranmid2d_MP is implemented!
@@ -506,12 +505,9 @@ int main(int argc, char* argv[]) {
         int sum = 0;
         for (int x = 0; x < A.N(); x++) {
             for (int z = 0; z < y.M(); z++) {
-                sum += A(x, y) * y(x, 1);
+                sum += A(x, z) * y(x, 1);
             }
-            res1(x, z) = sum - b0new(x, 1) - w(x, 1); // [...]-b0(:,k) - wsol;
-            // b0new is already k'th colloum!
-                                                      
-            // This might needs to be b0(x, k) or b0new(x, k)!
+            res1(x, 1) = sum - b0new(x, 1) - w(x, 1); // [...]-b0(:,k) - wsol;
             sum = 0;
         }
         // }
@@ -574,5 +570,5 @@ int main(int argc, char* argv[]) {
     double sigmaz = force / pow(lato, 2);
     // Pressure unit per depth
     double pressz = sigmaz;
-    cout << "Mean pressure is:" + sigmaz + " ; pressure unit per depth is:" + pressz + " . \n";
+    cout << "Mean pressure is:" + std::to_string(sigmaz) + " ; pressure unit per depth is:" + std::to_string(pressz) + " . \n";
 }
