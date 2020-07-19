@@ -239,6 +239,9 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
     vector<int> P(n0);
     Epetra_SerialDenseMatrix vector_x, vector_b;
     Epetra_SerialSymDenseMatrix solverMatrix;
+    
+    // DEBUG
+    cout << "Pre-Setup done. \n";
 
     // Initialize active set
     vector<int> positions;
@@ -249,9 +252,17 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
             counter += 1;
         }
     }
-
+    
+    // DEBUG
+    cout << "Active set initialized. \n";
+    
+    // Avoid .N() = 0 or .M() = 0, completely wrecks code otherwise
+    int b0_N = 1, b0_M = 1;
+    if (b0.N() > 1){ b0_N = b0.N(); }
+    if (b0.M() > 1){ b0_M = b0.N(); }
+    w.Shape(b0_N, b0_M);
+    
     if (counter == 0) {
-        w.Shape(b0.N(), b0.M());
         for (int x = 0; x < b0.N(); x++) {
             for (int z = 0; z < b0.M(); z++) {
                 w(x, z) = -b0(x, z);
@@ -261,18 +272,21 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
         for (int i = 0; i < counter; i++) {
             P.push_back(positions[i]);
         }
-        w.Shape(b0.N(), b0.M());
         init = true;
     }
-
+    
     Epetra_SerialDenseMatrix s0; s0.Shape(counter, 1); // Replacement for s
     bool aux1 = true, aux2 = true;
+    
+    // DEBUG
+    cout << "While-Loop starting. \n";
+    
     while (aux1 == true) {
         // [wi,i]=min(w);
-        int minValue = w(0, 0), minPosition = 0;
+        int minValue = w(1, 1), minPosition = 0;
         for (int i = 0; i < w.M(); i++) {
-            if (minValue > w(0, i)) {
-                minValue = w(0, i);
+            if (minValue > w(1, i + 1)) {
+                minValue = w(1, i + 1);
                 minPosition = i;
             }
         }
@@ -283,24 +297,51 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
             if (init == false) {
                 // Index #i enter active index
                 counter += 1;
-                P[counter] = minPosition;
+                P.push_back(minPosition);
             }
         }
+        
+        // DEBUG
+        cout << "Part 1 done. \n";
+        
         int j = 0;
-        double eps = 2.2204e-16, alphai = 0, alpha = 100000000, a = 0;
+        double eps = 2.2204e-16; int alphai = 0, alpha = 100000000, a = 0;
         while (aux2 == true) {
-            vector_x.Shape(counter, 1);
-            vector_b.Shape(counter, 1);
-            solverMatrix.Shape(counter, counter);
+        	
+        	// DEBUG
+        	cout << "Counter has value: " + to_string(counter) + " .\n";
+        	
+        	// Avoid errors
+        	if (counter < 1){ counter = 1; } 
+        	
+            vector_x.Shape(counter + 1, 1);
+            vector_b.Shape(counter + 1, 1);
+            solverMatrix.Shape(counter + 1, counter + 1);
 
-            for (int x = 0; x < counter; x++) {
-                vector_b(x, 1) = b0(P[x], 1);
-                for (int z = 0; z < counter; z++) {
-                    solverMatrix(x, z) = matrix(P[x], P[z]);
+            for (int x = 1; x < counter + 1; x++) {
+            	try {
+            		vector_b(x, 1) = b0(P[x], 1);
+            	} catch (const std::runtime_error& e) {
+            		vector_b(x, 1) = 0;	// MatLab standart value if not initialized
+            	}
+            	cout << "vector_b(1, 1) is: " + to_string(vector_b(1, 1)) +  " .\n";
+                for (int z = 1; z < counter + 1; z++) {
+                	try {
+                		solverMatrix(x, z) = matrix(P[x], P[z]);
+                	} catch (const std::runtime_error& e){
+                		solverMatrix(x, z) = 0; // MatLab standart value if not initialized
+                	}
                 }
             }
-
-            LinearSolve(matrix, vector_x, vector_b);
+            cout << "Matrix entry is: " + to_string(solverMatrix(1, 1)) + " \n";
+            
+            // DEBUG
+            cout << "Part 2 done. \n";
+            
+            // Linear solve
+            LinearSolve(solverMatrix, vector_x, vector_b);
+            
+            cout << "Linear solve done. \n";
 
             for (int x = 0; x < counter; x++) {
                 s0(P[x], 1) = vector_b(x, 1);
@@ -314,7 +355,7 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
             if (allBigger == true) {
                 aux2 = false;
 
-                if (matrix.M() != y.N()) { std::runtime_error("Fehler 2: Ungültige Matrixdimension!"); }
+                if (matrix.M() != y.N()) { std::runtime_error("Fehler 2: Ungültige Matrixdimension! \n"); }
 
                 // w=A(:,P(1:nP))*y(P(1:nP))-b;
                 for (int a = 0; a < matrix.N(); a++) {
@@ -348,10 +389,10 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
                 vector<int> P2 = P;
                 P2.push_back(0);
                 for (int i = 0; i < j; i++) {
-                    P2[i] = P[i];
+                    P2.push_back(P[i]);
                 }
                 for (int i = j; i < (counter - 1); i++) {
-                    P2[i] = P[i + 1];
+                    P2.push_back(P[i + 1]);
                 }
                 P = P2;
                 P[counter] = 0;
@@ -368,6 +409,10 @@ int main(int argc, char* argv[]) {
     float to1;
     SetParameters(E1, E2, csteps, flagwarm, lato, zref, ampface, nu1, nu2, G1, G2, E, G, nu, alpha, H, rnd, k_el, delta, nnodi, errf, to1);
 
+    
+    // DEBUG
+    cout << "Parameters set. \n";
+    
     // Meshgrid-Command
     // Identical Vectors/Matricies, therefore only created one here.
     vector<double> x;
@@ -378,6 +423,9 @@ int main(int argc, char* argv[]) {
     Epetra_SerialSymDenseMatrix topology, y;
     CreateTopology(topology.N(), topology, randomPath);
     // TODO: Remove 3rd argument when ranmid2d_MP is implemented!
+    
+    // DEBUG
+    cout << "Topology created. \n";
 
     double zmax = 0;
     double zmean = 0;
@@ -404,10 +452,36 @@ int main(int argc, char* argv[]) {
     vector<int> n0;
     Epetra_SerialDenseMatrix xv0, yv0, b0, x0, nf, xvfaux, yvfaux, pfaux, xvf, yvf, pf; // x0: initialized in Warmstart!
     nf.Shape(csteps, 1); xvfaux.Shape(csteps, 1); yvfaux.Shape(csteps, 1); pfaux.Shape(csteps, 1);
+    
+    // DEBUG
+    cout << "While-Loop started. \n";
+    
+    // So far so good
+    
     while (errf > to1) {
         k += 1;
+        
+        // First predictor for contact set
+        // All points, for which gap is bigger than the displacement of the rigid indenter, cannot be in contact and thus are not checked in
+        // nonlinear solve
+        // @{
+        
+        // [ind1,ind2]=find(z>=(zmax-(Delta(s)+w_el(k))));
+        vector<int> col, row;
+        double value = zmax - Delta + w_el;
+        for (int i = 0; i < topology.N(); i++) {
+        	for (int j = 0; j < topology.N(); j++) {
+        		if (topology(i, j) >= value) {
+        			col.push_back(i);
+        			row.push_back(j);
+        			// counter += 1;
+        		}
+        	}
+        }
+        n0.push_back(col.size());
+        
         if (k == 1) { // initialize vectors
-            xv0.Shape(n0[k], k); yv0.Shape(n0[k], k); b0.Shape(n0[k], k);
+            xv0.Shape(n0[0], 1); yv0.Shape(n0[0], 1); b0.Shape(n0[0], 1);
         } else { // Initialize matricies with already generated values and an empty row
             Epetra_SerialDenseMatrix a; a.Shape(n0[k], k);
             for (int b = 0; b < n0[k - 1]; b++) {
@@ -432,41 +506,30 @@ int main(int argc, char* argv[]) {
             b0 = a;
         }
 
-        // First predictor for contact set
-        // All points, for which gap is bigger than the displacement of the rigid indenter, cannot be in contact and thus are not checked in
-        // nonlinear solve
-        // @{
-
-        // [ind1,ind2]=find(z>=(zmax-(Delta(s)+w_el(k))));
-        vector<int> col, row;
-        double value = zmax - Delta + w_el;
-        for (int i = 0; i < topology.N(); i++) {
-            for (int j = 0; j < topology.N(); j++) {
-                if (topology(i, j) >= value) {
-                    col.push_back(i);
-                    row.push_back(j);
-                    // counter += 1;
-                }
-            }
-        }
-        n0.push_back(col.size());
-
-        for (int i = 0; i < n0[k]; i++) {
+        for (int i = 0; i < n0[k - 1]; i++) {
             xv0(i, k) = x[row[i]];
             yv0(i, k) = y(row[i], 1);
             b0(i, k) = Delta + w_el - (zmax - topology(row[i], col[i]));
         }
-
         // }
+        
+        // DEBUG
+        cout << "First predictor done. \n";
 
         // Construction of the Matrix H = A
         Epetra_SerialSymDenseMatrix A = SetUpMatrix(xv0, yv0, delta, E, n0[k], k);
+        
+        // DEBUG
+        cout << "Matrix set up. \n";
 
         // Second predictor for contact set
         // @{
         
         Epetra_SerialDenseMatrix xv0t, yv0t, xvft, yvft, pft; // Temporary variables for warmup
         if (flagwarm == 1 && k > 1) {
+        	// DEBUG
+        	cout << "Warmstart active. \n";
+        	
             // x0=warm_x(xv0(1:n0(k),k),yv0(1:n0(k),k),xvf(1:nf(k-1),k-1),yvf(1:nf(k-1),k-1),pf(1:nf(k-1),k-1));
             xv0t.Shape(1, n0[k]); yv0t.Shape(1, n0[k]); xvft.Shape(1, nf(k - 1, 1));
             yvft.Shape(1, nf(k - 1, 1)); pft.Shape(1, nf(k - 1, 1));
@@ -481,10 +544,19 @@ int main(int argc, char* argv[]) {
             }
             x0 = Warmstart(xv0t, yv0t, xvft, yvf, pft);
         } else {
-            x0.Shape(b0.N(), 1);
+        	// DEBUG
+        	cout << "Warmstart inactive. \n";
+        	
+        	if (b0.N() > 0) {
+        		x0.Shape(b0.N(), 1);
+        	} else {
+        		x0.Shape(1, 1);
+        	}
         }
-
         // }
+        
+        // DEBUG
+        cout << "Second predictor done. \n";
 
         Epetra_SerialDenseMatrix b0new; b0new.Shape(b0.M(), 1);
         for (int i = 0; i < b0.M(); i++) {
@@ -492,8 +564,10 @@ int main(int argc, char* argv[]) {
         }
 
         Epetra_SerialDenseMatrix w;
-        NonlinearSolve(A, b0new, x0, w, y); // y -> sol, w -> wsol
+        NonlinearSolve(A, b0new, x0, w, y); // y -> sol, w -> wsol; x0 -> y0
 
+        // DEBUG
+        cout << "Nonlinear solve complete. \n"; // TODO: Error in nnls!
 
         // Compute residial
         // @{
