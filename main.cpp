@@ -319,40 +319,28 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
             solverMatrix.Shape(counter, counter);
             
             cout << "Shape done. \n";
+            
+            // TODO: Why does this not work???
 
-        	// Catch exception, when P contains no elements (since usual ways doesnt work)
-        	bool bugfree = false;
-        	try	{
-        		double b = P[0];
-        		bugfree = true;
-        	} catch (const std::exception& e) {}
-        	
             for (int x = 1; x < counter + 1; x++) {
-            	if (bugfree == true){
-            		try {
-            			vector_b(x, 1) = b0(P[x - 1], 1);
-            		} catch (const std::exception& e) {
-            			vector_b(x, 1) = 0;	// MatLab standart value if not initialized
-            		}
-            	} else {
-            		vector_b(x, 1) = 0; // MatLab standart value if not initialized
-            	} // Why does this work now???
+            	try {
+            		vector_b(x, 1) = b0(P[x - 1], 1);
+            	} catch (const std::exception& e) { // Catch errors if P[x - 1] is not initialized
+            		vector_b(x, 1) = 0;	// MatLab standart value if not initialized
+            	}
             	cout << "vector_b(1, 1) is: " + to_string(vector_b(1, 1)) +  " .\n";
             	// Cant assign values to vector_b
             	
                 for (int z = 1; z < counter + 1; z++) {
-                	if (bugfree == true){
-                		try {
-                			solverMatrix(x, z) = matrix(P[x - 1], P[z - 1]);
-                		} catch (const std::exception& e){
-                			solverMatrix(x, z) = 0; // MatLab standart value if not initialized
-                		}
-                	} else {
+                	try {
+                		solverMatrix(x, z) = matrix(P[x - 1], P[z - 1]);
+                	} catch (const std::exception& e){ // Catch errors if P[x - 1], P[z - 1] are not initialized
                 		solverMatrix(x, z) = 0; // MatLab standart value if not initialized
                 	}
                 }
             }
             cout << "solverMatrix(1, 1) is: " + to_string(solverMatrix(1, 1)) + " \n";
+            // Cant assign values to solverMatrix
             
             // DEBUG
             cout << "Part 2 done. \n";
