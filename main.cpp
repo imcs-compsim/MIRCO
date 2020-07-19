@@ -284,9 +284,9 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
     while (aux1 == true) {
         // [wi,i]=min(w);
         int minValue = w(1, 1), minPosition = 0;
-        for (int i = 0; i < w.M(); i++) {
-            if (minValue > w(1, i + 1)) {
-                minValue = w(1, i + 1);
+        for (int i = 1; i < w.M() + 1; i++) {
+            if (minValue > w(1, i)) {
+                minValue = w(1, i);
                 minPosition = i;
             }
         }
@@ -314,26 +314,45 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
         	// Avoid errors
         	if (counter < 1){ counter = 1; } 
         	
-            vector_x.Shape(counter + 1, 1);
-            vector_b.Shape(counter + 1, 1);
-            solverMatrix.Shape(counter + 1, counter + 1);
+            vector_x.Shape(counter, 1);
+            vector_b.Shape(counter, 1);
+            solverMatrix.Shape(counter, counter);
+            
+            cout << "Shape done. \n";
 
+        	// Catch exception, when P contains no elements (since usual ways doesnt work)
+        	bool bugfree = false;
+        	try	{
+        		double b = P[0];
+        		bugfree = true;
+        	} catch (const std::exception& e) {}
+        	
             for (int x = 1; x < counter + 1; x++) {
-            	try {
-            		vector_b(x, 1) = b0(P[x], 1);
-            	} catch (const std::runtime_error& e) {
-            		vector_b(x, 1) = 0;	// MatLab standart value if not initialized
-            	}
+            	if (bugfree == true){
+            		try {
+            			vector_b(x, 1) = b0(P[x - 1], 1);
+            		} catch (const std::exception& e) {
+            			vector_b(x, 1) = 0;	// MatLab standart value if not initialized
+            		}
+            	} else {
+            		vector_b(x, 1) = 0; // MatLab standart value if not initialized
+            	} // Why does this work now???
             	cout << "vector_b(1, 1) is: " + to_string(vector_b(1, 1)) +  " .\n";
+            	// Cant assign values to vector_b
+            	
                 for (int z = 1; z < counter + 1; z++) {
-                	try {
-                		solverMatrix(x, z) = matrix(P[x], P[z]);
-                	} catch (const std::runtime_error& e){
+                	if (bugfree == true){
+                		try {
+                			solverMatrix(x, z) = matrix(P[x - 1], P[z - 1]);
+                		} catch (const std::exception& e){
+                			solverMatrix(x, z) = 0; // MatLab standart value if not initialized
+                		}
+                	} else {
                 		solverMatrix(x, z) = 0; // MatLab standart value if not initialized
                 	}
                 }
             }
-            cout << "Matrix entry is: " + to_string(solverMatrix(1, 1)) + " \n";
+            cout << "solverMatrix(1, 1) is: " + to_string(solverMatrix(1, 1)) + " \n";
             
             // DEBUG
             cout << "Part 2 done. \n";
@@ -408,10 +427,6 @@ int main(int argc, char* argv[]) {
     double nu1, nu2, G1, G2, E, G, nu, alpha, H, rnd, k_el, delta, nnodi;
     float to1;
     SetParameters(E1, E2, csteps, flagwarm, lato, zref, ampface, nu1, nu2, G1, G2, E, G, nu, alpha, H, rnd, k_el, delta, nnodi, errf, to1);
-
-    
-    // DEBUG
-    cout << "Parameters set. \n";
     
     // Meshgrid-Command
     // Identical Vectors/Matricies, therefore only created one here.
@@ -423,9 +438,7 @@ int main(int argc, char* argv[]) {
     Epetra_SerialSymDenseMatrix topology, y;
     CreateTopology(topology.N(), topology, randomPath);
     // TODO: Remove 3rd argument when ranmid2d_MP is implemented!
-    
-    // DEBUG
-    cout << "Topology created. \n";
+
 
     double zmax = 0;
     double zmean = 0;
