@@ -149,13 +149,13 @@ void CreateTopology(int systemsize, Epetra_SerialDenseMatrix& topology, string f
         zmean = zmean / pow(topology.N(), 2);
 } */
 
-Epetra_SerialSymDenseMatrix SetUpMatrix(Epetra_SerialDenseMatrix xv0, Epetra_SerialDenseMatrix yv0, 
+void SetUpMatrix(Epetra_SerialSymDenseMatrix A,Epetra_SerialDenseMatrix xv0, Epetra_SerialDenseMatrix yv0,
 		double delta, double E, int systemsize, int k) {
 	
 	// DEBUG
 	cout << "Init done. \n";
 	
-    Epetra_SerialSymDenseMatrix A; int r;
+    int r;
     double pi = atan(1) * 4;
     double raggio = delta / 2;
     double C = 1 / (E * pi * raggio);
@@ -177,8 +177,6 @@ Epetra_SerialSymDenseMatrix SetUpMatrix(Epetra_SerialDenseMatrix xv0, Epetra_Ser
     
     // DEBUG
     cout << "Part 3 done. \n";
-    
-    return A;
 }
 
 /*------------------------------------------*/
@@ -454,6 +452,8 @@ int main(int argc, char* argv[]) {
     Epetra_SerialDenseMatrix xv0, yv0, b0, x0, nf, xvfaux, yvfaux, pfaux, xvf, yvf, pf; // x0: initialized in Warmstart!
     nf.Shape(csteps, 1); xvfaux.Shape(csteps, 1); yvfaux.Shape(csteps, 1); pfaux.Shape(csteps, 1);
     
+    Epetra_SerialSymDenseMatrix A;
+
     // DEBUG
     cout << "While-Loop started. \n";
     
@@ -528,7 +528,7 @@ int main(int argc, char* argv[]) {
         cout << "k = " + to_string(k) + " .\n";
 
         // Construction of the Matrix H = A
-        Epetra_SerialSymDenseMatrix A = SetUpMatrix(xv0, yv0, delta, E, n0[k - 1], k);
+		SetUpMatrix(A, xv0, yv0, delta, E, n0[k - 1], k);
         
         // DEBUG
         cout << "Matrix set up. \n";
