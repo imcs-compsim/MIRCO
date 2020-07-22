@@ -422,7 +422,7 @@ int main(int argc, char* argv[]) {
     for (int i = delta / 2; i < (lato - delta / 2); i = i + delta) { x.push_back(i); }
 
     // Setup Topology
-    string randomPath = "/home/bartsch/BEM/sub.dat"; // TODO: Change this before debugging!
+    string randomPath = "/home/bartsch/BEM/sup2.dat"; // TODO: Change this before debugging!
     Epetra_SerialSymDenseMatrix topology, y;
     CreateTopology(topology.N(), topology, randomPath);
     // TODO: Remove 3rd argument when ranmid2d_MP is implemented!
@@ -470,8 +470,8 @@ int main(int argc, char* argv[]) {
         // [ind1,ind2]=find(z>=(zmax-(Delta(s)+w_el(k))));
         vector<int> col, row;
         double value = zmax - Delta + w_el;
-        for (int i = 0; i < topology.N(); i++) {
-        	for (int j = 0; j < topology.N(); j++) {
+        for (int i = 1; i < (topology.N() + 1); i++) {
+        	for (int j = 1; j < (topology.M() + 1); j++) {
         		if (topology(i, j) >= value) {
         			col.push_back(i);
         			row.push_back(j);
@@ -479,38 +479,41 @@ int main(int argc, char* argv[]) {
         		}
         	}
         }
+        
         n0.push_back(col.size());
+        
+        // Works until this point
         
         if (k == 1) { // initialize vectors
             xv0.Shape(n0[0], 1); yv0.Shape(n0[0], 1); b0.Shape(n0[0], 1);
         } else { // Initialize matricies with already generated values and an empty row
             Epetra_SerialDenseMatrix a; a.Shape(n0[k], k);
-            for (int b = 0; b < n0[k - 1]; b++) {
-                for (int c = 0; c < (k - 1); c++) {
+            for (int b = 1; b < (n0[k - 1] + 1); b++) {
+                for (int c = 1; c < k; c++) {
                     a(b, c) = xv0(b, c);
                 }
             }
             xv0 = a;
 
-            for (int b = 0; b < n0[k - 1]; b++) {
-                for (int c = 0; c < (k - 1); c++) {
+            for (int b = 1; b < (n0[k - 1] + 1); b++) {
+                for (int c = 1; c < k; c++) {
                     a(b, c) = yv0(b, c);
                 }
             }
             yv0 = a;
 
-            for (int b = 0; b < n0[k - 1]; b++) {
-                for (int c = 0; c < (k - 1); c++) {
+            for (int b = 1; b < (n0[k - 1] + 1); b++) {
+                for (int c = 1; c < k; c++) {
                     a(b, c) = b0(b, c);
                 }
             }
             b0 = a;
         }
 
-        for (int i = 0; i < n0[k - 1]; i++) {
-            xv0(i, k) = x[row[i]];
-            yv0(i, k) = y(row[i], 1);
-            b0(i, k) = Delta + w_el - (zmax - topology(row[i], col[i]));
+        for (int i = 1; i < (n0[k - 1] + 1); i++) {
+            xv0(i, k) = x[row[i - 1]];
+            yv0(i, k) = x[row[i - 1]]; // Here should be y, but y = x
+            b0(i, k) = Delta + w_el - (zmax - topology(row[i - 1], col[i - 1]));
         }
         // }
         
