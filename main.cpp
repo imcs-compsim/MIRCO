@@ -20,7 +20,7 @@ void SetParameters(int& E1, int& E2, int& csteps, int& flagwarm, int& lato, int&
     nu1 = 0.3; nu2 = 0.3;
     G1 = E1 / (2 * (1 + nu1));
     G2 = E2 / (2 * (1 + nu2));
-    E = pow(((1 - pow(nu1, 2)) / E1 + 1 - pow(nu2, 2) / E2), -1);
+    E = pow(((1 - pow(nu1, 2)) / E1 + (1 - pow(nu2, 2) / E2)), -1);
     G = pow(((2 - nu1) / (4 * G1) + (2 - nu2) / (4 * G2)), -1);
     nu = E / (2 * G) - 1;
 
@@ -28,7 +28,7 @@ void SetParameters(int& E1, int& E2, int& csteps, int& flagwarm, int& lato, int&
     0.851733020725652, 0.858342234203154, 0.862368243479785, 0.864741597831785 };
     int nn = 2; // Matrix sent has the parameter nn=2!
     alpha = alpha_con[nn];
-    csteps = 50;
+    csteps = 1;
     ampface = 1;
     flagwarm = 1;
     lato = 1000; // Lateral side of the surface [micrometers]
@@ -270,7 +270,7 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
         }
     } else {
         for (int i = 0; i < counter; i++) {
-            P.push_back(positions[i]);
+            P[i]=positions[i];
         }
         init = true;
     }
@@ -322,18 +322,18 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
             
             // TODO: Why does this not work???
 
-            for (int x = 1; x < counter + 1; x++) {
+            for (int x = 0; x < counter; x++) {
             	try {
-            		vector_b(x, 1) = b0(P[x - 1], 1);
+            		vector_b(x, 1) = b0(P[x], 1);
             	} catch (const std::exception& e) { // Catch errors if P[x - 1] is not initialized
             		vector_b(x, 1) = 0;	// MatLab standart value if not initialized
             	}
             	cout << "vector_b(1, 1) is: " + to_string(vector_b(1, 1)) +  " .\n";
             	// Cant assign values to vector_b
-            	
-                for (int z = 1; z < counter + 1; z++) {
+            	printf("After catch phase\n");
+                for (int z = 0; z < counter; z++) {
                 	try {
-                		solverMatrix(x, z) = matrix(P[x - 1], P[z - 1]);
+                		solverMatrix(x, z) = matrix(P[x], P[z]);
                 	} catch (const std::exception& e){ // Catch errors if P[x - 1], P[z - 1] are not initialized
                 		solverMatrix(x, z) = 0; // MatLab standart value if not initialized
                 	}
@@ -422,7 +422,7 @@ int main(int argc, char* argv[]) {
     for (int i = delta / 2; i < (lato - delta / 2); i = i + delta) { x.push_back(i); }
 
     // Setup Topology
-    string randomPath = "/home/bartsch/BEM/sub.dat"; // TODO: Change this before debugging!
+    string randomPath = "sup2.dat"; // TODO: Change this before debugging!
     Epetra_SerialSymDenseMatrix topology, y;
     CreateTopology(topology.N(), topology, randomPath);
     // TODO: Remove 3rd argument when ranmid2d_MP is implemented!
@@ -431,20 +431,9 @@ int main(int argc, char* argv[]) {
     double zmax = 0;
     double zmean = 0;
     zmean = topology.NormOne() / pow(topology.N(), 2);
+    zmax = topology.NormInf();
 
-    // Can also use zmatrix = topology.NormInf() and
-    // Can also use zmax = topology.NormInf() and
-    // zmean = topology.NormOne()/pow(topology.N(), 2)
-    for (int i = 1; i < topology.N() + 1; i++) {
-        for (int j = 1; j < topology.N() + 1; j++) {
-            if (zmax < topology(i, j)) {
-                zmax = topology(i, j);
-            }
-        }
-    }
-
-    vector<double> nfaux(csteps);
-    double Delta = 39.202067343593399;
+    double Delta = 50; // TODO only used for debugging
 
     vector<double> force0, area0, w_el0;
     force0.push_back(0); w_el0.push_back(0);
@@ -626,13 +615,6 @@ int main(int argc, char* argv[]) {
     }
 
     // @{
-    /*
-    for (int i = 0; i < nf(k, 1); i++) {
-        xvfaux(i, 0) = xvf(i, k);
-        yvfaux(i, 0) = yvf(i, k);
-        pfaux(i, 0) = pf(i, k);
-    }
-    */
 
     force = force0[k];
     area = area0[k];
