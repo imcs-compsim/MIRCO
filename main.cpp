@@ -145,25 +145,25 @@ void LinearSolve(Epetra_SerialSymDenseMatrix& matrix,
     Epetra_SerialDenseMatrix& vector_b) {
     Epetra_SerialSpdDenseSolver solver;
     int err = solver.SetMatrix(matrix);
-    if (err != 0) { std::cout << "Error setting up matrix solver (1)"; }
+    if (err != 0) { std::cout << "Error setting matrix for linear solver (1)"; }
 
     err = solver.SetVectors(vector_x, vector_b);
-    if (err != 0) { std::cout << "Error setting up maxtix solver (2)"; }
+    if (err != 0) { std::cout << "Error setting vetcors for linear solver (2)"; }
 
     err = solver.Solve();
-    if (err != 0) { std::cout << "Error setting up matrix solver (3)"; }
+    if (err != 0) { std::cout << "Error setting up solver (3)"; }
     std::cout << vector_x << std::endl;
 }
 
 /*------------------------------------------*/
-
 void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatrix& b0,
     std::vector<double> y0, Epetra_SerialDenseMatrix& w, Epetra_SerialDenseMatrix& y) {
     // matrix -> A, b0 -> b, y0 -> y0 , y -> y, w-> w; nnstol, iter, maxiter -> unused
     double nnlstol = 1.0000e-08;
     double maxiter = 10000;
+    int iter=0;
     bool init = false;
-    int n0 = b0.N() * b0.M();
+    int n0 = b0.M();
     y.Shape(n0, 1);
     vector<int> P(n0);
     Epetra_SerialDenseMatrix vector_x, vector_b;
@@ -176,7 +176,7 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
     vector<int> positions;
     int counter = 0;
     for (int i = 0; i < y0.size(); i++) {
-        if ((y0[i] == nnlstol) || (y0[i] > nnlstol)) {
+        if (y0[i] >= nnlstol) {
             positions.push_back(i);
             counter += 1;
         }
@@ -211,15 +211,15 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
     
     while (aux1 == true) {
         // [wi,i]=min(w);
-        int minValue = w(1, 1), minPosition = 0;
-        for (int i = 0; i < w.M(); i++) {
+        int minValue = w(0, 0), minPosition = 0;
+        for (int i = 1; i < w.M(); i++) {
             if (minValue > w(i, 0)) {
                 minValue = w(i, 0);
                 minPosition = i;
             }
         }
 
-        if ((counter == n0) || ((minValue > -nnlstol) && (init == false))) {
+        if (((counter == n0) || (minValue > -nnlstol) || (iter<=maxiter)) && (init == false)) {
             aux1 = false;
         } else {
             if (init == false) {
@@ -227,20 +227,23 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
                 counter += 1;
                 P.push_back(minPosition);
             }
+            else init = false;
         }
         
         // DEBUG
         cout << "Part 1 done. \n";
         
         int j = 0;
+        aux2 = true;
         double eps = 2.2204e-16; int alphai = 0, alpha = 100000000, a = 0;
         while (aux2 == true) {
         	
+        	iter ++;
         	// DEBUG
         	cout << "Counter has value: " + to_string(counter) + " .\n";
         	
         	// Avoid errors
-        	if (counter < 1){ counter = 1; } 
+        	if (counter < 1){ counter = 1; }
         	
             vector_x.Shape(counter, 1);
             vector_b.Shape(counter, 1);
@@ -251,23 +254,15 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
             // TODO: Why does this not work???
 
             for (int x = 0; x < counter; x++) {
-            	try {
             		vector_b(x, 0) = b0(P[x], 0);
-            	} catch (const std::exception& e) { // Catch errors if P[x - 1] is not initialized
-            		vector_b(x, 0) = 0;	// MatLab standart value if not initialized
-            	}
-            	cout << "vector_b(1, 1) is: " + to_string(vector_b(1, 1)) +  " .\n";
+            	cout << "vector_b(0, 0) is: " + to_string(vector_b(0, 0)) +  " .\n";
             	// Cant assign values to vector_b
             	printf("After catch phase\n");
                 for (int z = 0; z < counter; z++) {
-                	try {
                 		solverMatrix(x, z) = matrix(P[x], P[z]);
-                	} catch (const std::exception& e){ // Catch errors if P[x - 1], P[z - 1] are not initialized
-                		solverMatrix(x, z) = 0; // MatLab standart value if not initialized
-                	}
                 }
             }
-            cout << "solverMatrix(1, 1) is: " + to_string(solverMatrix(1, 1)) + " \n";
+            cout << "solverMatrix(0, 0) is: " + to_string(solverMatrix(0, 0)) + " \n";
             // Cant assign values to solverMatrix
             
             // DEBUG
@@ -404,7 +399,6 @@ int main(int argc, char* argv[]) {
         		if (topology(i, j) >= value) {
         			row.push_back(i);
         			col.push_back(j);
-        			// counter += 1;
         		}
         	}
         }
