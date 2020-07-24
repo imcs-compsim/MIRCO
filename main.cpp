@@ -215,8 +215,8 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix,
     } else {
       if (init == false) {
         // Index #i enter active index
-        counter += 1;
         P[counter] = minPosition;
+        counter += 1;
       } else {
         init = false;
       }
@@ -318,7 +318,8 @@ int main(int argc, char* argv[]) {
   // Meshgrid-Command
   // Identical Vectors/Matricies, therefore only created one here.
   vector<double> x;
-  for (int i = delta / 2; i < (lato - delta / 2); i = i + delta) {
+  cout << "delta=" << delta << endl;
+  for (double i = delta / 2; i < lato; i = i + delta) {
     x.push_back(i);
   }
 
@@ -391,11 +392,12 @@ int main(int argc, char* argv[]) {
     yv0.clear();
     b0.clear();
     for (int b = 0; b < n0; b++) {
-      xv0.push_back(x[row[b]]);
+      xv0.push_back(x[col[b]]);
     }
 
     for (int b = 0; b < n0; b++) {
-      yv0.push_back(x[col[b]]);
+      yv0.push_back(x[row[b]]);
+      cout << "xv0= " << xv0[b] << " and yv0= " << yv0[b] << endl;
     }
 
     for (int b = 0; b < n0; b++) {
