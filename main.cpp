@@ -291,7 +291,7 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
                 aux2 = false;
 
                 for (int x = 0; x < counter; x++) {
-                    y(x, 0) = vector_x(x, 0);
+                    y(P[x], 0) = vector_x(x, 0);
                 }
 
 //                if (matrix.M() != y.N()) { std::runtime_error("Fehler 2: Ungültige Matrixdimension! \n"); }
@@ -302,7 +302,7 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
                 for (int a = 0; a < matrix.M(); a++) {
                     w(a, 0) = 0;
                     for (int b = 0; b < matrix.N(); b++) {
-                        w(a, 0) += (matrix(a, P[b]) * y(b, 0)) - b0(a, 0);
+                        w(a, 0) += (matrix(a, P[b]) * vector_x(b, 0)) - b0(a, 0);
                     }
                 }
                 
@@ -311,7 +311,7 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
             	j=0;
                 for (int i = 0; i < counter; i++) {
                     if (s0(i, 0) < nnlstol) {
-                        alphai = y(i, 0) / (eps + y(i, 0) - s0(i, 0));
+                        alphai = y(P[i], 0) / (eps + y(P[i], 0) - s0(i, 0));
                         if (alphai < alpha) {
                             alpha = alphai;
                             j = i;
@@ -324,22 +324,14 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
             a=0;
             while (a < counter) {
                 a += 1;
-                y(a, 0) = y(a, 0) + alpha * (s0(a, 0) - y(a, 0));
+                y(P[a], 0) = y(P[a], 0) + alpha * (s0(a, 0) - y(P[a], 0));
             }
 
             if (j > 0) {
                 // jth entry in P leaves active set
-                s0(P[j], 0) = 0;
-                vector<int> P2 = P;
-                P2.push_back(0);
-                for (int i = 0; i < j; i++) {
-                    P2.push_back(P[i]);
-                }
-                for (int i = j; i < (counter - 1); i++) {
-                    P2.push_back(P[i + 1]);
-                }
-                P = P2;
-                P[counter] = 0;
+                s0(j, 0) = 0;
+
+                P.erase(P.begin()+j);
                 counter -= 1;
             }
         }
