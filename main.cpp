@@ -183,6 +183,7 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix,
     for (int x = 0; x < b0.M(); x++) {
       w(x, 0) = -b0(x, 0);
     }
+    init = false;
   } else {
     for (int i = 0; i < counter; i++) {
       P[i] = positions[i];
@@ -283,18 +284,18 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix,
             }
           }
         }
+
+        for (int a = 0; a < counter; a++)
+          y(P[a], 0) = y(P[a], 0) + alpha * (s0(a, 0) - y(P[a], 0));
+
+        if (j > 0) {
+          // jth entry in P leaves active set
+          s0(P[j], 0) = 0;
+
+          P.erase(P.begin() + j);
+          counter -= 1;
+        }
       }
-
-      for (int a = 0; a < counter; a++)
-        y(P[a], 0) = y(P[a], 0) + alpha * (s0(a, 0) - y(P[a], 0));
-    }
-
-    if (j > 0) {
-      // jth entry in P leaves active set
-      s0(P[j], 0) = 0;
-
-      P.erase(P.begin() + j);
-      counter -= 1;
     }
   }
 }
