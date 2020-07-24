@@ -70,55 +70,36 @@ void CreateTopology(int systemsize, Epetra_SerialDenseMatrix& topology,
   int lineCounter = 0;
   float elements[264];
   int position = 0;
-  try {
-    ifstream stream(filePath);
-    string line;
-    bool negative = false;
-    bool lastValue = false;
-    while (std::getline(stream, line)) {
-      // Split up Values into Double-Array
-      int separatorPosition = 0;
-      lineCounter += 1;  // Has to happen here, since baseline value is 0.
+  ifstream stream(filePath);
+  string line;
+  while (getline(stream, line)) {
+    // Split up Values into Double-Array
+    int separatorPosition = 0;
+    lineCounter += 1;  // Has to happen here, since baseline value is 0.
+    cout << "linecounter= " << lineCounter << endl;
+    cout << line << endl;
 
-      int separatorAmount = count(line.begin(), line.end(), ';');
+    int separatorAmount = count(line.begin(), line.end(), ';');
 
-      for (int i = 0; i < separatorAmount;
-           i--) {  // prevent duplication of values!
-        separatorPosition = line.find_first_of(';');
-        string container = line.substr(0, separatorPosition);
-        line = line.substr(separatorPosition + 1, line.length());
-        if (line.length() < 2) {
-          i = -1;
-        }  // exit condition to avoid error's, non-scientific!
-        if (container == "" || container == ";") {
-          i = -1;
-        }  // exit condition to avoid duplication of values!
+    for (int i = 0; i < separatorAmount - 1;
+         i++) {  // prevent duplication of values!
+      separatorPosition = line.find_first_of(';');
+      string container = line.substr(0, separatorPosition);
+      line = line.substr(separatorPosition + 1, line.length());
+      if (line.length() < 2) {
+        i = -1;
+      }  // exit condition to avoid error's, non-scientific!
+      if (container == "" || container == ";") {
+        i = -1;
+      }  // exit condition to avoid duplication of values!
+      double value = stod(container);
 
-        /*        if (container.substr(0, 1) == "-") {  // Substring
-           Double-Value! negative = true; container = container.substr(1,
-           container.length() - 1);
-                }
-                        */
-        double value = stod(container);
-        cout << "value= " << value << endl;
-        /*        if (negative == true) {
-          value = value * (-1);
-        }
-        */
+      topology(lineCounter - 1, i) = value;
 
-        topology(lineCounter - 1, i) = value;
-        // +1 has to happen, since baseline value is 0.
-        // elements[position] = value; happened before
-
-        // Reset Conditions
-        negative = false;
-        position += 1;
-      }
+      position += 1;
     }
-    stream.close();
-  } catch (const std::exception& e) {
-    std::cout << e.what();  // Fatal Error, catch it!
   }
+  stream.close();
 }
 
 /*------------------------------------------*/
