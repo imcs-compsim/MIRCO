@@ -21,14 +21,14 @@ void SetParameters(int& E1, int& E2, int& csteps, int& flagwarm, int& lato, int&
     nu1 = 0.3; nu2 = 0.3;
     G1 = E1 / (2 * (1 + nu1));
     G2 = E2 / (2 * (1 + nu2));
-    E = pow(((1 - pow(nu1, 2)) / E1 + (1 - pow(nu2, 2) / E2)), -1);
-    G = pow(((2 - nu1) / (4 * G1) + (2 - nu2) / (4 * G2)), -1);
+    E = 1/((1 - pow(nu1, 2)) / E1 + (1 - pow(nu2, 2) / E2));
+    G = 1/((2 - nu1) / (4 * G1) + (2 - nu2) / (4 * G2));
     nu = E / (2 * G) - 1;
 
     vector<double> alpha_con { 0.778958541513360, 0.805513388666376, 0.826126871395416, 0.841369158110513,
     0.851733020725652, 0.858342234203154, 0.862368243479785, 0.864741597831785 };
     int nn = 2; // Matrix sent has the parameter nn=2!
-    alpha = alpha_con[nn];
+    alpha = alpha_con[nn-1];
     csteps = 1;
     ampface = 1;
     flagwarm = 0;
@@ -37,7 +37,7 @@ void SetParameters(int& E1, int& E2, int& csteps, int& flagwarm, int& lato, int&
     rnd = 95.0129;
     zref = 50; // Reference for the Scaling, former value = 25
     k_el = lato * E / alpha;
-    delta = lato / pow(2, nn + 1);
+    delta = lato / (pow(2, nn)+1);
     nnodi = pow(pow(2, nn + 1), 2);
 
     errf = 100000000;
@@ -129,7 +129,7 @@ void SetUpMatrix(Epetra_SerialSymDenseMatrix& A,std::vector<double> xv0, std::ve
 
     for (int i = 0; i < systemsize; i++) {
         for (int j = 0; j < i; j++) {
-            r = (xv0[j] - xv0[i]) * (yv0[j] - yv0[i]);
+            r = sqrt(pow((xv0[j] - xv0[i]),2) + pow((yv0[j] - yv0[i]),2));
             A(i, j) = C * asin(raggio / r);
         }
     }
