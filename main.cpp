@@ -81,17 +81,14 @@ void CreateTopology(int systemsize, Epetra_SerialDenseMatrix& topology,
 
     int separatorAmount = count(line.begin(), line.end(), ';');
 
-    for (int i = 0; i < separatorAmount - 1;
+    for (int i = 0; i < separatorAmount;
          i++) {  // prevent duplication of values!
       separatorPosition = line.find_first_of(';');
       string container = line.substr(0, separatorPosition);
       line = line.substr(separatorPosition + 1, line.length());
-      if (line.length() < 2) {
-        i = -1;
-      }  // exit condition to avoid error's, non-scientific!
-      if (container == "" || container == ";") {
-        i = -1;
-      }  // exit condition to avoid duplication of values!
+
+      cout << "i= " << i << endl;
+      cout << "container= " << container << endl;
       double value = stod(container);
 
       topology(lineCounter - 1, i) = value;
