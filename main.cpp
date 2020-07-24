@@ -94,17 +94,20 @@ void CreateTopology(int systemsize, Epetra_SerialDenseMatrix& topology,
           i = -1;
         }  // exit condition to avoid duplication of values!
 
-        if (container.substr(0, 1) == "-") {  // Substring Double-Value!
-          negative = true;
-          container = container.substr(1, container.length() - 1);
-        }
+        /*        if (container.substr(0, 1) == "-") {  // Substring
+           Double-Value! negative = true; container = container.substr(1,
+           container.length() - 1);
+                }
+                        */
         double value = stod(container);
-        if (negative == true) {
+        cout << "value= " << value << endl;
+        /*        if (negative == true) {
           value = value * (-1);
         }
+        */
 
-        topology(lineCounter,
-                 i + 1);  // +1 has to happen, since baseline value is 0.
+        topology(lineCounter - 1, i) = value;
+        // +1 has to happen, since baseline value is 0.
         // elements[position] = value; happened before
 
         // Reset Conditions
