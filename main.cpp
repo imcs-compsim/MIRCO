@@ -271,7 +271,11 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix,
         for (int a = 0; a < matrix.M(); a++) {
           w(a, 0) = 0;
           for (int b = 0; b < counter; b++) {
-            w(a, 0) += (matrix(a, P[b]) * vector_x(b, 0)) - b0(a, 0);
+            if (matrix(a, P[b]) == 0) {
+              w(a, 0) += (matrix(P[b], a) * y(P[b], 0)) - b0(a, 0);
+            } else {
+              w(a, 0) += (matrix(a, P[b]) * y(P[b], 0)) - b0(a, 0);
+            }
           }
         }
       } else {
