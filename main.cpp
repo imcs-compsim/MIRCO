@@ -6,6 +6,7 @@
 #include <vector>
 #include "include/Epetra_SerialSpdDenseSolver.h"
 #include "include/Epetra_SerialSymDenseMatrix.h"
+#include <unistd.h>
 
 using namespace std;
 
@@ -277,19 +278,25 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
             
             cout << "Linear solve done. \n";
 
+            cout << "s0.M= " << s0.M() << " vector_b.M= " << vector_b.M() << " P[0]= " << P[0] << endl;
             for (int x = 0; x < counter; x++) {
                 s0(P[x], 0) = vector_b(x, 0);
             }
+
+            cout << "Filled s0 \n";
 
             bool allBigger = true;
             for (int x = 0; x < counter; x++) {
                 if (s0(P[x], 0) < nnlstol) { allBigger = false; }
             }
 
+            cout << "After allbigger \n";
             if (allBigger == true) {
                 aux2 = false;
 
                 if (matrix.M() != y.N()) { std::runtime_error("Fehler 2: Ungültige Matrixdimension! \n"); }
+
+                cout << "Before Matrixproduct \n";
 
                 // w=A(:,P(1:nP))*y(P(1:nP))-b;
                 for (int a = 0; a < matrix.M(); a++) {
@@ -299,6 +306,8 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
                     }
                 }
                 
+                cout << "After Matrixproduct \n";
+
                 aux1 = true; // Exit condition
             } else {
                 for (int i = 0; i < counter; i++) {
@@ -459,6 +468,8 @@ int main(int argc, char* argv[]) {
         for (int i = 0; i < b0.size(); i++) {
             b0new(i, 0) = b0[i];
         }
+
+        cout << "After Creation of b0new. \n";
 
         Epetra_SerialDenseMatrix w;
         NonlinearSolve(A, b0new, x0, w, y); // y -> sol, w -> wsol; x0 -> y0
