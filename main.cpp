@@ -103,51 +103,7 @@ void CreateTopology(int systemsize, Epetra_SerialDenseMatrix& topology, string f
     }
 }
 
-/* void createTopology(int systemsize, Epetra_SerialDenseMatrix& topology) {
-    // Idea: GENERATING a topology, instead of I/O-Topology!
-    // t0do: Insert ranmid2d_MP-Method here!
-
-        double scalefactor = zref / (zmax - zmean);
-        // z = scalefactor * z;
-        for (int i = 0; i < topology.N(); i++) {
-            for (int j = 0; j < topology.N(); j++) {
-                topology(i, j) = z * topology(i, j);
-            }
-        }
-
-        // setting minimum heigth to zero
-        zmin = zmax;
-        for (int i = 0; i < topology.N(); i++) {
-            for (int j = 0; j < topology.N(); j++) {
-                if (zmin > topology(i, j)) {
-                    zmin = topology(i, j);
-                }
-            }
-        }
-
-        // z = z - min(min(z))
-        for (int i = 0; i < topology.N(); i++) {
-            for (int j = 0; j < topology.N(); j++) {
-                topology(i, j) = topology(i, j) - zmin;
-            }
-        }
-        // recalculate mean, max, min
-        zmax = 0;
-        zmin = topology(0, 0);
-        zmean = 0;
-        for (int i = 0; i < topology.N(); i++) {
-            for (int j = 0; j < topology.N(); j++) {
-                zmean = zmean + topology(i, j);
-                if (zmax < topology(i, j)) {
-                    zmax = topology(i, j);
-                }
-                if (zmin > topology(i, j)) {
-                    zmin = toplogy(i, j);
-                }
-            }
-        }
-        zmean = zmean / pow(topology.N(), 2);
-} */
+/*------------------------------------------*/
 
 void SetUpMatrix(Epetra_SerialSymDenseMatrix& A,std::vector<double> xv0, std::vector<double> yv0,
 		double delta, double E, int systemsize, int k) {
