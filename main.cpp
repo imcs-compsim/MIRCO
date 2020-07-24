@@ -248,11 +248,6 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix,
       // DEBUG
       cout << "Counter has value: " + to_string(counter) + " .\n";
 
-      // Avoid errors
-      if (counter < 1) {
-        counter = 1;
-      }
-
       vector_x.Shape(counter, 1);
       vector_b.Shape(counter, 1);
       solverMatrix.Shape(counter, counter);
