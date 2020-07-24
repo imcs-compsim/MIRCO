@@ -373,20 +373,22 @@ int main(int argc, char* argv[]) {
 
     vector<double> force0, area0, w_el0;
     force0.push_back(0); w_el0.push_back(0);
-    double w_el, area, force;
+    double w_el=0;
+    double area, force;
     int k = 0;
     int n0;
     std::vector<double> xv0, yv0, b0, x0,  xvf, yvf, pf; // x0: initialized in Warmstart!
     double nf, xvfaux, yvfaux, pfaux;
     
     Epetra_SerialSymDenseMatrix A;
+    int iter=0;
 
     // DEBUG
     cout << "While-Loop started. \n";
     
     // So far so good
     
-    while (errf > to1) {
+    while (errf > to1 && iter < 100) {
         k += 1;
         
         // First predictor for contact set
@@ -411,7 +413,7 @@ int main(int argc, char* argv[]) {
 
         // Works until this point
         
-
+            xv0.clear(); yv0.clear(); b0.clear();
             for (int b = 0; b < n0; b++) {
                     xv0.push_back(x[row[b]]);
             }
@@ -484,13 +486,12 @@ int main(int argc, char* argv[]) {
         res1.Shape(A.N(), y.M());
         // res1=A*sol-b0(:,k)-wsol;
         // Should work now.
-        int sum = 0;
+
         for (int x = 0; x < A.N(); x++) {
             for (int z = 0; z < y.M(); z++) {
-                sum += A(x, z) * y(x, 1);
+            res1(x, 0) += A(x, z) * y(z, 0);
             }
-            res1(x, 0) = sum - b0new(x, 0) - w(x, 0); // [...]-b0(:,k) - wsol;
-            sum = 0;
+            res1(x, 0) += -b0new(x, 0) - w(x, 0); // [...]-b0(:,k) - wsol;
         }
         // }
 
@@ -498,13 +499,13 @@ int main(int argc, char* argv[]) {
         // @{
         int cont = 0;
         xvf.clear(); yvf.clear();
-        xvf.resize(A.N()); yvf.resize(A.N()); pf.resize(A.N());
-        for (int i = 0; i < A.N(); i++) {
-            if (A(i, 1) != 0) {
+        xvf.resize(y.M()); yvf.resize(y.M()); pf.resize(y.M());
+        for (int i = 0; i < y.M(); i++) {
+            if (y(i, 0) != 0) {
                 cont += 1;
                 xvf[cont] = xv0[i];
                 yvf[cont] = yv0[i];
-                pf[cont] = A(i, 0);
+                pf[cont] = y(i, 0);
             }
         }
         nf = cont;
@@ -524,12 +525,12 @@ int main(int argc, char* argv[]) {
         // @{
         if (k > 1) {
             // errf(k) = abs((force0(k)-force0(k-1))/force0(k));
-            errf = (force0[k] - force0[k - 1]) / force0[k];
-            if (errf < 0) { errf = (-1) * errf; }
+            errf = abs(force0[k] - force0[k - 1]) / force0[k];
 
             // errw(k) = abs((w_el0(k+1)-w_el0(k))/w_el0(k+1));
             // It appears that this is only a debugging variable without any uses, therefore im not gonna implement this here.
         }
+        iter ++;
         // }
     }
 
