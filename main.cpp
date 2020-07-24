@@ -109,23 +109,14 @@ void CreateTopology(int systemsize, Epetra_SerialDenseMatrix& topology, string f
 void SetUpMatrix(Epetra_SerialSymDenseMatrix& A,std::vector<double> xv0, std::vector<double> yv0,
 		double delta, double E, int systemsize, int k) {
 	
-	// DEBUG
-	cout << "Init done. \n";
-	
     int r;
     double pi = atan(1) * 4;
     double raggio = delta / 2;
     double C = 1 / (E * pi * raggio);
 
-    cout << "systemsize= " << systemsize << endl;
-    cout << "size of A = " << A.N() << endl;
-
     for (int i = 0; i < systemsize; i++) {
         A(i, i) = 1 * C;
     }
-    
-    // DEBUG
-    cout << "Part 2 done. \n";
 
     for (int i = 0; i < systemsize; i++) {
         for (int j = 0; j < i; j++) {
@@ -134,8 +125,6 @@ void SetUpMatrix(Epetra_SerialSymDenseMatrix& A,std::vector<double> xv0, std::ve
         }
     }
     
-    // DEBUG
-    cout << "Part 3 done. \n";
 }
 
 /*------------------------------------------*/
@@ -168,9 +157,6 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
     vector<int> P(n0);
     Epetra_SerialDenseMatrix vector_x, vector_b;
     Epetra_SerialSymDenseMatrix solverMatrix;
-    
-    // DEBUG
-    cout << "Pre-Setup done. \n";
 
     // Initialize active set
     vector<int> positions;
@@ -182,14 +168,9 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
         }
     }
     
-    // DEBUG
-    cout << "Active set initialized. \n";
-    
     // Avoid .N() = 0 or .M() = 0, completely wrecks code otherwise
     w.Reshape(b0.M(), b0.N());
     
-    cout << "After shaping w\n";
-    cout << "Counter= " << counter << endl;
     if (counter == 0) {
             for (int x = 0; x < b0.M(); x++) {
                 w(x, 0) = -b0(x, 0);
@@ -201,13 +182,8 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
         init = true;
     }
 
-    cout << "After if-else \n";
-
     Epetra_SerialDenseMatrix s0; s0.Shape(counter, 1); // Replacement for s
     bool aux1 = true, aux2 = true;
-    
-    // DEBUG
-    cout << "While-Loop starting. \n";
     
     while (aux1 == true) {
         // [wi,i]=min(w);
@@ -230,9 +206,6 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
             else init = false;
         }
         
-        // DEBUG
-        cout << "Part 1 done. \n";
-        
         int j = 0;
         aux2 = true;
         double eps = 2.2204e-16; int alphai = 0, alpha = 100000000, a = 0;
@@ -248,30 +221,17 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
             vector_x.Shape(counter, 1);
             vector_b.Shape(counter, 1);
             solverMatrix.Shape(counter, counter);
-            
-            cout << "Shape done. \n";
-            
-            // TODO: Why does this not work???
 
             for (int x = 0; x < counter; x++) {
             		vector_b(x, 0) = b0(P[x], 0);
-            	cout << "vector_b(0, 0) is: " + to_string(vector_b(0, 0)) +  " .\n";
-            	// Cant assign values to vector_b
-            	printf("After catch phase\n");
+
                 for (int z = 0; z < counter; z++) {
                 		solverMatrix(x, z) = matrix(P[x], P[z]);
                 }
             }
-            cout << "solverMatrix(0, 0) is: " + to_string(solverMatrix(0, 0)) + " \n";
-            // Cant assign values to solverMatrix
-            
-            // DEBUG
-            cout << "Part 2 done. \n";
             
             // Linear solve
             LinearSolve(solverMatrix, vector_x, vector_b);
-            
-            cout << "Linear solve done. \n";
 
             s0.Reshape(counter, 1);
             cout << "s0.M= " << s0.M() << " vector_x.M= " << vector_x.M() << " P[0]= " << P[0] << endl;
@@ -279,24 +239,17 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
                 s0(x, 0) = vector_x(x, 0);
             }
 
-            cout << "Filled s0 \n";
-
             bool allBigger = true;
             for (int x = 0; x < counter; x++) {
                 if (s0(x, 0) < nnlstol) { allBigger = false; break;}
             }
 
-            cout << "After allbigger \n";
             if (allBigger == true) {
                 aux2 = false;
 
                 for (int x = 0; x < counter; x++) {
                     y(P[x], 0) = vector_x(x, 0);
                 }
-
-//                if (matrix.M() != y.N()) { std::runtime_error("Fehler 2: Ungültige Matrixdimension! \n"); }
-
-                cout << "Before Matrixproduct \n";
 
                 // w=A(:,P(1:nP))*y(P(1:nP))-b;
                 for (int a = 0; a < matrix.M(); a++) {
@@ -306,7 +259,6 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
                     }
                 }
                 
-                cout << "After Matrixproduct \n";
             } else {
             	j=0;
                 for (int i = 0; i < counter; i++) {
@@ -320,7 +272,6 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
                 }
             }
 
-            cout << "Before counter while \n";
             a=0;
             while (a < counter) {
                 a += 1;
@@ -375,8 +326,6 @@ int main(int argc, char* argv[]) {
     Epetra_SerialSymDenseMatrix A;
     int iter=0;
 
-    // DEBUG
-    cout << "While-Loop started. \n";
     
     // So far so good
     
@@ -416,59 +365,29 @@ int main(int argc, char* argv[]) {
             for (int b = 0; b < n0; b++) {
             	b0.push_back( Delta + w_el - (zmax - topology(row[b], col[b])));
             }
-
-
-        // }
         
-        // DEBUG
-        cout << "First predictor done. \n \n";
-        
-        cout << "n0 = " << n0 << " .\n";
         cout << "k = " << k << " .\n";
-        cout << "xv0.M= " << xv0.size() << " und xv0.N()= " << xv0.size() << std::endl;
-        cout << "Vor shape von A mit size = " << A.N() << endl;
 
         int err = A.Shape(xv0.size());
 
-        cout << "Nach shape von A" << endl;
-
         // Construction of the Matrix H = A
 		SetUpMatrix(A, xv0, yv0, delta, E, n0, k);
-        
-        // DEBUG
-        cout << "Matrix set up. \n";
 
         // Second predictor for contact set
         // @{
-        
-        	
-        	// DEBUG
-        	cout << "Warmstart inactive. \n";
         	
         	    x0.clear();
         		x0.resize(b0.size());
 
-        
-        // DEBUG
-        cout << "Second predictor done. \n";
-        cout << "Size b0 = " << b0.size() << endl;
-
         Epetra_SerialDenseMatrix b0new;
         b0new.Shape(b0.size(), 1);
-
-        cout << "After shaping b0new. \n";
 
         for (int i = 0; i < b0.size(); i++) {
             b0new(i, 0) = b0[i];
         }
 
-        cout << "After Creation of b0new. \n";
-
         Epetra_SerialDenseMatrix w;
         NonlinearSolve(A, b0new, x0, w, y); // y -> sol, w -> wsol; x0 -> y0
-
-        // DEBUG
-        cout << "Nonlinear solve complete. \n"; // TODO: Error in nnls!
 
         // Compute residial
         // @{
