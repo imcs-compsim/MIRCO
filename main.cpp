@@ -160,7 +160,6 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix,
   int n0 = b0.M();
   y.Shape(n0, 1);
   Epetra_SerialDenseMatrix s0;
-  s0.Shape(n0, 1);  // Replacement for s
   vector<int> P(n0);
   Epetra_SerialDenseMatrix vector_x, vector_b;
   Epetra_SerialSymDenseMatrix solverMatrix;
@@ -191,10 +190,11 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix,
     init = true;
   }
 
+  s0.Shape(n0, 1);  // Replacement for s
+
   bool aux1 = true, aux2 = true;
 
   while (aux1 == true) {
-    iter++;
     cout << "iter= " << iter << endl;
     cout << "In aux1 Schleife\n";
     // [wi,i]=min(w);
@@ -255,14 +255,15 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix,
       for (int x = 0; x < counter; x++) {
         if (s0(P[x], 0) < nnlstol) {
           allBigger = false;
+          cout << "s0= " << s0(P[x], 0) << " for i= " << x << endl;
         }
       }
 
       if (allBigger == true) {
         aux2 = false;
 
-        for (int x = 0; x < counter; x++) {
-          y(P[x], 0) = vector_x(x, 0);
+        for (int x = 0; x < y.M(); x++) {
+          y(x, 0) = s0(x, 0);
         }
 
         // w=A(:,P(1:nP))*y(P(1:nP))-b;
@@ -272,11 +273,11 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix,
             w(a, 0) += (matrix(a, P[b]) * vector_x(b, 0)) - b0(a, 0);
           }
         }
-
       } else {
         j = 0;
+        alpha = 1.0e8;
         for (int i = 0; i < counter; i++) {
-          if (s0(i, 0) < nnlstol) {
+          if (s0(P[i], 0) < nnlstol) {
             alphai = y(P[i], 0) / (eps + y(P[i], 0) - s0(P[i], 0));
             if (alphai < alpha) {
               alpha = alphai;
@@ -286,8 +287,8 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix,
         }
 
         for (int a = 0; a < counter; a++)
-          y(P[a], 0) = y(P[a], 0) + alpha * (s0(a, 0) - y(P[a], 0));
-
+          y(P[a], 0) = y(P[a], 0) + alpha * (s0(P[a], 0) - y(P[a], 0));
+        cout << "j= " << j << endl;
         if (j > 0) {
           // jth entry in P leaves active set
           s0(P[j], 0) = 0;
