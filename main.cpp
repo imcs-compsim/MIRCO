@@ -203,7 +203,7 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
 
     cout << "After if-else \n";
 
-    Epetra_SerialDenseMatrix s0; s0.Shape(counter+1, 1); // Replacement for s
+    Epetra_SerialDenseMatrix s0; s0.Shape(counter, 1); // Replacement for s
     bool aux1 = true, aux2 = true;
     
     // DEBUG
@@ -273,23 +273,28 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
             
             cout << "Linear solve done. \n";
 
-            cout << "s0.M= " << s0.M() << " vector_b.M= " << vector_b.M() << " P[0]= " << P[0] << endl;
+            s0.Reshape(counter, 1);
+            cout << "s0.M= " << s0.M() << " vector_x.M= " << vector_x.M() << " P[0]= " << P[0] << endl;
             for (int x = 0; x < counter; x++) {
-                s0(P[x], 0) = vector_b(x, 0);
+                s0(x, 0) = vector_x(x, 0);
             }
 
             cout << "Filled s0 \n";
 
             bool allBigger = true;
             for (int x = 0; x < counter; x++) {
-                if (s0(P[x], 0) < nnlstol) { allBigger = false; }
+                if (s0(x, 0) < nnlstol) { allBigger = false; break;}
             }
 
             cout << "After allbigger \n";
             if (allBigger == true) {
                 aux2 = false;
 
-                if (matrix.M() != y.N()) { std::runtime_error("Fehler 2: Ungültige Matrixdimension! \n"); }
+                for (int x = 0; x < counter; x++) {
+                    y(x, 0) = vector_x(x, 0);
+                }
+
+//                if (matrix.M() != y.N()) { std::runtime_error("Fehler 2: Ungültige Matrixdimension! \n"); }
 
                 cout << "Before Matrixproduct \n";
 
@@ -297,29 +302,29 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatri
                 for (int a = 0; a < matrix.M(); a++) {
                     w(a, 0) = 0;
                     for (int b = 0; b < matrix.N(); b++) {
-                        w(a, 0) += (matrix(a, P[b]) * y(P[b], 0)) - b0(a, 0);
+                        w(a, 0) += (matrix(a, P[b]) * y(b, 0)) - b0(a, 0);
                     }
                 }
                 
                 cout << "After Matrixproduct \n";
-
-                aux1 = true; // Exit condition
             } else {
+            	j=0;
                 for (int i = 0; i < counter; i++) {
-                    if (s0(P[i], 0) < nnlstol) {
-                        alphai = y(P[i], 0) / (eps + y(P[i], 0) - s0(P[i], 0));
+                    if (s0(i, 0) < nnlstol) {
+                        alphai = y(i, 0) / (eps + y(i, 0) - s0(i, 0));
                         if (alphai < alpha) {
                             alpha = alphai;
-                            j = 1;
+                            j = i;
                         }
                     }
                 }
             }
 
             cout << "Before counter while \n";
+            a=0;
             while (a < counter) {
                 a += 1;
-                y(P[a], 0) = y(P[a], 0) + alpha * (s0(P[a], 0) - y(P[a], 0));
+                y(a, 0) = y(a, 0) + alpha * (s0(a, 0) - y(a, 0));
             }
 
             if (j > 0) {
