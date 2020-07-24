@@ -319,11 +319,21 @@ int main(int argc, char* argv[]) {
   string randomPath = "sup2.dat";
   Epetra_SerialDenseMatrix topology, y;
   CreateTopology(topology.N(), topology, randomPath);
+  cout << "topology= " << topology << endl;
+  cout << "topology.M= " << topology.M() << " topology.N= " << topology.N()
+       << endl;
 
   double zmax = 0;
   double zmean = 0;
-  zmean = topology.NormOne() / pow(topology.N(), 2);
-  zmax = topology.NormInf();
+
+  for (int i = 0; i < topology.M(); i++)
+    for (int j = 0; j < topology.N(); j++) {
+      {
+        zmean += topology(i, j);
+        if (topology(i, j) > zmax) zmax = topology(i, j);
+      }
+    }
+  zmean = zmean / (topology.N() * topology.M());
 
   double Delta = 50;  // TODO only used for debugging
 
