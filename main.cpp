@@ -368,8 +368,11 @@ int main(int argc, char* argv[]) {
     // [ind1,ind2]=find(z>=(zmax-(Delta(s)+w_el(k))));
     vector<int> col, row;
     double value = zmax - Delta + w_el;
-    for (int i = 0; i < topology.N(); i++) {
-      for (int j = 0; j < topology.N(); j++) {
+
+    cout << "zmax= " << zmax << " and mean= " << zmean << endl;
+
+    for (int i = topology.N(); i > 0; i--) {
+      for (int j = topology.N(); j > 0; j--) {
         if (topology(i, j) >= value) {
           row.push_back(i);
           col.push_back(j);
