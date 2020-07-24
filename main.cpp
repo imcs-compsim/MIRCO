@@ -216,9 +216,10 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix,
       if (init == false) {
         // Index #i enter active index
         counter += 1;
-        P.push_back(minPosition);
-      } else
+        P[counter] = minPosition;
+      } else {
         init = false;
+      }
     }
 
     int j = 0;
