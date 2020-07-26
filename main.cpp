@@ -81,6 +81,7 @@ void CreateTopology(int systemsize, Epetra_SerialDenseMatrix& topology,
     cout << line << endl;
 
     int separatorAmount = count(line.begin(), line.end(), ';');
+    cout << "seperatoramount= " << separatorAmount << endl;
 
     for (int i = 0; i < separatorAmount;
          i++) {  // prevent duplication of values!
@@ -91,6 +92,7 @@ void CreateTopology(int systemsize, Epetra_SerialDenseMatrix& topology,
       cout << "i= " << i << endl;
       cout << "container= " << container << endl;
       double value = stod(container);
+      cout << "value= " << value << endl;
 
       topology(lineCounter - 1, i) = value;
 
@@ -166,7 +168,7 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
   Epetra_SerialDenseMatrix vector_x, vector_b;
   Epetra_SerialSymDenseMatrix solverMatrix;
 
-  cout << "n0= " << n0 << endl;
+  // cout << "n0= " << n0 << endl;
   // Initialize active set
   vector<int> positions;
   int counter = 0;
@@ -179,6 +181,8 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
 
   // Avoid .N() = 0 or .M() = 0, completely wrecks code otherwise
   w.Reshape(b0.M(), b0.N());
+
+  //  cout << "b0.M= " << b0.M() << " und b0.N= " << b0.N() << endl;
 
   if (counter == 0) {
     for (int x = 0; x < b0.M(); x++) {
@@ -197,20 +201,20 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
   bool aux1 = true, aux2 = true;
 
   while (aux1 == true) {
-    cout << "iter= " << iter << endl;
-    cout << "In aux1 Schleife\n";
+    //    cout << "iter= " << iter << endl;
+    //    cout << "In aux1 Schleife\n";
     // [wi,i]=min(w);
     double minValue = w(0, 0), minPosition = 0;
+    //    cout << "Vor Schleife\n";
     for (int i = 0; i < w.M(); i++) {
       if (minValue > w(i, 0)) {
         minValue = w(i, 0);
         minPosition = i;
       }
     }
-    cout << "minvalue= " << minValue << endl;
+    //    cout << "minvalue= " << minValue << " und minpos= " << minPosition <<
+    //    endl;
 
-    cout << (counter == n0) << (minValue > -nnlstol) << (iter <= maxiter)
-         << (init == false) << endl;
     if (((counter == n0) || (minValue > -nnlstol) || (iter >= maxiter)) &&
         (init == false)) {
       aux1 = false;
@@ -224,14 +228,16 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
       }
     }
 
+    //    cout << "Counter has value: " + to_string(counter) + " .\n";
+
     int j = 0;
     aux2 = true;
     while (aux2 == true) {
-      cout << "In aux2 Schleife\n";
+      //      cout << "In aux2 Schleife\n";
 
       iter++;
+
       // DEBUG
-      cout << "Counter has value: " + to_string(counter) + " .\n";
 
       vector_x.Shape(counter, 1);
       vector_b.Shape(counter, 1);
@@ -249,19 +255,23 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
       }
 
       // Linear solve
+      //      cout << "matrix= " << matrix << endl;
+      //      cout << "solver matrix= " << solverMatrix << endl;
       LinearSolve(solverMatrix, vector_x, vector_b);
 
-      cout << "s0.M= " << s0.M() << " vector_x.M= " << vector_x.M()
-           << " P[0]= " << P[0] << endl;
+      //      cout << "s0.M= " << s0.M() << " vector_x.M= " << vector_x.M()
+      //           << " nP= " << counter << endl;
+
       for (int x = 0; x < counter; x++) {
         s0(P[x], 0) = vector_x(x, 0);
+        //        cout << "x=" << vector_x(x, 0) << endl;
       }
 
       bool allBigger = true;
       for (int x = 0; x < counter; x++) {
         if (s0(P[x], 0) < nnlstol) {
           allBigger = false;
-          cout << "s0= " << s0(P[x], 0) << " for i= " << x << endl;
+          //         cout << "s0= " << s0(P[x], 0) << " for i= " << x << endl;
         }
       }
 
@@ -271,7 +281,11 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
           y(P[x], 0) = s0(P[x], 0);
         }
 
+        //        cout << "y= " << y << endl;
+
         // w=A(:,P(1:nP))*y(P(1:nP))-b;
+        w.Scale(0.0);
+        //       cout << "w= " << w << endl;
         for (int a = 0; a < matrix.M(); a++) {
           w(a, 0) = 0;
           for (int b = 0; b < counter; b++) {
@@ -282,7 +296,7 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
             }
           }
           w(a, 0) -= b0(a, 0);
-          cout << "w= " << w(a, 0) << " and b= " << b0(a, 0) << endl;
+          //         cout << "w= " << w(a, 0) << " and b= " << b0(a, 0) << endl;
         }
       } else {
         j = 0;
@@ -299,7 +313,7 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
 
         for (int a = 0; a < counter; a++)
           y(P[a], 0) = y(P[a], 0) + alpha * (s0(P[a], 0) - y(P[a], 0));
-        cout << "j= " << j << endl;
+        //       cout << "j= " << j << endl;
         if (j > 0) {
           // jth entry in P leaves active set
           s0(P[j], 0) = 0;
@@ -325,7 +339,7 @@ int main(int argc, char* argv[]) {
   // Meshgrid-Command
   // Identical Vectors/Matricies, therefore only created one here.
   vector<double> x;
-  cout << "delta=" << delta << endl;
+  //  cout << "delta=" << delta << endl;
   for (double i = delta / 2; i < lato; i = i + delta) {
     x.push_back(i);
   }
@@ -334,9 +348,9 @@ int main(int argc, char* argv[]) {
   string randomPath = "sup2.dat";
   Epetra_SerialDenseMatrix topology, y;
   CreateTopology(topology.N(), topology, randomPath);
-  cout << "topology= " << topology << endl;
-  cout << "topology.M= " << topology.M() << " topology.N= " << topology.N()
-       << endl;
+  //  cout << "topology= " << topology << endl;
+  //  cout << "topology.M= " << topology.M() << " topology.N= " << topology.N()
+  //       << endl;
 
   double zmax = 0;
   double zmean = 0;
@@ -380,7 +394,7 @@ int main(int argc, char* argv[]) {
     vector<int> col, row;
     double value = zmax - Delta - w_el;
 
-    cout << "zmax= " << zmax << " and mean= " << zmean << endl;
+    //    cout << "zmax= " << zmax << " and mean= " << zmean << endl;
 
     row.clear();
     col.clear();
@@ -406,11 +420,12 @@ int main(int argc, char* argv[]) {
 
     for (int b = 0; b < n0; b++) {
       yv0.push_back(x[row[b]]);
-      cout << "xv0= " << xv0[b] << " and yv0= " << yv0[b] << endl;
+      //     cout << "xv0= " << xv0[b] << " and yv0= " << yv0[b] << endl;
     }
 
     for (int b = 0; b < n0; b++) {
       b0.push_back(Delta + w_el - (zmax - topology(row[b], col[b])));
+      //     cout << "b0= " << b0[b] << endl;
     }
 
     cout << "k = " << k << " .\n";
@@ -419,6 +434,8 @@ int main(int argc, char* argv[]) {
 
     // Construction of the Matrix H = A
     SetUpMatrix(A, xv0, yv0, delta, E, n0, k);
+
+    //    cout << "A= " << A << endl;
 
     // Second predictor for contact set
     // @{
@@ -472,6 +489,7 @@ int main(int argc, char* argv[]) {
       }
     }
     nf = cont;
+
     // }
 
     // Compute contact force and contact area
@@ -490,6 +508,9 @@ int main(int argc, char* argv[]) {
     if (k > 0) {
       // errf(k) = abs((force0(k)-force0(k-1))/force0(k));
       errf = abs(force0[k] - force0[k - 1]) / force0[k];
+
+      cout << "Force= " << force0[k] << " and old force= " << force0[k - 1]
+           << " and w_el= " << w_el << endl;
 
       // errw(k) = abs((w_el0(k+1)-w_el0(k))/w_el0(k+1));
       // It appears that this is only a debugging variable without any uses,
@@ -512,6 +533,9 @@ int main(int argc, char* argv[]) {
   double sigmaz = force / pow(lato, 2);
   // Pressure unit per depth
   double pressz = sigmaz;
+  cout << "k= " << k << " nf= " << nf << endl;
+  cout << "Force= " << force << endl;
+  cout << "area= " << area << endl;
   cout << "Mean pressure is:" + std::to_string(sigmaz) +
               " ; pressure unit per depth is:" + std::to_string(pressz) +
               " . \n";
