@@ -5,9 +5,8 @@ BEM - Programmierprojekt
 
 params: Fertig bis auf Textausgabe
 BEM_Core: Fertig (Loop könnte noch eingefügt werden)
-nnls: Fertig bis auf Linear Solve / Einfügung in die gegebenen Vektoren
-warm_x: fertig
+nnls: Fertig
+warm_x: nicht implementiert
 ranmid2d_MP: nicht implementiert.
-Bugs: y 2 Mal definiert, array nicht definiert
 
 //
