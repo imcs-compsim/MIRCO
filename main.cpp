@@ -1,3 +1,4 @@
+#include <omp.h>
 #include <unistd.h>
 #include <cmath>  //pow
 #include <cstdio>
@@ -103,6 +104,7 @@ void SetUpMatrix(Epetra_SerialDenseMatrix& A, std::vector<double> xv0,
   double raggio = delta / 2;
   double C = 1 / (E * pi * raggio);
 
+#pragma omp parallel for
   for (int i = 0; i < systemsize; i++) {
     A(i, i) = 1 * C;
   }
@@ -290,6 +292,8 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
 /*------------------------------------------*/
 
 int main(int argc, char* argv[]) {
+  omp_set_num_threads(2);
+
   int csteps, flagwarm;
   double nu1, nu2, G1, G2, E, G, nu, alpha, H, rnd, k_el, delta, nnodi, to1, E1,
       E2, lato, zref, ampface, errf;
