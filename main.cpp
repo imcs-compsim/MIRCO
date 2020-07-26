@@ -262,9 +262,8 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix,
 
       if (allBigger == true) {
         aux2 = false;
-
-        for (int x = 0; x < y.M(); x++) {
-          y(x, 0) = s0(x, 0);
+        for (int x = 0; x < counter; x++) {
+          y(P[x], 0) = s0(P[x], 0);
         }
 
         // w=A(:,P(1:nP))*y(P(1:nP))-b;
@@ -272,11 +271,13 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix,
           w(a, 0) = 0;
           for (int b = 0; b < counter; b++) {
             if (matrix(a, P[b]) == 0) {
-              w(a, 0) += (matrix(P[b], a) * y(P[b], 0)) - b0(a, 0);
+              w(a, 0) += (matrix(P[b], a) * y(P[b], 0));
             } else {
-              w(a, 0) += (matrix(a, P[b]) * y(P[b], 0)) - b0(a, 0);
+              w(a, 0) += (matrix(a, P[b]) * y(P[b], 0));
             }
           }
+          w(a, 0) -= b0(a, 0);
+          cout << "w= " << w(a, 0) << " and b= " << b0(a, 0) << endl;
         }
       } else {
         j = 0;
