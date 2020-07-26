@@ -14,11 +14,12 @@ using namespace std;
  * Sets up any given parameter.
  * Cross-checked for functionality. Should work as intented.
  */
-void SetParameters(int& E1, int& E2, int& csteps, int& flagwarm, int& lato,
-                   int& zref, int& ampface, double& nu1, double& nu2,
-                   double& G1, double& G2, double& E, double& G, double& nu,
-                   double& alpha, double& H, double& rnd, double& k_el,
-                   double& delta, double& nnodi, int& errf, float& to1) {
+void SetParameters(double& E1, double& E2, int& csteps, int& flagwarm,
+                   double& lato, double& zref, double& ampface, double& nu1,
+                   double& nu2, double& G1, double& G2, double& E, double& G,
+                   double& nu, double& alpha, double& H, double& rnd,
+                   double& k_el, double& delta, double& nnodi, double& errf,
+                   double& to1) {
   E1 = 1;
   E2 = 1;
   nu1 = 0.3;
@@ -314,9 +315,10 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
 /*------------------------------------------*/
 
 int main(int argc, char* argv[]) {
-  int E1, E2, csteps, flagwarm, lato, zref, ampface, errf;
-  double nu1, nu2, G1, G2, E, G, nu, alpha, H, rnd, k_el, delta, nnodi;
-  float to1;
+  int csteps, flagwarm;
+  double nu1, nu2, G1, G2, E, G, nu, alpha, H, rnd, k_el, delta, nnodi, to1, E1,
+      E2, lato, zref, ampface, errf;
+
   SetParameters(E1, E2, csteps, flagwarm, lato, zref, ampface, nu1, nu2, G1, G2,
                 E, G, nu, alpha, H, rnd, k_el, delta, nnodi, errf, to1);
 
@@ -350,25 +352,24 @@ int main(int argc, char* argv[]) {
 
   double Delta = 50;  // TODO only used for debugging
 
-  vector<double> force0, area0, w_el0;
-  force0.push_back(0);
-  w_el0.push_back(0);
+  vector<double> force0, area0;
+  //  force0.push_back(0);
+  //  w_el0.push_back(0);
   double w_el = 0;
-  double area, force;
+  double area = 0, force = 0;
   int k = 0;
   int n0;
   std::vector<double> xv0, yv0, b0, x0, xvf, yvf,
       pf;  // x0: initialized in Warmstart!
   double nf, xvfaux, yvfaux, pfaux;
 
-  Epetra_SerialSymDenseMatrix A;
-  int iter = 0;
+  Epetra_SerialDenseMatrix A;
 
   // So far so good
 
-  while (errf > to1 && iter < 100) {
-    k += 1;
+  //  cout << "topology= " << topology << endl;
 
+  while (errf > to1 && k < 100) {
     // First predictor for contact set
     // All points, for which gap is bigger than the displacement of the rigid
     // indenter, cannot be in contact and thus are not checked in nonlinear
@@ -377,12 +378,15 @@ int main(int argc, char* argv[]) {
 
     // [ind1,ind2]=find(z>=(zmax-(Delta(s)+w_el(k))));
     vector<int> col, row;
-    double value = zmax - Delta + w_el;
+    double value = zmax - Delta - w_el;
 
     cout << "zmax= " << zmax << " and mean= " << zmean << endl;
 
-    for (int i = topology.N(); i > 0; i--) {
-      for (int j = topology.N(); j > 0; j--) {
+    row.clear();
+    col.clear();
+    for (int i = 0; i < topology.N(); i++) {
+      //      cout << "x= " << x[i] << endl;
+      for (int j = 0; j < topology.N(); j++) {
         if (topology(i, j) >= value) {
           row.push_back(i);
           col.push_back(j);
@@ -411,7 +415,7 @@ int main(int argc, char* argv[]) {
 
     cout << "k = " << k << " .\n";
 
-    int err = A.Shape(xv0.size());
+    int err = A.Shape(xv0.size(), xv0.size());
 
     // Construction of the Matrix H = A
     SetUpMatrix(A, xv0, yv0, delta, E, n0, k);
@@ -438,7 +442,7 @@ int main(int argc, char* argv[]) {
     if (A.M() != y.N()) {
       std::runtime_error("Error 1: Matrix dimensions imcompatible");
     }
-    res1.Shape(A.N(), y.M());
+    res1.Shape(A.M(), A.M());
     // res1=A*sol-b0(:,k)-wsol;
     // Should work now.
 
@@ -446,7 +450,7 @@ int main(int argc, char* argv[]) {
       for (int z = 0; z < y.M(); z++) {
         res1(x, 0) += A(x, z) * y(z, 0);
       }
-      res1(x, 0) += -b0new(x, 0) - w(x, 0);  // [...]-b0(:,k) - wsol;
+      res1(x, 0) -= b0new(x, 0) + w(x, 0);  // [...]-b0(:,k) - wsol;
     }
     // }
 
@@ -460,10 +464,11 @@ int main(int argc, char* argv[]) {
     pf.resize(y.M());
     for (int i = 0; i < y.M(); i++) {
       if (y(i, 0) != 0) {
-        cont += 1;
         xvf[cont] = xv0[i];
         yvf[cont] = yv0[i];
         pf[cont] = y(i, 0);
+        //       cout << "pf= " << pf[cont] << endl;
+        cont += 1;
       }
     }
     nf = cont;
@@ -474,14 +479,15 @@ int main(int argc, char* argv[]) {
     force0.push_back(0);
     for (int i = 0; i < nf; i++) {
       force0[k] = force0[k] + pf[i];
-      area0.push_back(nf * (pow(delta, 2) / pow(lato, 2)) * 100);
+      //     cout << "pf= " << pf[i] << " and force0[k]= " << force0[k] << endl;
     }
-    w_el0.push_back(force0[k] / k_el);
+    area0.push_back(nf * (pow(delta, 2) / pow(lato, 2)) * 100);
+    w_el = force0[k] / k_el;
     // }
 
     // Compute error because of nonlinear correction
     // @{
-    if (k > 1) {
+    if (k > 0) {
       // errf(k) = abs((force0(k)-force0(k-1))/force0(k));
       errf = abs(force0[k] - force0[k - 1]) / force0[k];
 
@@ -489,15 +495,15 @@ int main(int argc, char* argv[]) {
       // It appears that this is only a debugging variable without any uses,
       // therefore im not gonna implement this here.
     }
-    iter++;
+    cout << "errf= " << errf << endl;
+    k += 1;
     // }
   }
 
   // @{
 
-  force = force0[k];
-  area = area0[k];
-  w_el = w_el0[k];
+  force = force0[k - 1];
+  area = area0[k - 1];
 
   // }
   // }
