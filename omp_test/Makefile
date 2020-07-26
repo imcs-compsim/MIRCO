@@ -9,9 +9,9 @@ CFLAGS=-std=c++11 -I$(IDIR) -L$(LDIR) -L$(MPI) -fopenmp
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 bem: main.o
-	$(CC) -o bem main.o $(CFLAGS) $(LIBS)
+	$(CC) -o test_program main.o $(CFLAGS) $(LIBS)
 
 .PHONY:clean
 
 clean:
-	rm -f *.o *~ bem
+	rm -f *.o *~ test_program
