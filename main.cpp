@@ -101,7 +101,7 @@ void CreateTopology(int systemsize, Epetra_SerialDenseMatrix& topology,
 
 /*------------------------------------------*/
 
-void SetUpMatrix(Epetra_SerialSymDenseMatrix& A, std::vector<double> xv0,
+void SetUpMatrix(Epetra_SerialDenseMatrix& A, std::vector<double> xv0,
                  std::vector<double> yv0, double delta, double E,
                  int systemsize, int k) {
   int r;
@@ -117,6 +117,7 @@ void SetUpMatrix(Epetra_SerialSymDenseMatrix& A, std::vector<double> xv0,
     for (int j = 0; j < i; j++) {
       r = sqrt(pow((xv0[j] - xv0[i]), 2) + pow((yv0[j] - yv0[i]), 2));
       A(i, j) = C * asin(raggio / r);
+      A(j, i) = C * asin(raggio / r);
     }
   }
 }
@@ -145,7 +146,7 @@ void LinearSolve(Epetra_SerialSymDenseMatrix& matrix,
 }
 
 /*------------------------------------------*/
-void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix,
+void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
                     Epetra_SerialDenseMatrix& b0, std::vector<double>& y0,
                     Epetra_SerialDenseMatrix& w, Epetra_SerialDenseMatrix& y) {
   // matrix -> A, b0 -> b, y0 -> y0 , y -> y, w-> w; nnstol, iter, maxiter ->
@@ -239,7 +240,10 @@ void NonlinearSolve(Epetra_SerialSymDenseMatrix& matrix,
         vector_b(x, 0) = b0(P[x], 0);
 
         for (int z = 0; z < counter; z++) {
-          solverMatrix(x, z) = matrix(P[x], P[z]);
+          if (x >= z)
+            solverMatrix(x, z) = matrix(P[x], P[z]);
+          else
+            solverMatrix(z, x) = matrix(P[x], P[z]);
         }
       }
 
