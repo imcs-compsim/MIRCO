@@ -294,6 +294,10 @@ int main(int argc, char* argv[]) {
   double nu1, nu2, G1, G2, E, G, nu, alpha, H, rnd, k_el, delta, nnodi, to1, E1,
       E2, lato, zref, ampface, errf;
 
+  double Delta = 50;  // TODO only used for debugging
+
+  string randomPath = "sup2.dat";
+
   SetParameters(E1, E2, csteps, flagwarm, lato, zref, ampface, nu1, nu2, G1, G2,
                 E, G, nu, alpha, H, rnd, k_el, delta, nnodi, errf, to1);
 
@@ -305,7 +309,6 @@ int main(int argc, char* argv[]) {
   }
 
   // Setup Topology
-  string randomPath = "sup2.dat";
   Epetra_SerialDenseMatrix topology, y;
   CreateTopology(topology.N(), topology, randomPath);
 
@@ -320,8 +323,6 @@ int main(int argc, char* argv[]) {
       }
     }
   zmean = zmean / (topology.N() * topology.M());
-
-  double Delta = 50;  // TODO only used for debugging
 
   vector<double> force0, area0;
   double w_el = 0;
@@ -475,4 +476,5 @@ int main(int argc, char* argv[]) {
   cout << "Mean pressure is:" + std::to_string(sigmaz) +
               " ; pressure unit per depth is:" + std::to_string(pressz) +
               " . \n";
+  if (abs(sigmaz - 128784) > to1) std::runtime_error("Differenz ist zu groß!");
 }
