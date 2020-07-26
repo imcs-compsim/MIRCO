@@ -145,7 +145,7 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
   // matrix -> A, b0 -> b, y0 -> y0 , y -> y, w-> w; nnstol, iter, maxiter ->
   // unused
   double nnlstol = 1.0000e-08;
-  double maxiter = 500;
+  double maxiter = 10000;
   double eps = 2.2204e-16;
   double alphai = 0;
   double alpha = 100000000;
@@ -476,5 +476,8 @@ int main(int argc, char* argv[]) {
   cout << "Mean pressure is:" + std::to_string(sigmaz) +
               " ; pressure unit per depth is:" + std::to_string(pressz) +
               " . \n";
-  if (abs(sigmaz - 128784) > to1) std::runtime_error("Differenz ist zu groß!");
+  if (abs(sigmaz - 128784) > to1)
+    std::runtime_error("Differenz ist zu groß!");  // for nn=2
+  if (abs(sigmaz - 208848) > to1)
+    std::runtime_error("Differenz ist zu groß!");  // for nn=5
 }
