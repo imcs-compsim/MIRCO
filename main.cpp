@@ -149,38 +149,24 @@ void CreateTopology(int systemsize, Epetra_SerialDenseMatrix& topology, string f
         zmean = zmean / pow(topology.N(), 2);
 } */
 
-Epetra_SerialSymDenseMatrix SetUpMatrix(Epetra_SerialDenseMatrix xv0, Epetra_SerialDenseMatrix yv0, 
-		double delta, double E, int systemsize, int k) {
-	
-	// DEBUG
-	cout << "Init done. \n";
-	
+Epetra_SerialSymDenseMatrix SetUpMatrix(Epetra_SerialDenseMatrix xv0, Epetra_SerialDenseMatrix yv0, double delta,
+    double E, int systemsize, int k) {
     Epetra_SerialSymDenseMatrix A; int r;
     double pi = atan(1) * 4;
     double raggio = delta / 2;
     double C = 1 / (E * pi * raggio);
-    A.Shape(systemsize, systemsize);
-    
-    // DEBUG
-    cout << "Part 1 done. \n";
+    A.Shape(systemsize);
 
-    for (int i = 1; i < (systemsize + 1); i++) {
+    for (int i = 0; i < systemsize; i++) {
         A(i, i) = 1 * C;
     }
-    
-    // DEBUG
-    cout << "Part 2 done. \n";
 
-    for (int i = 1; i < (systemsize + 1); i++) {
-        for (int j = 1; j < (i + 1); j++) {
+    for (int i = 0; i < systemsize; i++) {
+        for (int j = 0; j < i; j++) {
             r = (xv0(j, k) - xv0(i, k)) * (yv0(j, k) - yv0(i, k));
             A(i, j) = C * asin(raggio / r);
         }
     }
-    
-    // DEBUG
-    cout << "Part 3 done. \n";
-    
     return A;
 }
 
@@ -526,23 +512,16 @@ int main(int argc, char* argv[]) {
 
         for (int i = 1; i < (n0[k - 1] + 1); i++) {
             xv0(i, k) = x[row[i - 1]];
-            yv0(i, k) = x[row[i - 1]]; // Here should be y[row[i - 1]], but y = x
+            yv0(i, k) = x[row[i - 1]]; // Here should be y, but y = x
             b0(i, k) = Delta + w_el - (zmax - topology(row[i - 1], col[i - 1]));
         }
         // }
         
         // DEBUG
-        cout << "First predictor done. \n \n";
-        
-        cout << "xv0(1, 1) = " + to_string(xv0(1, 1)) + " .\n";
-        cout << "yv0(1, 1) = " + to_string(yv0(1, 1)) + " .\n";
-        cout << "delta = " + to_string(delta) + " .\n";
-        cout << "E = " + to_string(E) + " .\n";
-        cout << "n0[k - 1] = " + to_string(n0[k - 1]) + " .\n";
-        cout << "k = " + to_string(k) + " .\n";
+        cout << "First predictor done. \n";
 
         // Construction of the Matrix H = A
-        Epetra_SerialSymDenseMatrix A = SetUpMatrix(xv0, yv0, delta, E, n0[k - 1], k);
+        Epetra_SerialSymDenseMatrix A = SetUpMatrix(xv0, yv0, delta, E, n0[k], k);
         
         // DEBUG
         cout << "Matrix set up. \n";
