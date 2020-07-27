@@ -254,11 +254,7 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
         for (int a = 0; a < matrix.M(); a++) {
           w(a, 0) = 0;
           for (int b = 0; b < counter; b++) {
-            if (matrix(a, P[b]) == 0) {
-              w(a, 0) += (matrix(P[b], a) * y(P[b], 0));
-            } else {
-              w(a, 0) += (matrix(a, P[b]) * y(P[b], 0));
-            }
+            w(a, 0) += (matrix(P[b], a) * y(P[b], 0));
           }
           w(a, 0) -= b0(a, 0);
         }
