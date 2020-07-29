@@ -282,6 +282,7 @@ void writeToFile(string filepath, vector<vector<double>> values){
 				outfile << to_string(values[x][y]) + ",";
 			}
 		}
+		outfile << endl;
 	}
 }
 
