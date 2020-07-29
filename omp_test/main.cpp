@@ -276,13 +276,12 @@ void writeToFile(string filepath, vector<vector<double>> values){
 	outfile << std::scientific;
 	for (int y = 0; y < values[0].size(); y++){
 		for (int x = 0; x < values.size(); x++){
-			if (y == values[0].size()){
+			if (x == values[0].size()){
 				outfile << to_string(values[x][y]) << endl;
 			} else {
 				outfile << to_string(values[x][y]) + ",";
 			}
 		}
-		outfile << endl;
 	}
 }
 
