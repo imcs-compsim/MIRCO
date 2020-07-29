@@ -138,6 +138,7 @@ void SetUpMatrix(Epetra_SerialDenseMatrix& A, std::vector<double> xv0,
   // Writing time to console
   auto finish = std::chrono::high_resolution_clock::now();
   time = std::chrono::duration_cast<std::chrono::microseconds>(finish - start).count();
+  // Hint: Micro is 10^-6
   
   // std::chrono::duration<double> elapsed = finish - start;
   // time = elapsed.count();
@@ -161,7 +162,7 @@ void calculateTimes(double& elapsedTime1, double& elapsedTime2, int cachesize) {
 	double nu1, nu2, G1, G2, E, G, nu, alpha, H, rnd, k_el, delta, nnodi, to1, E1,
 	      E2, lato, zref, ampface, errf;
 	double Delta = 50;  // TODO only used for debugging
-	string randomPath = "sup2.dat";
+	string randomPath = "sup5.dat";
 	
 	// std::cout << "Test file for generating data is: " + randomPath + ".\n";
 
@@ -242,8 +243,8 @@ void calculateTimes(double& elapsedTime1, double& elapsedTime2, int cachesize) {
 	
 	// Writing time to console
 	auto finish = std::chrono::high_resolution_clock::now();
-	
-	elapsedTime2 = std::chrono::duration_cast<std::chrono::microseconds> (finish - start).count();
+	elapsedTime2 = std::chrono::duration_cast<std::chrono::microseconds>(finish - start).count();
+	// Hint: Micro is 10^-6
 	
 	// std::chrono::duration<double> elapsed = finish - start;
 	// elapsedTime2 = elapsed.count();
@@ -298,7 +299,7 @@ int main(int argc, char* argv[]) {
 	double time1 = 0, time2 = 0, min1 = 0, min2 = 0;
 	vector<double> times1, times2, mins1, mins2;
 	Epetra_SerialDenseMatrix matrix1, matrix2;
-	matrix1.Shape(64, 12); matrix2.Shape(64, 12);
+	matrix1.Shape(maxCache, maxThreads); matrix2.Shape(maxCache, maxThreads);
 	
 	for (int cachesize = 1; cachesize < (maxCache + 1); cachesize++){
 		for (int threadAmount = 1; threadAmount < (maxThreads + 1); threadAmount++){
