@@ -276,7 +276,7 @@ void writeToFile(string filepath, Epetra_SerialDenseMatrix values, int dim1, int
 	outfile << std::scientific;
 	for (int y = 0; y < dim2; y++){
 		for (int x = 0; x < dim1; x++){
-			if (x == dim1){
+			if (x == (dim1 - 1)){
 				outfile << to_string(values(x, y)) << endl;
 			} else {
 				outfile << to_string(values(x, y)) + ",";
