@@ -137,8 +137,11 @@ void SetUpMatrix(Epetra_SerialDenseMatrix& A, std::vector<double> xv0,
 
   // Writing time to console
   auto finish = std::chrono::high_resolution_clock::now();
-  std::chrono::duration<double> elapsed = finish - start;
-  time = elapsed.count();
+  time = std::chrono::duration_cast<std::chrono::microseconds>(finish - start).count();
+  
+  // std::chrono::duration<double> elapsed = finish - start;
+  // time = elapsed.count();
+  
   // std::cout << "\n	Calculating time for setting up A. \n";
   // std::cout << "Elapsed time: " << time << " s\n"; 
   // MULTITHREADING END
@@ -239,10 +242,12 @@ void calculateTimes(double& elapsedTime1, double& elapsedTime2, int cachesize) {
 	
 	// Writing time to console
 	auto finish = std::chrono::high_resolution_clock::now();
-	std::chrono::duration<double> elapsed = finish - start;
-	elapsedTime2 = elapsed.count();
-	// std::cout << "\n	Calculating time for y = A * b0. \n";
-	// std::cout << "Elapsed time: " << elapsedTime2 << " s\n"; 
+	
+	elapsedTime2 = std::chrono::duration_cast<std::chrono::microseconds> (finish - start).count();
+	
+	// std::chrono::duration<double> elapsed = finish - start;
+	// elapsedTime2 = elapsed.count();
+	
 	// MULTITHREADING END
 }
 
