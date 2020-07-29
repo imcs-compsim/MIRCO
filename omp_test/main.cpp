@@ -130,7 +130,7 @@ void SetUpMatrix(Epetra_SerialDenseMatrix& A, std::vector<double> xv0,
   // Reading in time
   auto start = std::chrono::high_resolution_clock::now();
   
-#pragma omp parallel for schedule(static, cachesize)
+#pragma omp parallel for schedule(dynamic, cachesize)
   for (int i = 0; i < systemsize; i++) {
     A(i, i) = 1 * C;
   }
@@ -162,7 +162,7 @@ void calculateTimes(double& elapsedTime1, double& elapsedTime2, int cachesize) {
 	double nu1, nu2, G1, G2, E, G, nu, alpha, H, rnd, k_el, delta, nnodi, to1, E1,
 	      E2, lato, zref, ampface, errf;
 	double Delta = 50;  // TODO only used for debugging
-	string randomPath = "sup5.dat";
+	string randomPath = "sup2.dat";
 	
 	// std::cout << "Test file for generating data is: " + randomPath + ".\n";
 
@@ -233,7 +233,7 @@ void calculateTimes(double& elapsedTime1, double& elapsedTime2, int cachesize) {
 	y.Shape(A.M(), 1);
 	auto start = std::chrono::high_resolution_clock::now();
 	
-#pragma omp parallel for schedule(static, cachesize)
+#pragma omp parallel for schedule(dynamic, cachesize)
 	// y = A * b (Matrix * Vector)
 	for (int a = 0; a < A.M(); a++) {
 		for (int b = 0; b < A.N(); b++) {
@@ -322,8 +322,6 @@ int main(int argc, char* argv[]) {
 	}
 	
 	std::cout << "Calc done." << endl;
-	
-	std::cout << "Random element is: " + to_string(matrix1(0, 0)) << endl;
 	
 	writeToFile("datatimes1.dat", matrix1, maxCache, maxThreads);
 	writeToFile("datatimes2.dat", matrix2, maxCache, maxThreads);
