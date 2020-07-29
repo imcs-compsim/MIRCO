@@ -156,13 +156,12 @@ void SetUpMatrix(Epetra_SerialDenseMatrix& A, std::vector<double> xv0,
   }
 }
 
-void calculateTimes(double& elapsedTime1, double& elapsedTime2, int cachesize) {
+void calculateTimes(double& elapsedTime1, double& elapsedTime2, int cachesize, string randomPath) {
 	// Setup constants
 	int csteps, flagwarm;
 	double nu1, nu2, G1, G2, E, G, nu, alpha, H, rnd, k_el, delta, nnodi, to1, E1,
 	      E2, lato, zref, ampface, errf;
 	double Delta = 50;  // TODO only used for debugging
-	string randomPath = "sup2.dat";
 	
 	// std::cout << "Test file for generating data is: " + randomPath + ".\n";
 
@@ -295,6 +294,7 @@ void writeToFile(string filepath, Epetra_SerialDenseMatrix values, int dim1, int
 int main(int argc, char* argv[]) {
 	// Setup Thread Amount and Cache_Size
 	int maxThreads = 12, maxCache = 18;
+	string filePath = "sup5.dat";
 	
 	double time1 = 0, time2 = 0, min1 = 0, min2 = 0;
 	vector<double> times1, times2, mins1, mins2;
@@ -306,7 +306,7 @@ int main(int argc, char* argv[]) {
 			// Generate runtime-data
 			omp_set_num_threads(threadAmount);
 			for (int i = 0; i < 100; i++){ // Should be sufficient
-				calculateTimes(time1, time2, cachesize);
+				calculateTimes(time1, time2, cachesize, filePath);
 				times1.push_back(time1);
 				times2.push_back(time2);
 			}
