@@ -158,7 +158,7 @@ void calculateTimes(double& elapsedTime1, double& elapsedTime2, int cachesize) {
 	double nu1, nu2, G1, G2, E, G, nu, alpha, H, rnd, k_el, delta, nnodi, to1, E1,
 	      E2, lato, zref, ampface, errf;
 	double Delta = 50;  // TODO only used for debugging
-	string randomPath = "sup2.dat";
+	string randomPath = "sup5.dat";
 	
 	// std::cout << "Test file for generating data is: " + randomPath + ".\n";
 
@@ -270,53 +270,55 @@ void writeToFile(string filepath, vector<double> values, string name){
 }
 
 // @overload
-void writeToFile(string filepath, vector<vector<double>> values){
+void writeToFile(string filepath, Epetra_SerialDenseMatrix values, int dim1, int dim2){
 	// Write file in MatLab style to increase data flexibility and handling
 	ofstream outfile; outfile.open(filepath);
 	outfile << std::scientific;
-	for (int y = 0; y < values[0].size(); y++){
-		for (int x = 0; x < values.size(); x++){
-			if (y == values[0].size()){
-				outfile << to_string(values[x][y]) << endl;
+	for (int y = 0; y < dim2; y++){
+		for (int x = 0; x < dim1; x++){
+			if (x == dim1){
+				outfile << to_string(values(x, y)) << endl;
 			} else {
-				outfile << to_string(values[x][y]) + ",";
+				outfile << to_string(values(x, y)) + ",";
 			}
 		}
-		outfile << endl;
 	}
 }
 
 int main(int argc, char* argv[]) {
-	// Setup Thread Amount
+	// Setup Thread Amount and Cache_Size
+	int maxThreads = 12, maxCache = 64;
+	
 	double time1 = 0, time2 = 0, min1 = 0, min2 = 0;
 	vector<double> times1, times2, mins1, mins2;
-	vector<vector<double>> matrix1, matrix2;
+	Epetra_SerialDenseMatrix matrix1, matrix2;
+	matrix1.Shape(64, 12); matrix2.Shape(64, 12);
 	
-	for (int cachesize = 1; cachesize < 65; cachesize++){
-		for (int threadAmount = 1; threadAmount < 13; threadAmount++){
+	for (int cachesize = 1; cachesize < (maxCache + 1); cachesize++){
+		for (int threadAmount = 1; threadAmount < (maxThreads + 1); threadAmount++){
 			// Generate runtime-data
+			std::cout << "Starting up Thread" << endl;
 			omp_set_num_threads(threadAmount);
 			for (int i = 0; i < 100; i++){ // Should be sufficient
 				calculateTimes(time1, time2, cachesize);
 				times1.push_back(time1);
 				times2.push_back(time2);
+				std::cout << "Times done." << endl;
 			}
 			min1 = generateMinimum(times1);
 			min2 = generateMinimum(times2);
-			mins1.push_back(min1); mins2.push_back(min2);
+			// std::cout << to_string(min1) << endl;
+			matrix1(cachesize, threadAmount) = min1;
+			matrix2(cachesize, threadAmount) = min2;
 			min1 = 0; times1.clear();
 			min2 = 0; times2.clear();
 		}
-		matrix1.push_back(mins1);
-		matrix2.push_back(mins2);
 	}
 	
-	std::cout << "matrix1.size(): " + to_string(matrix1.size()) << endl;
-	std::cout << "matrix1[0].size(): " + to_string(matrix1[0].size()) << endl;
-	std::cout << "Random element is: " + to_string(matrix1[0][0]) << endl;
+	std::cout << "Random element is: " + to_string(matrix1(0, 0)) << endl;
 	
-	writeToFile("datatimes1.dat", matrix1);
-	writeToFile("datatimes2.dat", matrix2);
+	writeToFile("datatimes1.dat", matrix1, maxCache, maxThreads);
+	writeToFile("datatimes2.dat", matrix2, maxCache, maxThreads);
 	
 	std::cout << "All jobs done!" << endl;
 }
