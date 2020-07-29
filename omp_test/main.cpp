@@ -158,7 +158,7 @@ void calculateTimes(double& elapsedTime1, double& elapsedTime2, int cachesize) {
 	double nu1, nu2, G1, G2, E, G, nu, alpha, H, rnd, k_el, delta, nnodi, to1, E1,
 	      E2, lato, zref, ampface, errf;
 	double Delta = 50;  // TODO only used for debugging
-	string randomPath = "sup5.dat";
+	string randomPath = "sup2.dat";
 	
 	// std::cout << "Test file for generating data is: " + randomPath + ".\n";
 
@@ -226,7 +226,7 @@ void calculateTimes(double& elapsedTime1, double& elapsedTime2, int cachesize) {
 	SetUpMatrix(A, xv0, yv0, delta, E, n0, elapsedTime1, cachesize);
 	
 	// MULTITHREADING
-	y.Shape(A.N(), 0);
+	y.Shape(A.M(), 1);
 	auto start = std::chrono::high_resolution_clock::now();
 	
 #pragma omp parallel for schedule(static, cachesize)
@@ -283,11 +283,12 @@ void writeToFile(string filepath, Epetra_SerialDenseMatrix values, int dim1, int
 			}
 		}
 	}
+	outfile.close();
 }
 
 int main(int argc, char* argv[]) {
 	// Setup Thread Amount and Cache_Size
-	int maxThreads = 12, maxCache = 64;
+	int maxThreads = 12, maxCache = 18;
 	
 	double time1 = 0, time2 = 0, min1 = 0, min2 = 0;
 	vector<double> times1, times2, mins1, mins2;
@@ -297,13 +298,11 @@ int main(int argc, char* argv[]) {
 	for (int cachesize = 1; cachesize < (maxCache + 1); cachesize++){
 		for (int threadAmount = 1; threadAmount < (maxThreads + 1); threadAmount++){
 			// Generate runtime-data
-			std::cout << "Starting up Thread" << endl;
 			omp_set_num_threads(threadAmount);
 			for (int i = 0; i < 100; i++){ // Should be sufficient
 				calculateTimes(time1, time2, cachesize);
 				times1.push_back(time1);
 				times2.push_back(time2);
-				std::cout << "Times done." << endl;
 			}
 			min1 = generateMinimum(times1);
 			min2 = generateMinimum(times2);
@@ -313,7 +312,10 @@ int main(int argc, char* argv[]) {
 			min1 = 0; times1.clear();
 			min2 = 0; times2.clear();
 		}
+		std::cout << "Cache " + to_string(cachesize) + " done." << endl;
 	}
+	
+	std::cout << "Calc done." << endl;
 	
 	std::cout << "Random element is: " + to_string(matrix1(0, 0)) << endl;
 	

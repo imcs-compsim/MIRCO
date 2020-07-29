@@ -296,7 +296,7 @@ int main(int argc, char* argv[]) {
 
   double Delta = 50;  // TODO only used for debugging
 
-  string randomPath = "sup5.dat";
+  string randomPath = "sup8.dat";
 
   SetParameters(E1, E2, csteps, flagwarm, lato, zref, ampface, nu1, nu2, G1, G2,
                 E, G, nu, alpha, H, rnd, k_el, delta, nnodi, errf, to1);
