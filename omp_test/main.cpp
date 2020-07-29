@@ -1,14 +1,14 @@
-#include <omp.h>
+#include <omp.h> // omp
 #include <unistd.h>
 #include <cmath>  //pow
 #include <cstdio>
-#include <fstream>   //ifstream
-#include <iostream>  //ifstream
+#include <fstream>   //ifstream, ofstream
+#include <iostream>  //ifstream, ofstream
 #include <string>    //std::to_string, std::stod
 #include <vector>
 #include "../include/Epetra_SerialSpdDenseSolver.h"
 #include "../include/Epetra_SerialSymDenseMatrix.h"
-#include <chrono>
+#include <chrono> // time stuff
 
 using namespace std;
 
@@ -120,7 +120,7 @@ void SetParameters(double& E1, double& E2, int& csteps, int& flagwarm,
 // Generating matrix A
 void SetUpMatrix(Epetra_SerialDenseMatrix& A, std::vector<double> xv0,
                  std::vector<double> yv0, double delta, double E,
-                 int systemsize, double& time) {
+                 int systemsize, double& time, int cachesize) {
   double r;
   double pi = atan(1) * 4;
   double raggio = delta / 2;
@@ -130,7 +130,7 @@ void SetUpMatrix(Epetra_SerialDenseMatrix& A, std::vector<double> xv0,
   // Reading in time
   auto start = std::chrono::high_resolution_clock::now();
   
-#pragma omp parallel for
+#pragma omp parallel for schedule(static, cachesize)
   for (int i = 0; i < systemsize; i++) {
     A(i, i) = 1 * C;
   }
@@ -152,7 +152,7 @@ void SetUpMatrix(Epetra_SerialDenseMatrix& A, std::vector<double> xv0,
   }
 }
 
-void calculateTimes(double& elapsedTime1, double& elapsedTime2) {
+void calculateTimes(double& elapsedTime1, double& elapsedTime2, int cachesize) {
 	// Setup constants
 	int csteps, flagwarm;
 	double nu1, nu2, G1, G2, E, G, nu, alpha, H, rnd, k_el, delta, nnodi, to1, E1,
@@ -223,13 +223,13 @@ void calculateTimes(double& elapsedTime1, double& elapsedTime2) {
 	int err = A.Shape(xv0.size(), xv0.size());
 	
 	// Construction of the Matrix H = A
-	SetUpMatrix(A, xv0, yv0, delta, E, n0, elapsedTime1);
+	SetUpMatrix(A, xv0, yv0, delta, E, n0, elapsedTime1, cachesize);
 	
 	// MULTITHREADING
 	y.Shape(A.N(), 0);
 	auto start = std::chrono::high_resolution_clock::now();
 	
-#pragma omp parallel for
+#pragma omp parallel for schedule(static, cachesize)
 	// y = A * b (Matrix * Vector)
 	for (int a = 0; a < A.M(); a++) {
 		for (int b = 0; b < A.N(); b++) {
@@ -246,49 +246,76 @@ void calculateTimes(double& elapsedTime1, double& elapsedTime2) {
 	// MULTITHREADING END
 }
 
-double generateMean(vector<double> values){
-	double sum = 0; int elements = values.size();
-	for (int i = 0; i < elements; i++){
-		sum += values[i];
+double generateMinimum(vector<double> values){
+	int min = values[0];
+	for (int i = 1; i < values.size(); i++){
+		if (min > values[i]) { min = values[i]; }
 	}
-	sum = sum / elements;
-	return sum;
+	return min;
 }
 
-void sortValues(vector<double>& values){ // Impossible to parallelize
-	int elements = values.size();
-	double min = values[0]; int position = 0;
-	vector<double> sortedValues;
-	for (int a = 0; a < elements; a++){
-		// Find minimum, then insert into new vector and erase from old vector.
-		min = values[0]; position = 0;
-		for (int i = 1; i < values.size(); i++){
-			if (min > values[i]) { min = values[i]; position = i; }
-		}
-		sortedValues.push_back(min);
-		values.erase(values.begin() + position);
+void writeToFile(string filepath, vector<double> values, string name){
+	ofstream outfile; outfile.open(filepath);
+	
+	outfile << "Writing " + to_string(values.size()) + " data elements from " + 
+			name + " to file." << endl;
+	
+	for (int i = 0; i < values.size(); i++){
+		outfile << to_string(values[i]) << endl;
 	}
-	values = sortedValues;
+	
+	outfile << "End of data." << endl;
+	
+	outfile.close();
+}
+
+// @overload
+void writeToFile(string filepath, vector<vector<double>> values){
+	// Write file in MatLab style to increase data flexibility and handling
+	ofstream outfile; outfile.open(filepath);
+	outfile << std::scientific;
+	for (int y = 0; y < values[0].size(); y++){
+		for (int x = 0; x < values.size(); x++){
+			if (y == values[0].size()){
+				outfile << to_string(values[x][y]) << endl;
+			} else {
+				outfile << to_string(values[x][y]) + ",";
+			}
+		}
+	}
 }
 
 int main(int argc, char* argv[]) {
 	// Setup Thread Amount
-	int threadAmount = 1;
-	omp_set_num_threads(threadAmount);
-	double time1 = 0, time2 = 0;
-	vector<double> times1, times2;
-	// Generate different time-data
-	for (int i = 0; i < 100; i++){
-		calculateTimes(time1, time2);
-		times1.push_back(time1);
-		times2.push_back(time2);
+	double time1 = 0, time2 = 0, min1 = 0, min2 = 0;
+	vector<double> times1, times2, mins1, mins2;
+	vector<vector<double>> matrix1, matrix2;
+	
+	for (int cachesize = 1; cachesize < 65; cachesize++){
+		for (int threadAmount = 1; threadAmount < 13; threadAmount++){
+			// Generate runtime-data
+			omp_set_num_threads(threadAmount);
+			for (int i = 0; i < 100; i++){ // Should be sufficient
+				calculateTimes(time1, time2, cachesize);
+				times1.push_back(time1);
+				times2.push_back(time2);
+			}
+			min1 = generateMinimum(times1);
+			min2 = generateMinimum(times2);
+			mins1.push_back(min1); mins2.push_back(min2);
+			min1 = 0; times1.clear();
+			min2 = 0; times2.clear();
+		}
+		matrix1.push_back(mins1);
+		matrix2.push_back(mins2);
 	}
 	
-	std::cout << "Mean time for setting up A is:" + to_string(generateMean(times1)) + "s. \n";
-	std::cout << "Mean time for calculating y = A * b0 is: " + to_string(generateMean(times2)) + "s. \n";
+	std::cout << "matrix1.size(): " + to_string(matrix1.size()) << endl;
+	std::cout << "matrix1[0].size(): " + to_string(matrix1[0].size()) << endl;
+	std::cout << "Random element is: " + to_string(matrix1[0][0]) << endl;
 	
-	sortValues(times1);
-	sortValues(times2);
+	writeToFile("datatimes1.dat", matrix1);
+	writeToFile("datatimes2.dat", matrix2);
 	
-	// Insert method to write data to files.
+	std::cout << "All jobs done!" << endl;
 }
