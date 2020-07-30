@@ -117,8 +117,83 @@ void SetParameters(double& E1, double& E2, int& csteps, int& flagwarm,
   to1 = 0.01;
 }
 
-// Generating matrix A
-void SetUpMatrix(Epetra_SerialDenseMatrix& A, std::vector<double> xv0,
+void SetUpMatrix_Static(Epetra_SerialDenseMatrix& A, std::vector<double> xv0,
+                 std::vector<double> yv0, double delta, double E,
+                 int systemsize, double& time, int cachesize) {
+  double r;
+  double pi = atan(1) * 4;
+  double raggio = delta / 2;
+  double C = 1 / (E * pi * raggio);
+
+  // MULTITHREADING
+  // Reading in time
+  auto start = std::chrono::high_resolution_clock::now();
+  
+#pragma omp parallel for schedule(static, cachesize)
+  for (int i = 0; i < systemsize; i++) {
+    A(i, i) = 1 * C;
+  }
+
+  // Writing time to console
+  auto finish = std::chrono::high_resolution_clock::now();
+  time = std::chrono::duration_cast<std::chrono::microseconds>(finish - start).count();
+  // Hint: Micro is 10^-6
+  
+  // std::chrono::duration<double> elapsed = finish - start;
+  // time = elapsed.count();
+  
+  // std::cout << "\n	Calculating time for setting up A. \n";
+  // std::cout << "Elapsed time: " << time << " s\n"; 
+  // MULTITHREADING END
+  		  
+  for (int i = 0; i < systemsize; i++) {
+    for (int j = 0; j < i; j++) {
+      r = sqrt(pow((xv0[j] - xv0[i]), 2) + pow((yv0[j] - yv0[i]), 2));
+      A(i, j) = C * asin(raggio / r);
+      A(j, i) = C * asin(raggio / r);
+    }
+  }
+}
+
+void SetUpMatrix_Dynamic(Epetra_SerialDenseMatrix& A, std::vector<double> xv0,
+                 std::vector<double> yv0, double delta, double E,
+                 int systemsize, double& time, int cachesize) {
+  double r;
+  double pi = atan(1) * 4;
+  double raggio = delta / 2;
+  double C = 1 / (E * pi * raggio);
+
+  // MULTITHREADING
+  // Reading in time
+  auto start = std::chrono::high_resolution_clock::now();
+  
+#pragma omp parallel for schedule(dynamic, cachesize)
+  for (int i = 0; i < systemsize; i++) {
+    A(i, i) = 1 * C;
+  }
+
+  // Writing time to console
+  auto finish = std::chrono::high_resolution_clock::now();
+  time = std::chrono::duration_cast<std::chrono::microseconds>(finish - start).count();
+  // Hint: Micro is 10^-6
+  
+  // std::chrono::duration<double> elapsed = finish - start;
+  // time = elapsed.count();
+  
+  // std::cout << "\n	Calculating time for setting up A. \n";
+  // std::cout << "Elapsed time: " << time << " s\n"; 
+  // MULTITHREADING END
+  		  
+  for (int i = 0; i < systemsize; i++) {
+    for (int j = 0; j < i; j++) {
+      r = sqrt(pow((xv0[j] - xv0[i]), 2) + pow((yv0[j] - yv0[i]), 2));
+      A(i, j) = C * asin(raggio / r);
+      A(j, i) = C * asin(raggio / r);
+    }
+  }
+}
+
+void SetUpMatrix_Guided(Epetra_SerialDenseMatrix& A, std::vector<double> xv0,
                  std::vector<double> yv0, double delta, double E,
                  int systemsize, double& time, int cachesize) {
   double r;
@@ -156,7 +231,7 @@ void SetUpMatrix(Epetra_SerialDenseMatrix& A, std::vector<double> xv0,
   }
 }
 
-void calculateTimes(double& elapsedTime1, double& elapsedTime2, int cachesize, string randomPath) {
+void calculateTimes_Static(double& elapsedTime1, double& elapsedTime2, int cachesize, string randomPath) {
 	// Setup constants
 	int csteps, flagwarm;
 	double nu1, nu2, G1, G2, E, G, nu, alpha, H, rnd, k_el, delta, nnodi, to1, E1,
@@ -226,7 +301,197 @@ void calculateTimes(double& elapsedTime1, double& elapsedTime2, int cachesize, s
 	int err = A.Shape(xv0.size(), xv0.size());
 	
 	// Construction of the Matrix H = A
-	SetUpMatrix(A, xv0, yv0, delta, E, n0, elapsedTime1, cachesize);
+	SetUpMatrix_Static(A, xv0, yv0, delta, E, n0, elapsedTime1, cachesize);
+	
+	// MULTITHREADING
+	y.Shape(A.M(), 1);
+	auto start = std::chrono::high_resolution_clock::now();
+	
+#pragma omp parallel for schedule(static, cachesize)
+	// y = A * b (Matrix * Vector)
+	for (int a = 0; a < A.M(); a++) {
+		for (int b = 0; b < A.N(); b++) {
+			y(a, 0) += (A(b, a) * b0[b]);
+		}
+	}
+	
+	// Writing time to console
+	auto finish = std::chrono::high_resolution_clock::now();
+	elapsedTime2 = std::chrono::duration_cast<std::chrono::microseconds>(finish - start).count();
+	// Hint: Micro is 10^-6
+	
+	// std::chrono::duration<double> elapsed = finish - start;
+	// elapsedTime2 = elapsed.count();
+	
+	// MULTITHREADING END
+}
+
+void calculateTimes_Dynamic(double& elapsedTime1, double& elapsedTime2, int cachesize, string randomPath) {
+	// Setup constants
+	int csteps, flagwarm;
+	double nu1, nu2, G1, G2, E, G, nu, alpha, H, rnd, k_el, delta, nnodi, to1, E1,
+	      E2, lato, zref, ampface, errf;
+	double Delta = 50;  // TODO only used for debugging
+	
+	// std::cout << "Test file for generating data is: " + randomPath + ".\n";
+
+	SetParameters(E1, E2, csteps, flagwarm, lato, zref, ampface, nu1, nu2, G1, G2,
+	                E, G, nu, alpha, H, rnd, k_el, delta, nnodi, errf, to1);
+	vector<double> x;
+	for (double i = delta / 2; i < lato; i = i + delta) {
+		x.push_back(i);
+	}
+
+	// Setup Topology
+	Epetra_SerialDenseMatrix topology, y;
+	CreateTopology(topology.N(), topology, randomPath);
+	
+	double zmax = 0;
+	double zmean = 0;
+	
+	for (int i = 0; i < topology.M(); i++) {
+		for (int j = 0; j < topology.N(); j++) {
+				zmean += topology(i, j);
+				if (topology(i, j) > zmax) zmax = topology(i, j);
+		}
+	}
+	zmean = zmean / (topology.N() * topology.M());
+	
+	vector<double> force0, area0;
+	double w_el = 0, area = 0, force = 0;
+	int k = 0;
+	int n0;
+	std::vector<double> xv0, yv0, b0, x0, xvf, yvf, pf;  // x0: initialized in Warmstart!
+	double nf, xvfaux, yvfaux, pfaux;
+	Epetra_SerialDenseMatrix A;
+	// At this point would have been a while-loop, but not necessary since only one calculation
+	// is necessary
+	
+	// while(...)
+	vector<int> col, row;
+	double value = zmax - Delta - w_el;
+	
+	for (int i = 0; i < topology.N(); i++) {
+		//      cout << "x= " << x[i] << endl;
+		for (int j = 0; j < topology.N(); j++) {
+			if (topology(i, j) >= value) {
+				row.push_back(i);
+				col.push_back(j);
+			}
+		}
+	}
+	n0 = col.size();
+	
+	for (int b = 0; b < n0; b++) {
+		xv0.push_back(x[col[b]]);
+	}
+	for (int b = 0; b < n0; b++) {
+		yv0.push_back(x[row[b]]);
+	}
+	
+	for (int b = 0; b < n0; b++) {
+		b0.push_back(Delta + w_el - (zmax - topology(row[b], col[b])));
+	}
+	
+	int err = A.Shape(xv0.size(), xv0.size());
+	
+	// Construction of the Matrix H = A
+	SetUpMatrix_Dynamic(A, xv0, yv0, delta, E, n0, elapsedTime1, cachesize);
+	
+	// MULTITHREADING
+	y.Shape(A.M(), 1);
+	auto start = std::chrono::high_resolution_clock::now();
+	
+#pragma omp parallel for schedule(dynamic, cachesize)
+	// y = A * b (Matrix * Vector)
+	for (int a = 0; a < A.M(); a++) {
+		for (int b = 0; b < A.N(); b++) {
+			y(a, 0) += (A(b, a) * b0[b]);
+		}
+	}
+	
+	// Writing time to console
+	auto finish = std::chrono::high_resolution_clock::now();
+	elapsedTime2 = std::chrono::duration_cast<std::chrono::microseconds>(finish - start).count();
+	// Hint: Micro is 10^-6
+	
+	// std::chrono::duration<double> elapsed = finish - start;
+	// elapsedTime2 = elapsed.count();
+	
+	// MULTITHREADING END
+}
+
+void calculateTimes_Guided(double& elapsedTime1, double& elapsedTime2, int cachesize, string randomPath) {
+	// Setup constants
+	int csteps, flagwarm;
+	double nu1, nu2, G1, G2, E, G, nu, alpha, H, rnd, k_el, delta, nnodi, to1, E1,
+	      E2, lato, zref, ampface, errf;
+	double Delta = 50;  // TODO only used for debugging
+	
+	// std::cout << "Test file for generating data is: " + randomPath + ".\n";
+
+	SetParameters(E1, E2, csteps, flagwarm, lato, zref, ampface, nu1, nu2, G1, G2,
+	                E, G, nu, alpha, H, rnd, k_el, delta, nnodi, errf, to1);
+	vector<double> x;
+	for (double i = delta / 2; i < lato; i = i + delta) {
+		x.push_back(i);
+	}
+
+	// Setup Topology
+	Epetra_SerialDenseMatrix topology, y;
+	CreateTopology(topology.N(), topology, randomPath);
+	
+	double zmax = 0;
+	double zmean = 0;
+	
+	for (int i = 0; i < topology.M(); i++) {
+		for (int j = 0; j < topology.N(); j++) {
+				zmean += topology(i, j);
+				if (topology(i, j) > zmax) zmax = topology(i, j);
+		}
+	}
+	zmean = zmean / (topology.N() * topology.M());
+	
+	vector<double> force0, area0;
+	double w_el = 0, area = 0, force = 0;
+	int k = 0;
+	int n0;
+	std::vector<double> xv0, yv0, b0, x0, xvf, yvf, pf;  // x0: initialized in Warmstart!
+	double nf, xvfaux, yvfaux, pfaux;
+	Epetra_SerialDenseMatrix A;
+	// At this point would have been a while-loop, but not necessary since only one calculation
+	// is necessary
+	
+	// while(...)
+	vector<int> col, row;
+	double value = zmax - Delta - w_el;
+	
+	for (int i = 0; i < topology.N(); i++) {
+		//      cout << "x= " << x[i] << endl;
+		for (int j = 0; j < topology.N(); j++) {
+			if (topology(i, j) >= value) {
+				row.push_back(i);
+				col.push_back(j);
+			}
+		}
+	}
+	n0 = col.size();
+	
+	for (int b = 0; b < n0; b++) {
+		xv0.push_back(x[col[b]]);
+	}
+	for (int b = 0; b < n0; b++) {
+		yv0.push_back(x[row[b]]);
+	}
+	
+	for (int b = 0; b < n0; b++) {
+		b0.push_back(Delta + w_el - (zmax - topology(row[b], col[b])));
+	}
+	
+	int err = A.Shape(xv0.size(), xv0.size());
+	
+	// Construction of the Matrix H = A
+	SetUpMatrix_Guided(A, xv0, yv0, delta, E, n0, elapsedTime1, cachesize);
 	
 	// MULTITHREADING
 	y.Shape(A.M(), 1);
@@ -294,19 +559,20 @@ void writeToFile(string filepath, Epetra_SerialDenseMatrix values, int dim1, int
 int main(int argc, char* argv[]) {
 	// Setup Thread Amount and Cache_Size
 	int maxThreads = 12, maxCache = 18;
-	string filePath = "sup5.dat";
-	
 	double time1 = 0, time2 = 0, min1 = 0, min2 = 0;
 	vector<double> times1, times2, mins1, mins2;
 	Epetra_SerialDenseMatrix matrix1, matrix2;
+	string filePath = "sup8.dat";
 	matrix1.Shape(maxCache, maxThreads); matrix2.Shape(maxCache, maxThreads);
+	
+	std::cout << "Starting Static Runtime" << endl;
 	
 	for (int cachesize = 1; cachesize < (maxCache + 1); cachesize++){
 		for (int threadAmount = 1; threadAmount < (maxThreads + 1); threadAmount++){
 			// Generate runtime-data
 			omp_set_num_threads(threadAmount);
 			for (int i = 0; i < 100; i++){ // Should be sufficient
-				calculateTimes(time1, time2, cachesize, filePath);
+				calculateTimes_Static(time1, time2, cachesize, filePath);
 				times1.push_back(time1);
 				times2.push_back(time2);
 			}
@@ -322,10 +588,60 @@ int main(int argc, char* argv[]) {
 		std::cout << "Cache " + to_string(cachesize) + " done." << endl;
 	}
 	
-	std::cout << "Calc done." << endl;
+	writeToFile("datatimes1_static_" + filePath, matrix1, maxCache, maxThreads);
+	writeToFile("datatimes2_static_" + filePath, matrix2, maxCache, maxThreads);
 	
-	writeToFile("datatimes1.dat", matrix1, maxCache, maxThreads);
-	writeToFile("datatimes2.dat", matrix2, maxCache, maxThreads);
+	std::cout << "Starting Dynamic Runtime" << endl;
+		
+	for (int cachesize = 1; cachesize < (maxCache + 1); cachesize++){
+		for (int threadAmount = 1; threadAmount < (maxThreads + 1); threadAmount++){
+			// Generate runtime-data
+			omp_set_num_threads(threadAmount);
+			for (int i = 0; i < 100; i++){ // Should be sufficient
+				calculateTimes_Dynamic(time1, time2, cachesize, filePath);
+				times1.push_back(time1);
+				times2.push_back(time2);
+			}
+			min1 = generateMinimum(times1);
+			min2 = generateMinimum(times2);
+			// std::cout << to_string(min1) << endl;
+			matrix1(cachesize, threadAmount) = min1;
+			matrix2(cachesize, threadAmount) = min2;
+			min1 = 0; times1.clear();
+			min2 = 0; times2.clear();
+			std::cout << "Thread " + to_string(threadAmount) + " done." << endl;
+		}
+		std::cout << "Cache " + to_string(cachesize) + " done." << endl;
+	}
+		
+	writeToFile("datatimes1_dynamic_" + filePath, matrix1, maxCache, maxThreads);
+	writeToFile("datatimes2_dynamic_" + filePath, matrix2, maxCache, maxThreads);
+		
+	std::cout << "Starting Guided Runtime" << endl;
+			
+	for (int cachesize = 1; cachesize < (maxCache + 1); cachesize++){
+		for (int threadAmount = 1; threadAmount < (maxThreads + 1); threadAmount++){
+			// Generate runtime-data
+			omp_set_num_threads(threadAmount);
+			for (int i = 0; i < 100; i++){ // Should be sufficient
+				calculateTimes_Static(time1, time2, cachesize, filePath);
+				times1.push_back(time1);
+				times2.push_back(time2);
+			}
+			min1 = generateMinimum(times1);
+			min2 = generateMinimum(times2);
+			// std::cout << to_string(min1) << endl;
+			matrix1(cachesize, threadAmount) = min1;
+			matrix2(cachesize, threadAmount) = min2;
+			min1 = 0; times1.clear();
+			min2 = 0; times2.clear();
+			std::cout << "Thread " + to_string(threadAmount) + " done." << endl;
+		}
+		std::cout << "Cache " + to_string(cachesize) + " done." << endl;
+	}
+	
+	writeToFile("datatimes1_guided_" + filePath, matrix1, maxCache, maxThreads);
+	writeToFile("datatimes2_guided_" + filePath, matrix2, maxCache, maxThreads);
 	
 	std::cout << "All jobs done!" << endl;
 }
