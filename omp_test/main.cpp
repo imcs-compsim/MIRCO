@@ -294,7 +294,7 @@ void writeToFile(string filepath, Epetra_SerialDenseMatrix values, int dim1, int
 int main(int argc, char* argv[]) {
 	// Setup Thread Amount and Cache_Size
 	int maxThreads = 12, maxCache = 18;
-	string filePath = "sup2.dat";
+	string filePath = "sup5.dat";
 	
 	double time1 = 0, time2 = 0, min1 = 0, min2 = 0;
 	vector<double> times1, times2, mins1, mins2;
