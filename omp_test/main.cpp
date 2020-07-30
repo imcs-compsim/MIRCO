@@ -130,7 +130,7 @@ void SetUpMatrix(Epetra_SerialDenseMatrix& A, std::vector<double> xv0,
   // Reading in time
   auto start = std::chrono::high_resolution_clock::now();
   
-#pragma omp parallel for schedule(dynamic, cachesize)
+#pragma omp parallel for schedule(guided, cachesize)
   for (int i = 0; i < systemsize; i++) {
     A(i, i) = 1 * C;
   }
@@ -232,7 +232,7 @@ void calculateTimes(double& elapsedTime1, double& elapsedTime2, int cachesize, s
 	y.Shape(A.M(), 1);
 	auto start = std::chrono::high_resolution_clock::now();
 	
-#pragma omp parallel for schedule(dynamic, cachesize)
+#pragma omp parallel for schedule(guided, cachesize)
 	// y = A * b (Matrix * Vector)
 	for (int a = 0; a < A.M(); a++) {
 		for (int b = 0; b < A.N(); b++) {
@@ -294,7 +294,7 @@ void writeToFile(string filepath, Epetra_SerialDenseMatrix values, int dim1, int
 int main(int argc, char* argv[]) {
 	// Setup Thread Amount and Cache_Size
 	int maxThreads = 12, maxCache = 18;
-	string filePath = "sup5.dat";
+	string filePath = "sup2.dat";
 	
 	double time1 = 0, time2 = 0, min1 = 0, min2 = 0;
 	vector<double> times1, times2, mins1, mins2;
@@ -317,6 +317,7 @@ int main(int argc, char* argv[]) {
 			matrix2(cachesize, threadAmount) = min2;
 			min1 = 0; times1.clear();
 			min2 = 0; times2.clear();
+			std::cout << "Thread " + to_string(threadAmount) + " done." << endl;
 		}
 		std::cout << "Cache " + to_string(cachesize) + " done." << endl;
 	}
