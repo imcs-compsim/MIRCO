@@ -542,7 +542,7 @@ void writeToFile(string filepath, Epetra_SerialDenseMatrix values, int dim1, int
 
 int main(int argc, char* argv[]) {
 	// Setup Thread Amount and Cache_Size
-	int maxThreads = 6, maxCache = 12;
+	int maxThreads = 6, maxCache = 6;
 	double time1 = 0, time2 = 0, min1 = 0, min2 = 0;
 	vector<double> times1, times2, mins1, mins2;
 	Epetra_SerialDenseMatrix matrix1, matrix2;
