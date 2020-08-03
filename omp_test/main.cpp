@@ -100,7 +100,7 @@ void SetParameters(double& E1, double& E2, int& csteps, int& flagwarm,
                            0.826126871395416, 0.841369158110513,
                            0.851733020725652, 0.858342234203154,
                            0.862368243479785, 0.864741597831785};
-  int nn = 2;  // Matrix sent has the parameter nn=2!
+  int nn = 8;  // Matrix sent has the parameter nn=2!
   alpha = alpha_con[nn - 1];
   csteps = 1;
   ampface = 1;
@@ -161,7 +161,7 @@ void SetUpMatrix(Epetra_SerialDenseMatrix& A, std::vector<double> xv0,
 
 void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
                     Epetra_SerialDenseMatrix& b0, std::vector<double>& y0,
-                    Epetra_SerialDenseMatrix& w, Epetra_SerialDenseMatrix& y) {
+                    Epetra_SerialDenseMatrix& w, Epetra_SerialDenseMatrix& y, int& counter) {
   // matrix -> A, b0 -> b, y0 -> y0 , y -> y, w-> w; nnstol, iter, maxiter ->
   // unused
   double nnlstol = 1.0000e-08;
@@ -180,7 +180,7 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
 
   // Initialize active set
   vector<int> positions;
-  int counter = 0;
+  counter = 0;
   for (int i = 0; i < y0.size(); i++) {
     if (y0[i] >= nnlstol) {
       positions.push_back(i);
@@ -714,8 +714,11 @@ vector<int> readinP(string filePath){
 	vector<int> values;
 	ifstream stream(filePath);
 	string line;
-	while (getline(stream, line)) {	values.push_back(stod(line));	}
+	while (getline(stream, line)) {	
+		values.push_back(stoi(line));	
+	}
 	stream.close();
+	return values;
 }
 
 void writeToFile(string filepath, Epetra_SerialDenseMatrix values, int dim1, int dim2){
@@ -734,8 +737,7 @@ void writeToFile(string filepath, Epetra_SerialDenseMatrix values, int dim1, int
 	outfile.close();
 }
 
-Epetra_SerialDenseMatrix generateMatrix(string randomPath, Epetra_SerialDenseMatrix& b1,
-		Epetra_SerialDenseMatrix y0){
+Epetra_SerialDenseMatrix generateMatrix(string randomPath, Epetra_SerialDenseMatrix& b1, int& count){
 	omp_set_num_threads(2);
 
 	  int csteps, flagwarm;
@@ -841,7 +843,7 @@ Epetra_SerialDenseMatrix generateMatrix(string randomPath, Epetra_SerialDenseMat
 	    }
 
 	    Epetra_SerialDenseMatrix w;
-	    NonlinearSolve(A, b0new, x0, w, y);  // y -> sol, w -> wsol; x0 -> y0
+	    NonlinearSolve(A, b0new, x0, w, y, count);  // y -> sol, w -> wsol; x0 -> y0
 
 	    // Compute residial
 	    // @{
@@ -904,14 +906,13 @@ Epetra_SerialDenseMatrix generateMatrix(string randomPath, Epetra_SerialDenseMat
 	    // }
 	  }
 	  b1 = b0new;
-	  y1 = y;
 	  return A;
 }
 
-void calculateTimes2_Static(Epetra_SerialDenseMatrix matrix, Epetra_SerialDenseMatrix y,
-		Epetra_SerialDenseMatrix b0, vector<int> P, double& time, int cachesize){
-	w.Shape(matrix.M(), 1);
+void calculateTimes2_Static(Epetra_SerialDenseMatrix& matrix, Epetra_SerialDenseMatrix& y,
+		Epetra_SerialDenseMatrix& b0, vector<int>& P, double& time, int cachesize, int counter){
 	
+	Epetra_SerialDenseMatrix w; w.Shape(matrix.M(), 1);
 	auto start = std::chrono::high_resolution_clock::now();
 	
 #pragma omp parallel for schedule(static, cachesize)
@@ -929,8 +930,8 @@ void calculateTimes2_Static(Epetra_SerialDenseMatrix matrix, Epetra_SerialDenseM
 }
 
 void calculateTimes2_Dynamic(Epetra_SerialDenseMatrix matrix, Epetra_SerialDenseMatrix y,
-		Epetra_SerialDenseMatrix b0, vector<int> P, double& time, int cachesize){
-	w.Shape(matrix.M(), 1);
+		Epetra_SerialDenseMatrix b0, vector<int> P, double& time, int cachesize, int counter){
+	Epetra_SerialDenseMatrix w; w.Shape(matrix.M(), 1);
 	
 	auto start = std::chrono::high_resolution_clock::now();
 	
@@ -949,8 +950,8 @@ void calculateTimes2_Dynamic(Epetra_SerialDenseMatrix matrix, Epetra_SerialDense
 }
 
 void calculateTimes2_Guided(Epetra_SerialDenseMatrix matrix, Epetra_SerialDenseMatrix y,
-		Epetra_SerialDenseMatrix b0, vector<int> P, double& time, int cachesize){
-	w.Shape(matrix.M(), 1);
+		Epetra_SerialDenseMatrix b0, vector<int> P, double& time, int cachesize, int counter){
+	Epetra_SerialDenseMatrix w; w.Shape(matrix.M(), 1);
 	
 	auto start = std::chrono::high_resolution_clock::now();
 	
@@ -968,17 +969,34 @@ void calculateTimes2_Guided(Epetra_SerialDenseMatrix matrix, Epetra_SerialDenseM
 	time = std::chrono::duration_cast<std::chrono::microseconds>(finish - start).count();
 }
 
+Epetra_SerialDenseMatrix generateY(Epetra_SerialDenseMatrix matrix, vector<int> P,
+		Epetra_SerialDenseMatrix b0){
+	Epetra_SerialDenseMatrix y; y. Shape(matrix.N(), 1);
+	for (int a = 0; a < matrix.N(); a++){
+		for (int b = 0; b < matrix.M(); b++){
+			y(a, 0) = matrix(P[a], P[b]) * b0(P[b], 0);
+		}
+	}
+	return y;
+}
+
 int main(int argc, char* argv[]) {
 	// Setup Thread Amount and Cache_Size
 	int maxThreads = 12, maxCache = 18;
 	double time1 = 0, time2 = 0, min1 = 0, min2 = 0;
 	vector<double> times1, times2, mins1, mins2;
 	Epetra_SerialDenseMatrix matrix1, matrix2;
-	string filePath = "sup2.dat";
+	string filePath = "sup8.dat";
 	matrix1.Shape(maxCache, maxThreads); matrix2.Shape(maxCache, maxThreads);
+	
+	std::cout << "Generating pre-work data." << endl;
 	
 	// PHASE 2
 	Epetra_SerialDenseMatrix matrix, y, b0;
+	vector<int> P = readinP("p_" + filePath);
+	int counter = 0;
+	matrix = generateMatrix(filePath, b0, counter);
+	y = generateY(matrix, P, b0);
 	
 	std::cout << "Starting Static Runtime" << endl;
 	
@@ -1010,19 +1028,24 @@ int main(int argc, char* argv[]) {
 	*/
 	
 	// PHASE 2
-	matrix = generateMatrix(filePath);
+	
 	for (int threadAmount = 1; threadAmount < (maxThreads + 1); threadAmount++){
 		omp_set_num_threads(threadAmount);
 		for (int cachesize = 1; cachesize < (maxCache + 1); cachesize++){
-			calculateTimes2_Static(matrix, y, b0, P, time1, cachesize); // TODO: y, b0, P
-			times1.push_back(time1);
+			for (int i = 0; i < 100; i++){
+				calculateTimes2_Static(matrix, y, b0, P, time1, cachesize, counter); // TODO: y, b0, P
+				times1.push_back(time1);
+				std::cout << "Cache " + to_string(cachesize) + " done." << endl;
+			}
+			min1 = generateMinimum(times1);
+			// std::cout << to_string(min1) << endl;
+			matrix1(cachesize, threadAmount) = min1;
+			min1 = 0; times1.clear();
 		}
-		min1 = generateMinimum(times1);
-		// std::cout << to_string(min1) << endl;
-		matrix1(cachesize, threadAmount) = min1;
-		min1 = 0; times1.clear();
 		std::cout << "Thread " + to_string(threadAmount) + " done." << endl;
 	}
+	
+	writeToFile("datatimes3_static_" + filePath, matrix1, maxCache, maxThreads);
 	
 	std::cout << "Starting Dynamic Runtime" << endl;
 		
@@ -1053,19 +1076,23 @@ int main(int argc, char* argv[]) {
 	*/
 	
 	// PHASE 2
-	matrix = generateMatrix(filePath);
-		for (int threadAmount = 1; threadAmount < (maxThreads + 1); threadAmount++){
-			omp_set_num_threads(threadAmount);
-			for (int cachesize = 1; cachesize < (maxCache + 1); cachesize++){
-				calculateTimes2_Dynamic(matrix, y, b0, P, time1, cachesize); // TODO: y, b0, P
+	for (int threadAmount = 1; threadAmount < (maxThreads + 1); threadAmount++){
+		omp_set_num_threads(threadAmount);
+		for (int cachesize = 1; cachesize < (maxCache + 1); cachesize++){
+			for (int i = 0; i < 100; i++){
+				calculateTimes2_Dynamic(matrix, y, b0, P, time1, cachesize, counter); // TODO: y, b0, P
 				times1.push_back(time1);
+				std::cout << "Cache " + to_string(cachesize) + " done." << endl;
 			}
 			min1 = generateMinimum(times1);
 			// std::cout << to_string(min1) << endl;
 			matrix1(cachesize, threadAmount) = min1;
 			min1 = 0; times1.clear();
-			std::cout << "Thread " + to_string(threadAmount) + " done." << endl;
 		}
+		std::cout << "Thread " + to_string(threadAmount) + " done." << endl;
+	}
+	
+	writeToFile("datatimes3_dynamic_" + filePath, matrix1, maxCache, maxThreads);
 	
 	std::cout << "Starting Guided Runtime" << endl;
 	
@@ -1096,18 +1123,23 @@ int main(int argc, char* argv[]) {
 	*/
 	
 	// PHASE 2
-	matrix = generateMatrix(filePath);
-		for (int threadAmount = 1; threadAmount < (maxThreads + 1); threadAmount++){
-			omp_set_num_threads(threadAmount);
-			for (int cachesize = 1; cachesize < (maxCache + 1); cachesize++){
-				calculateTimes2_Guided(matrix, y, b0, P, time1, cachesize); // TODO: y, b0, P
+	for (int threadAmount = 1; threadAmount < (maxThreads + 1); threadAmount++){
+		omp_set_num_threads(threadAmount);
+		for (int cachesize = 1; cachesize < (maxCache + 1); cachesize++){
+			for(int i = 0; i < 100; i++){
+				calculateTimes2_Guided(matrix, y, b0, P, time1, cachesize, counter); // TODO: y, b0, P
 				times1.push_back(time1);
+				std::cout << "Cache " + to_string(cachesize) + " done." << endl;
 			}
 			min1 = generateMinimum(times1);
 			// std::cout << to_string(min1) << endl;
 			matrix1(cachesize, threadAmount) = min1;
 			min1 = 0; times1.clear();
-			std::cout << "Thread " + to_string(threadAmount) + " done." << endl;
 		}
+		std::cout << "Thread " + to_string(threadAmount) + " done." << endl;
+	}
+	
+	writeToFile("datatimes3_guided_" + filePath, matrix1, maxCache, maxThreads);
+	
 	std::cout << "All jobs done!" << endl;
 }

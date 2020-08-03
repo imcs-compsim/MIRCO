@@ -35,7 +35,7 @@ void SetParameters(double& E1, double& E2, int& csteps, int& flagwarm,
                            0.826126871395416, 0.841369158110513,
                            0.851733020725652, 0.858342234203154,
                            0.862368243479785, 0.864741597831785};
-  int nn = 7;  // TODO: CHANGE THIS WHEN CHANGING FILES
+  int nn = 8;  // TODO: CHANGE THIS WHEN CHANGING FILES
   alpha = alpha_con[nn - 1];
   csteps = 1;
   ampface = 1;
@@ -317,7 +317,7 @@ int main(int argc, char* argv[]) {
 
   double Delta = 50;  // TODO only used for debugging
 
-  string randomPath = "sup7.dat";
+  string randomPath = "sup8.dat";
 
   SetParameters(E1, E2, csteps, flagwarm, lato, zref, ampface, nu1, nu2, G1, G2,
                 E, G, nu, alpha, H, rnd, k_el, delta, nnodi, errf, to1);
