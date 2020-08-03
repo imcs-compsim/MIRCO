@@ -131,13 +131,34 @@ void LinearSolve(Epetra_SerialSymDenseMatrix& matrix,
 
   err = solver.SetVectors(vector_x, vector_b);
   if (err != 0) {
-    std::cout << "Error setting vetcors for linear solver (2)";
+    std::cout << "Error setting vectors for linear solver (2)";
   }
 
   err = solver.Solve();
   if (err != 0) {
     std::cout << "Error setting up solver (3)";
   }
+}
+
+// Only for y
+void writeToFile(string fileName, string datavalue, Epetra_SerialDenseMatrix values, int dim1, int dim2){
+	ofstream outfile; outfile.open(datavalue + "_" + fileName);
+	outfile << std::scientific;
+	for (int y = 0; y < dim2; y++){
+		for (int x = 0; x < dim1; x++){
+				outfile << to_string(values(x, y)) << endl;
+		}
+	}
+	outfile.close();
+}
+
+void writeToFile(string fileName, string datavalue, vector<double> values){
+	ofstream outfile; outfile.open(datavalue + "_" + fileName);
+	outfile << std::scientific;
+	for (int i = 0; i < values.size(); i++){
+		outfile << to_string(values[i]) << endl;
+	}
+	outfile.close();
 }
 
 /*------------------------------------------*/
@@ -283,6 +304,7 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
       }
     }
   }
+  writeToFile("sup8.dat", "y", y, n0, 1);
 }
 
 /*------------------------------------------*/
@@ -457,6 +479,8 @@ int main(int argc, char* argv[]) {
     k += 1;
     // }
   }
+  
+  writeToFile("sup8.dat", "b0", b0);
 
   // @{
 
