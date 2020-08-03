@@ -35,7 +35,7 @@ void SetParameters(double& E1, double& E2, int& csteps, int& flagwarm,
                            0.826126871395416, 0.841369158110513,
                            0.851733020725652, 0.858342234203154,
                            0.862368243479785, 0.864741597831785};
-  int nn = 2;  // Matrix sent has the parameter nn=2!
+  int nn = 5;  // TODO: CHANGE THIS WHEN CHANGING FILES
   alpha = alpha_con[nn - 1];
   csteps = 1;
   ampface = 1;
@@ -152,7 +152,7 @@ void writeToFile(string fileName, string datavalue, Epetra_SerialDenseMatrix val
 	outfile.close();
 }
 
-void writeToFile(string fileName, string datavalue, vector<double> values){
+void writeToFile(string fileName, string datavalue, vector<int> values){
 	ofstream outfile; outfile.open(datavalue + "_" + fileName);
 	outfile << std::scientific;
 	for (int i = 0; i < values.size(); i++){
@@ -304,7 +304,7 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
       }
     }
   }
-  writeToFile("sup8.dat", "y", y, n0, 1);
+  writeToFile("sup5.dat", "p", P);
 }
 
 /*------------------------------------------*/
@@ -318,7 +318,7 @@ int main(int argc, char* argv[]) {
 
   double Delta = 50;  // TODO only used for debugging
 
-  string randomPath = "sup8.dat";
+  string randomPath = "sup5.dat";
 
   SetParameters(E1, E2, csteps, flagwarm, lato, zref, ampface, nu1, nu2, G1, G2,
                 E, G, nu, alpha, H, rnd, k_el, delta, nnodi, errf, to1);
@@ -479,8 +479,6 @@ int main(int argc, char* argv[]) {
     k += 1;
     // }
   }
-  
-  writeToFile("sup8.dat", "b0", b0);
 
   // @{
 
