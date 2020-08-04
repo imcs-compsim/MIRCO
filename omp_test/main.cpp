@@ -43,7 +43,7 @@ void TestingCode() { // Contains former test code
 }
 */
 
-void CreateTopology(int systemsize, Epetra_SerialDenseMatrix& topology,
+void CreateTopology(Epetra_SerialDenseMatrix& topology,
                     string filePath) {
   // Readin for amount of lines -> dimension of matrix
   ifstream reader(filePath);
@@ -115,192 +115,6 @@ void SetParameters(double& E1, double& E2, int& csteps, int& flagwarm,
 
   errf = 100000000;
   to1 = 0.01;
-}
-
-void LinearSolve(Epetra_SerialSymDenseMatrix& matrix,
-                 Epetra_SerialDenseMatrix& vector_x,
-                 Epetra_SerialDenseMatrix& vector_b) {
-  Epetra_SerialSpdDenseSolver solver;
-  int err = solver.SetMatrix(matrix);
-  if (err != 0) {
-    std::cout << "Error setting matrix for linear solver (1)";
-  }
-
-  err = solver.SetVectors(vector_x, vector_b);
-  if (err != 0) {
-    std::cout << "Error setting vectors for linear solver (2)";
-  }
-
-  err = solver.Solve();
-  if (err != 0) {
-    std::cout << "Error setting up solver (3)";
-  }
-}
-
-void SetUpMatrix(Epetra_SerialDenseMatrix& A, std::vector<double> xv0,
-                 std::vector<double> yv0, double delta, double E,
-                 int systemsize, int k) {
-  double r;
-  double pi = atan(1) * 4;
-  double raggio = delta / 2;
-  double C = 1 / (E * pi * raggio);
-
-#pragma omp parallel for
-  for (int i = 0; i < systemsize; i++) {
-    A(i, i) = 1 * C;
-  }
-
-  for (int i = 0; i < systemsize; i++) {
-    for (int j = 0; j < i; j++) {
-      r = sqrt(pow((xv0[j] - xv0[i]), 2) + pow((yv0[j] - yv0[i]), 2));
-      A(i, j) = C * asin(raggio / r);
-      A(j, i) = C * asin(raggio / r);
-    }
-  }
-}
-
-void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
-                    Epetra_SerialDenseMatrix& b0, std::vector<double>& y0,
-                    Epetra_SerialDenseMatrix& w, Epetra_SerialDenseMatrix& y, int& counter) {
-  // matrix -> A, b0 -> b, y0 -> y0 , y -> y, w-> w; nnstol, iter, maxiter ->
-  // unused
-  double nnlstol = 1.0000e-08;
-  double maxiter = 10000;
-  double eps = 2.2204e-16;
-  double alphai = 0;
-  double alpha = 100000000;
-  int iter = 0;
-  bool init = false;
-  int n0 = b0.M();
-  y.Shape(n0, 1);
-  Epetra_SerialDenseMatrix s0;
-  vector<int> P(n0);
-  Epetra_SerialDenseMatrix vector_x, vector_b;
-  Epetra_SerialSymDenseMatrix solverMatrix;
-
-  // Initialize active set
-  vector<int> positions;
-  counter = 0;
-  for (int i = 0; i < y0.size(); i++) {
-    if (y0[i] >= nnlstol) {
-      positions.push_back(i);
-      counter += 1;
-    }
-  }
-
-  w.Reshape(b0.M(), b0.N());
-
-  if (counter == 0) {
-    for (int x = 0; x < b0.M(); x++) {
-      w(x, 0) = -b0(x, 0);
-    }
-    init = false;
-  } else {
-    for (int i = 0; i < counter; i++) {
-      P[i] = positions[i];
-    }
-    init = true;
-  }
-
-  s0.Shape(n0, 1);  // Replacement for s
-
-  bool aux1 = true, aux2 = true;
-
-  while (aux1 == true) {
-    // [wi,i]=min(w);
-    double minValue = w(0, 0), minPosition = 0;
-    for (int i = 0; i < w.M(); i++) {
-      if (minValue > w(i, 0)) {
-        minValue = w(i, 0);
-        minPosition = i;
-      }
-    }
-
-    if (((counter == n0) || (minValue > -nnlstol) || (iter >= maxiter)) &&
-        (init == false)) {
-      aux1 = false;
-    } else {
-      if (init == false) {
-        P[counter] = minPosition;
-        counter += 1;
-      } else {
-        init = false;
-      }
-    }
-
-    int j = 0;
-    aux2 = true;
-    while (aux2 == true) {
-      iter++;
-
-      vector_x.Shape(counter, 1);
-      vector_b.Shape(counter, 1);
-      solverMatrix.Shape(counter, counter);
-
-      for (int x = 0; x < counter; x++) {
-        vector_b(x, 0) = b0(P[x], 0);
-
-        for (int z = 0; z < counter; z++) {
-          if (x >= z)
-            solverMatrix(x, z) = matrix(P[x], P[z]);
-          else
-            solverMatrix(z, x) = matrix(P[x], P[z]);
-        }
-      }
-
-      LinearSolve(solverMatrix, vector_x, vector_b);
-
-      for (int x = 0; x < counter; x++) {
-        s0(P[x], 0) = vector_x(x, 0);
-      }
-
-      bool allBigger = true;
-      for (int x = 0; x < counter; x++) {
-        if (s0(P[x], 0) < nnlstol) {
-          allBigger = false;
-        }
-      }
-
-      if (allBigger == true) {
-        aux2 = false;
-        for (int x = 0; x < counter; x++) {
-          y(P[x], 0) = s0(P[x], 0);
-        }
-
-        // w=A(:,P(1:nP))*y(P(1:nP))-b;
-        w.Scale(0.0);
-        for (int a = 0; a < matrix.M(); a++) {
-          w(a, 0) = 0;
-          for (int b = 0; b < counter; b++) {
-            w(a, 0) += (matrix(P[b], a) * y(P[b], 0));
-          }
-          w(a, 0) -= b0(a, 0);
-        }
-      } else {
-        j = 0;
-        alpha = 1.0e8;
-        for (int i = 0; i < counter; i++) {
-          if (s0(P[i], 0) < nnlstol) {
-            alphai = y(P[i], 0) / (eps + y(P[i], 0) - s0(P[i], 0));
-            if (alphai < alpha) {
-              alpha = alphai;
-              j = i;
-            }
-          }
-        }
-
-        for (int a = 0; a < counter; a++)
-          y(P[a], 0) = y(P[a], 0) + alpha * (s0(P[a], 0) - y(P[a], 0));
-        if (j > 0) {
-          // jth entry in P leaves active set
-          s0(P[j], 0) = 0;
-
-          P.erase(P.begin() + j);
-          counter -= 1;
-        }
-      }
-    }
-  }
 }
 
 void SetUpMatrix_Static(Epetra_SerialDenseMatrix& A, std::vector<double> xv0,
@@ -435,7 +249,7 @@ void calculateTimes_Static(double& elapsedTime1, double& elapsedTime2, int cache
 
 	// Setup Topology
 	Epetra_SerialDenseMatrix topology, y;
-	CreateTopology(topology.N(), topology, randomPath);
+	CreateTopology(topology, randomPath);
 	
 	double zmax = 0;
 	double zmean = 0;
@@ -530,7 +344,7 @@ void calculateTimes_Dynamic(double& elapsedTime1, double& elapsedTime2, int cach
 
 	// Setup Topology
 	Epetra_SerialDenseMatrix topology, y;
-	CreateTopology(topology.N(), topology, randomPath);
+	CreateTopology(topology, randomPath);
 	
 	double zmax = 0;
 	double zmean = 0;
@@ -625,7 +439,7 @@ void calculateTimes_Guided(double& elapsedTime1, double& elapsedTime2, int cache
 
 	// Setup Topology
 	Epetra_SerialDenseMatrix topology, y;
-	CreateTopology(topology.N(), topology, randomPath);
+	CreateTopology(topology, randomPath);
 	
 	double zmax = 0;
 	double zmean = 0;
@@ -737,247 +551,148 @@ void writeToFile(string filepath, Epetra_SerialDenseMatrix values, int dim1, int
 	outfile.close();
 }
 
-Epetra_SerialDenseMatrix generateMatrix(string randomPath, Epetra_SerialDenseMatrix& b1, int& count){
-	omp_set_num_threads(2);
+void generateVars(string randomPath, Epetra_SerialDenseMatrix& A, Epetra_SerialDenseMatrix& b1, int& count){
 
-	  int csteps, flagwarm;
-	  double nu1, nu2, G1, G2, E, G, nu, alpha, H, rnd, k_el, delta, nnodi, to1, E1,
-	      E2, lato, zref, ampface, errf;
+	int csteps, flagwarm;
+	double nu1, nu2, G1, G2, E, G, nu, alpha, H, rnd, k_el, delta, nnodi, to1, E1,
+	E2, lato, zref, ampface, errf;
 
-	  double Delta = 50;  // TODO only used for debugging
-
-	  SetParameters(E1, E2, csteps, flagwarm, lato, zref, ampface, nu1, nu2, G1, G2,
+	double Delta = 50;  // TODO only used for debugging
+	
+	SetParameters(E1, E2, csteps, flagwarm, lato, zref, ampface, nu1, nu2, G1, G2,
 	                E, G, nu, alpha, H, rnd, k_el, delta, nnodi, errf, to1);
 
-	  // Meshgrid-Command
-	  // Identical Vectors/Matricies, therefore only created one here.
-	  vector<double> x;
-	  for (double i = delta / 2; i < lato; i = i + delta) {
-	    x.push_back(i);
-	  }
+	// Meshgrid-Command
+	// Identical Vectors/Matricies, therefore only created one here.
+	vector<double> x;
+	for (double i = delta / 2; i < lato; i = i + delta) {
+		x.push_back(i);
+	}
 
-	  // Setup Topology
-	  Epetra_SerialDenseMatrix topology, y;
-	  CreateTopology(topology.N(), topology, randomPath);
+	// Setup Topology
+	Epetra_SerialDenseMatrix topology, y;
+	CreateTopology(topology, randomPath);
 
-	  double zmax = 0;
-	  double zmean = 0;
+	double zmax = 0;
+	double zmean = 0;
 
-	  for (int i = 0; i < topology.M(); i++)
-	    for (int j = 0; j < topology.N(); j++) {
-	      {
-	        zmean += topology(i, j);
-	        if (topology(i, j) > zmax) zmax = topology(i, j);
-	      }
-	    }
-	  zmean = zmean / (topology.N() * topology.M());
+	for (int i = 0; i < topology.M(); i++){
+		for (int j = 0; j < topology.N(); j++) {
+				zmean += topology(i, j);
+				if (topology(i, j) > zmax){ zmax = topology(i, j);}
+		}
+	}
+	zmean = zmean / (topology.N() * topology.M());
 
-	  vector<double> force0, area0;
-	  double w_el = 0;
-	  double area = 0, force = 0;
-	  int k = 0;
-	  int n0;
-	    Epetra_SerialDenseMatrix b0new;
-	  std::vector<double> xv0, yv0, b0, x0, xvf, yvf,
-	      pf;  // x0: initialized in Warmstart!
-	  double nf, xvfaux, yvfaux, pfaux;
+	vector<double> force0, area0;
+	double w_el = 0;
+	double area = 0, force = 0;
+	int k = 0;
+	int n0;
+	Epetra_SerialDenseMatrix b0new;
+	std::vector<double> xv0, yv0, b0, x0, xvf, yvf,
+	pf;  // x0: initialized in Warmstart!
+	double nf, xvfaux, yvfaux, pfaux;
 
-	  Epetra_SerialDenseMatrix A;
+	// [ind1,ind2]=find(z>=(zmax-(Delta(s)+w_el(k))));
+	vector<int> col, row;
+	double value = zmax - Delta - w_el;
 
-	  while (errf > to1 && k < 100) {
-	    // First predictor for contact set
-	    // All points, for which gap is bigger than the displacement of the rigid
-	    // indenter, cannot be in contact and thus are not checked in nonlinear
-	    // solve
-	    // @{
+	row.clear();
+	col.clear();
+	for (int i = 0; i < topology.N(); i++) {
+		//      cout << "x= " << x[i] << endl;
+		for (int j = 0; j < topology.N(); j++) {
+			if (topology(i, j) >= value) {
+				row.push_back(i);
+				col.push_back(j);
+			}
+		}
+	}
+	n0 = col.size();
 
-	    // [ind1,ind2]=find(z>=(zmax-(Delta(s)+w_el(k))));
-	    vector<int> col, row;
-	    double value = zmax - Delta - w_el;
+	for (int b = 0; b < n0; b++) {
+		xv0.push_back(x[col[b]]);
+	}
 
-	    row.clear();
-	    col.clear();
-	    for (int i = 0; i < topology.N(); i++) {
-	      //      cout << "x= " << x[i] << endl;
-	      for (int j = 0; j < topology.N(); j++) {
-	        if (topology(i, j) >= value) {
-	          row.push_back(i);
-	          col.push_back(j);
-	        }
-	      }
-	    }
-	    n0 = col.size();
+	for (int b = 0; b < n0; b++) {
+		yv0.push_back(x[row[b]]);
+	}
 
-	    // Works until this point
+	for (int b = 0; b < n0; b++) {
+		b0.push_back(Delta + w_el - (zmax - topology(row[b], col[b])));
+	}
 
-	    xv0.clear();
-	    yv0.clear();
-	    b0.clear();
-	    for (int b = 0; b < n0; b++) {
-	      xv0.push_back(x[col[b]]);
-	    }
-
-	    for (int b = 0; b < n0; b++) {
-	      yv0.push_back(x[row[b]]);
-	    }
-
-	    for (int b = 0; b < n0; b++) {
-	      b0.push_back(Delta + w_el - (zmax - topology(row[b], col[b])));
-	    }
-
-	    int err = A.Shape(xv0.size(), xv0.size());
-
-	    // Construction of the Matrix H = A
-	    SetUpMatrix(A, xv0, yv0, delta, E, n0, k);
-
-	    // Second predictor for contact set
-	    // @{
-
-	    x0.clear();
-	    x0.resize(b0.size());
-
-	    b0new.Shape(b0.size(), 1);
-
-	    for (int i = 0; i < b0.size(); i++) {
-	      b0new(i, 0) = b0[i];
-	    }
-
-	    Epetra_SerialDenseMatrix w;
-	    NonlinearSolve(A, b0new, x0, w, y, count);  // y -> sol, w -> wsol; x0 -> y0
-
-	    // Compute residial
-	    // @{
-	    Epetra_SerialDenseMatrix res1;
-	    if (A.M() != y.N()) {
-	      std::runtime_error("Error 1: Matrix dimensions imcompatible");
-	    }
-	    res1.Shape(A.M(), A.M());
-	    // res1=A*sol-b0(:,k)-wsol;
-	    // Should work now.
-
-	    for (int x = 0; x < A.N(); x++) {
-	      for (int z = 0; z < y.M(); z++) {
-	        res1(x, 0) += A(x, z) * y(z, 0);
-	      }
-	      res1(x, 0) -= b0new(x, 0) + w(x, 0);  // [...]-b0(:,k) - wsol;
-	    }
-	    // }
-
-	    // Compute number of contact nodes
-	    // @{
-	    int cont = 0;
-	    xvf.clear();
-	    yvf.clear();
-	    xvf.resize(y.M());
-	    yvf.resize(y.M());
-	    pf.resize(y.M());
-	    for (int i = 0; i < y.M(); i++) {
-	      if (y(i, 0) != 0) {
-	        xvf[cont] = xv0[i];
-	        yvf[cont] = yv0[i];
-	        pf[cont] = y(i, 0);
-	        cont += 1;
-	      }
-	    }
-	    nf = cont;
-
-	    // }
-
-	    // Compute contact force and contact area
-	    // @{
-	    force0.push_back(0);
-	    for (int i = 0; i < nf; i++) {
-	      force0[k] = force0[k] + pf[i];
-	    }
-	    area0.push_back(nf * (pow(delta, 2) / pow(lato, 2)) * 100);
-	    w_el = force0[k] / k_el;
-	    // }
-
-	    // Compute error because of nonlinear correction
-	    // @{
-	    if (k > 0) {
-	      errf = abs(force0[k] - force0[k - 1]) / force0[k];
-
-	      // errw(k) = abs((w_el0(k+1)-w_el0(k))/w_el0(k+1));
-	      // It appears that this is only a debugging variable without any uses,
-	      // therefore im not gonna implement this here.
-	    }
-	    k += 1;
-	    // }
-	  }
-	  b1 = b0new;
-	  return A;
+	int err = A.Shape(xv0.size(), xv0.size());
+	
+	// Construction of the Matrix H = A
+	SetUpMatrix(A, xv0, yv0, delta, E, n0, k);
+	b1.Shape(b0.size(), 1);
+	for (int i = 0; i < b0.size(); i++){
+		b1(i, 0) = b0[i];
+	}
+	if (b0.size() > A.N()){
+		count = A.N();
+	} else {
+		count = b0.size();
+	}
 }
 
-void calculateTimes2_Static(Epetra_SerialDenseMatrix& matrix, Epetra_SerialDenseMatrix& y,
-		Epetra_SerialDenseMatrix& b0, vector<int>& P, double& time, int cachesize, int counter){
+void calculateTimes2_Static(Epetra_SerialDenseMatrix& matrix, Epetra_SerialDenseMatrix& b0,
+		vector<int>& P, int counter, double& time, int cachesize){
 	
-	Epetra_SerialDenseMatrix w; w.Shape(matrix.M(), 1);
+	Epetra_SerialDenseMatrix y; y.Shape(matrix.M(), 1);
 	auto start = std::chrono::high_resolution_clock::now();
 	
 #pragma omp parallel for schedule(static, cachesize)
 	
 	for (int a = 0; a < matrix.M(); a++) {
-		w(a, 0) = 0;
+		y(a, 0) = 0;
 		for (int b = 0; b < counter; b++) {
-			w(a, 0) += (matrix(P[b], a) * y(P[b], 0));
+			y(a, 0) += (matrix(P[b], a) * b0(P[b], 0));
 		}
-		w(a, 0) -= b0(a, 0);
 	}
 	
 	auto finish = std::chrono::high_resolution_clock::now();
 	time = std::chrono::duration_cast<std::chrono::microseconds>(finish - start).count();
 }
 
-void calculateTimes2_Dynamic(Epetra_SerialDenseMatrix matrix, Epetra_SerialDenseMatrix y,
-		Epetra_SerialDenseMatrix b0, vector<int> P, double& time, int cachesize, int counter){
-	Epetra_SerialDenseMatrix w; w.Shape(matrix.M(), 1);
+void calculateTimes2_Dynamic(Epetra_SerialDenseMatrix& matrix, Epetra_SerialDenseMatrix& b0,
+		vector<int>& P, int counter, double& time, int cachesize){
 	
+	Epetra_SerialDenseMatrix y; y.Shape(matrix.M(), 1);
 	auto start = std::chrono::high_resolution_clock::now();
 	
 #pragma omp parallel for schedule(dynamic, cachesize)
 	
 	for (int a = 0; a < matrix.M(); a++) {
-		w(a, 0) = 0;
+		y(a, 0) = 0;
 		for (int b = 0; b < counter; b++) {
-			w(a, 0) += (matrix(P[b], a) * y(P[b], 0));
+			y(a, 0) += (matrix(P[b], a) * b0(P[b], 0));
 		}
-		w(a, 0) -= b0(a, 0);
 	}
 	
 	auto finish = std::chrono::high_resolution_clock::now();
 	time = std::chrono::duration_cast<std::chrono::microseconds>(finish - start).count();
 }
 
-void calculateTimes2_Guided(Epetra_SerialDenseMatrix matrix, Epetra_SerialDenseMatrix y,
-		Epetra_SerialDenseMatrix b0, vector<int> P, double& time, int cachesize, int counter){
-	Epetra_SerialDenseMatrix w; w.Shape(matrix.M(), 1);
+void calculateTimes2_Guided(Epetra_SerialDenseMatrix& matrix, Epetra_SerialDenseMatrix& b0,
+		vector<int>& P, int counter, double& time, int cachesize){
 	
+	Epetra_SerialDenseMatrix y; y.Shape(matrix.M(), 1);
 	auto start = std::chrono::high_resolution_clock::now();
 	
 #pragma omp parallel for schedule(guided, cachesize)
 	
 	for (int a = 0; a < matrix.M(); a++) {
-		w(a, 0) = 0;
+		y(a, 0) = 0;
 		for (int b = 0; b < counter; b++) {
-			w(a, 0) += (matrix(P[b], a) * y(P[b], 0));
+			y(a, 0) += (matrix(P[b], a) * b0(P[b], 0));
 		}
-		w(a, 0) -= b0(a, 0);
 	}
 	
 	auto finish = std::chrono::high_resolution_clock::now();
 	time = std::chrono::duration_cast<std::chrono::microseconds>(finish - start).count();
-}
-
-Epetra_SerialDenseMatrix generateY(Epetra_SerialDenseMatrix matrix, vector<int> P,
-		Epetra_SerialDenseMatrix b0){
-	Epetra_SerialDenseMatrix y; y. Shape(matrix.N(), 1);
-	for (int a = 0; a < matrix.N(); a++){
-		for (int b = 0; b < matrix.M(); b++){
-			y(a, 0) = matrix(P[a], P[b]) * b0(P[b], 0);
-		}
-	}
-	return y;
 }
 
 int main(int argc, char* argv[]) {
@@ -992,17 +707,11 @@ int main(int argc, char* argv[]) {
 	std::cout << "Generating pre-work data." << endl;
 	
 	// PHASE 2
-	Epetra_SerialDenseMatrix matrix, y, b0;
+	Epetra_SerialDenseMatrix matrix, b0;
 	vector<int> P = readinP("p_" + filePath);
 	int counter = 0;
-	try{
-		
-	} catch 
-	matrix = generateMatrix(filePath, b0, counter);
 	
-	std::cout << "Generating y" << endl;
-	
-	y = generateY(matrix, P, b0);
+	generateVars(filePath, matrix, b0, counter);
 	
 	std::cout << "Starting Static Runtime" << endl;
 	
