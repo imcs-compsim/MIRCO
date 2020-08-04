@@ -551,7 +551,29 @@ void writeToFile(string filepath, Epetra_SerialDenseMatrix values, int dim1, int
 	outfile.close();
 }
 
-void generateVars(string randomPath, Epetra_SerialDenseMatrix& A, Epetra_SerialDenseMatrix& b1, int& count){
+void SetUpMatrix(Epetra_SerialDenseMatrix& A, std::vector<double> xv0,
+                 std::vector<double> yv0, double delta, double E,
+                 int systemsize, int k) {
+  double r;
+  double pi = atan(1) * 4;
+  double raggio = delta / 2;
+  double C = 1 / (E * pi * raggio);
+
+#pragma omp parallel for
+  for (int i = 0; i < systemsize; i++) {
+    A(i, i) = 1 * C;
+  }
+
+  for (int i = 0; i < systemsize; i++) {
+    for (int j = 0; j < i; j++) {
+      r = sqrt(pow((xv0[j] - xv0[i]), 2) + pow((yv0[j] - yv0[i]), 2));
+      A(i, j) = C * asin(raggio / r);
+      A(j, i) = C * asin(raggio / r);
+    }
+  }
+}
+
+void generateVars(string randomPath, Epetra_SerialDenseMatrix& A, Epetra_SerialDenseMatrix& b1){
 
 	int csteps, flagwarm;
 	double nu1, nu2, G1, G2, E, G, nu, alpha, H, rnd, k_el, delta, nnodi, to1, E1,
@@ -562,14 +584,11 @@ void generateVars(string randomPath, Epetra_SerialDenseMatrix& A, Epetra_SerialD
 	SetParameters(E1, E2, csteps, flagwarm, lato, zref, ampface, nu1, nu2, G1, G2,
 	                E, G, nu, alpha, H, rnd, k_el, delta, nnodi, errf, to1);
 
-	// Meshgrid-Command
-	// Identical Vectors/Matricies, therefore only created one here.
 	vector<double> x;
 	for (double i = delta / 2; i < lato; i = i + delta) {
 		x.push_back(i);
 	}
 
-	// Setup Topology
 	Epetra_SerialDenseMatrix topology, y;
 	CreateTopology(topology, randomPath);
 
@@ -601,7 +620,6 @@ void generateVars(string randomPath, Epetra_SerialDenseMatrix& A, Epetra_SerialD
 	row.clear();
 	col.clear();
 	for (int i = 0; i < topology.N(); i++) {
-		//      cout << "x= " << x[i] << endl;
 		for (int j = 0; j < topology.N(); j++) {
 			if (topology(i, j) >= value) {
 				row.push_back(i);
@@ -625,31 +643,26 @@ void generateVars(string randomPath, Epetra_SerialDenseMatrix& A, Epetra_SerialD
 
 	int err = A.Shape(xv0.size(), xv0.size());
 	
-	// Construction of the Matrix H = A
+	// Enter variables
+	
 	SetUpMatrix(A, xv0, yv0, delta, E, n0, k);
 	b1.Shape(b0.size(), 1);
 	for (int i = 0; i < b0.size(); i++){
 		b1(i, 0) = b0[i];
-	}
-	if (b0.size() > A.N()){
-		count = A.N();
-	} else {
-		count = b0.size();
 	}
 }
 
 void calculateTimes2_Static(Epetra_SerialDenseMatrix& matrix, Epetra_SerialDenseMatrix& b0,
 		vector<int>& P, int counter, double& time, int cachesize){
 	
-	Epetra_SerialDenseMatrix y; y.Shape(matrix.M(), 1);
+	Epetra_SerialDenseMatrix w; w.Shape(matrix.M(), 1);
 	auto start = std::chrono::high_resolution_clock::now();
 	
 #pragma omp parallel for schedule(static, cachesize)
 	
 	for (int a = 0; a < matrix.M(); a++) {
-		y(a, 0) = 0;
 		for (int b = 0; b < counter; b++) {
-			y(a, 0) += (matrix(P[b], a) * b0(P[b], 0));
+			w(a, 0) += (matrix(P[b], a) * b0(P[b], 0));
 		}
 	}
 	
@@ -660,17 +673,16 @@ void calculateTimes2_Static(Epetra_SerialDenseMatrix& matrix, Epetra_SerialDense
 void calculateTimes2_Dynamic(Epetra_SerialDenseMatrix& matrix, Epetra_SerialDenseMatrix& b0,
 		vector<int>& P, int counter, double& time, int cachesize){
 	
-	Epetra_SerialDenseMatrix y; y.Shape(matrix.M(), 1);
-	auto start = std::chrono::high_resolution_clock::now();
-	
-#pragma omp parallel for schedule(dynamic, cachesize)
-	
-	for (int a = 0; a < matrix.M(); a++) {
-		y(a, 0) = 0;
-		for (int b = 0; b < counter; b++) {
-			y(a, 0) += (matrix(P[b], a) * b0(P[b], 0));
+	Epetra_SerialDenseMatrix w; w.Shape(matrix.M(), 1);
+		auto start = std::chrono::high_resolution_clock::now();
+		
+	#pragma omp parallel for schedule(dynamic, cachesize)
+		
+		for (int a = 0; a < matrix.N(); a++) {
+			for (int b = 0; b < counter; b++) {
+				w(a, 0) += (matrix(a, P[b]) * b0(P[b], 0));
+			}
 		}
-	}
 	
 	auto finish = std::chrono::high_resolution_clock::now();
 	time = std::chrono::duration_cast<std::chrono::microseconds>(finish - start).count();
@@ -679,20 +691,31 @@ void calculateTimes2_Dynamic(Epetra_SerialDenseMatrix& matrix, Epetra_SerialDens
 void calculateTimes2_Guided(Epetra_SerialDenseMatrix& matrix, Epetra_SerialDenseMatrix& b0,
 		vector<int>& P, int counter, double& time, int cachesize){
 	
-	Epetra_SerialDenseMatrix y; y.Shape(matrix.M(), 1);
+	Epetra_SerialDenseMatrix w; w.Shape(matrix.M(), 1);
 	auto start = std::chrono::high_resolution_clock::now();
-	
+		
 #pragma omp parallel for schedule(guided, cachesize)
-	
-	for (int a = 0; a < matrix.M(); a++) {
-		y(a, 0) = 0;
+		
+	for (int a = 0; a < matrix.N(); a++) {
 		for (int b = 0; b < counter; b++) {
-			y(a, 0) += (matrix(P[b], a) * b0(P[b], 0));
+			w(a, 0) += (matrix(a, P[b]) * b0(P[b], 0));
 		}
 	}
 	
 	auto finish = std::chrono::high_resolution_clock::now();
 	time = std::chrono::duration_cast<std::chrono::microseconds>(finish - start).count();
+}
+
+void generateCounter(int& counter, vector<int> P, Epetra_SerialDenseMatrix matrix){
+	int value = matrix.M(), pos = 0;
+	bool done = false;
+	for (int i = 0; i < P.size(); i++){
+		if ((P[i] >= value) && (done == false)){
+			pos = i - 1;
+			done = true;
+		}
+	}
+	counter = value;
 }
 
 int main(int argc, char* argv[]) {
@@ -709,12 +732,26 @@ int main(int argc, char* argv[]) {
 	// PHASE 2
 	Epetra_SerialDenseMatrix matrix, b0;
 	vector<int> P = readinP("p_" + filePath);
-	int counter = 0;
+	std::cout << "P done." << endl;
+	int counter = 0, minPos = 0;
+	bool done = false;
 	
-	generateVars(filePath, matrix, b0, counter);
+	generateVars(filePath, matrix, b0);
+	
+	generateCounter(counter, P, matrix);
+	
+	// Counter for specific files:
+	// sup2: -1
+	// sup5: 0
+	// sup6:
+	// sup7:
+	// sup8: 
+	
+	for (int i = 0; i < counter; i++){
+		if (P[i] > matrix.M()) { std::cout << "Something went wrong" << endl; }
+	}
 	
 	std::cout << "Starting Static Runtime" << endl;
-	
 	/*
 	 * PHASE 1
 	for (int cachesize = 1; cachesize < (maxCache + 1); cachesize++){
@@ -748,10 +785,10 @@ int main(int argc, char* argv[]) {
 		omp_set_num_threads(threadAmount);
 		for (int cachesize = 1; cachesize < (maxCache + 1); cachesize++){
 			for (int i = 0; i < 100; i++){
-				calculateTimes2_Static(matrix, y, b0, P, time1, cachesize, counter); // TODO: y, b0, P
+				calculateTimes2_Static(matrix, b0, P, counter, time1, cachesize);
 				times1.push_back(time1);
-				std::cout << "Cache " + to_string(cachesize) + " done." << endl;
 			}
+			std::cout << "Cache " + to_string(cachesize) + " done." << endl;
 			min1 = generateMinimum(times1);
 			// std::cout << to_string(min1) << endl;
 			matrix1(cachesize, threadAmount) = min1;
@@ -795,10 +832,10 @@ int main(int argc, char* argv[]) {
 		omp_set_num_threads(threadAmount);
 		for (int cachesize = 1; cachesize < (maxCache + 1); cachesize++){
 			for (int i = 0; i < 100; i++){
-				calculateTimes2_Dynamic(matrix, y, b0, P, time1, cachesize, counter); // TODO: y, b0, P
+				calculateTimes2_Dynamic(matrix, b0, P, counter, time1, cachesize); // TODO: y, b0, P
 				times1.push_back(time1);
-				std::cout << "Cache " + to_string(cachesize) + " done." << endl;
 			}
+			std::cout << "Cache " + to_string(cachesize) + " done." << endl;
 			min1 = generateMinimum(times1);
 			// std::cout << to_string(min1) << endl;
 			matrix1(cachesize, threadAmount) = min1;
@@ -842,10 +879,10 @@ int main(int argc, char* argv[]) {
 		omp_set_num_threads(threadAmount);
 		for (int cachesize = 1; cachesize < (maxCache + 1); cachesize++){
 			for(int i = 0; i < 100; i++){
-				calculateTimes2_Guided(matrix, y, b0, P, time1, cachesize, counter); // TODO: y, b0, P
+				calculateTimes2_Guided(matrix, b0, P, counter, time1, cachesize); // TODO: y, b0, P
 				times1.push_back(time1);
-				std::cout << "Cache " + to_string(cachesize) + " done." << endl;
 			}
+			std::cout << "Cache " + to_string(cachesize) + " done." << endl;
 			min1 = generateMinimum(times1);
 			// std::cout << to_string(min1) << endl;
 			matrix1(cachesize, threadAmount) = min1;
@@ -855,6 +892,8 @@ int main(int argc, char* argv[]) {
 	}
 	
 	writeToFile("datatimes3_guided_" + filePath, matrix1, maxCache, maxThreads);
+	
+	std::cout << "Counter is: " + to_string(counter) << endl;
 	
 	std::cout << "All jobs done!" << endl;
 }
