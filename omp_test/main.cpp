@@ -100,7 +100,7 @@ void SetParameters(double& E1, double& E2, int& csteps, int& flagwarm,
                            0.826126871395416, 0.841369158110513,
                            0.851733020725652, 0.858342234203154,
                            0.862368243479785, 0.864741597831785};
-  int nn = 8;  // Matrix sent has the parameter nn=2!
+  int nn = 7;  // Matrix sent has the parameter nn=2!
   alpha = alpha_con[nn - 1];
   csteps = 1;
   ampface = 1;
@@ -986,7 +986,7 @@ int main(int argc, char* argv[]) {
 	double time1 = 0, time2 = 0, min1 = 0, min2 = 0;
 	vector<double> times1, times2, mins1, mins2;
 	Epetra_SerialDenseMatrix matrix1, matrix2;
-	string filePath = "sup8.dat";
+	string filePath = "sup7.dat";
 	matrix1.Shape(maxCache, maxThreads); matrix2.Shape(maxCache, maxThreads);
 	
 	std::cout << "Generating pre-work data." << endl;
@@ -995,7 +995,13 @@ int main(int argc, char* argv[]) {
 	Epetra_SerialDenseMatrix matrix, y, b0;
 	vector<int> P = readinP("p_" + filePath);
 	int counter = 0;
+	try{
+		
+	} catch 
 	matrix = generateMatrix(filePath, b0, counter);
+	
+	std::cout << "Generating y" << endl;
+	
 	y = generateY(matrix, P, b0);
 	
 	std::cout << "Starting Static Runtime" << endl;
