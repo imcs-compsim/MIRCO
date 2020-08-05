@@ -720,16 +720,17 @@ void generateCounter(int& counter, vector<int> P, Epetra_SerialDenseMatrix matri
 
 int main(int argc, char* argv[]) {
 	// Setup Thread Amount and Cache_Size
-	int maxThreads = 12, maxCache = 18;
+	int minThreads = 1, minCache = 12;
+	int maxThreads = 1, maxCache = 12;
 	double time1 = 0, time2 = 0, min1 = 0, min2 = 0;
 	vector<double> times1, times2, mins1, mins2;
 	Epetra_SerialDenseMatrix matrix1, matrix2;
-	string filePath = "sup2.dat";
+	string filePath = "sup8.dat", nameAdditive = "scaling_";
 	matrix1.Shape(maxCache, maxThreads); matrix2.Shape(maxCache, maxThreads);
 	
-	std::cout << "Generating pre-work data." << endl;
-	
 	// PHASE 2
+	/*
+	std::cout << "Generating pre-work data." << endl;
 	Epetra_SerialDenseMatrix matrix, b0;
 	vector<int> P = readinP("p_" + filePath);
 	std::cout << "P done." << endl;
@@ -739,7 +740,7 @@ int main(int argc, char* argv[]) {
 	
 	generateCounter(counter, P, matrix);
 	
-	// Counter for specific files:
+	// Counter for specific files: (PHASE 2 ONLY)
 	// sup2: -works-
 	// sup5: -works-
 	// sup6: -works-
@@ -751,26 +752,13 @@ int main(int argc, char* argv[]) {
 	
 	// sup8 ONLY
 	// counter = 2049;
-	
-	/*
-	// Only for finding out counter-value's! Since other way doesnt work out ...
-	bool done = false;
-	
-	for (int i = 0; i < counter; i++){
-		if (P[i] > matrix.M()) { 
-			if (done == false){
-				done = true;
-				std::cout << "Something went wrong in line " + to_string(i) << endl;
-			}
-		}
-	}
-	*/
+	 */
 	
 	std::cout << "Starting Static Runtime" << endl;
-	/*
-	 * PHASE 1
-	for (int cachesize = 1; cachesize < (maxCache + 1); cachesize++){
-		for (int threadAmount = 1; threadAmount < (maxThreads + 1); threadAmount++){
+	
+	// PHASE 1
+	for (int cachesize = minCache; cachesize < (maxCache + 1); cachesize++){
+		for (int threadAmount = minThreads; threadAmount < (maxThreads + 1); threadAmount++){
 			// Generate runtime-data
 			omp_set_num_threads(threadAmount);
 			for (int i = 0; i < 100; i++){ // Should be sufficient
@@ -790,15 +778,14 @@ int main(int argc, char* argv[]) {
 		std::cout << "Cache " + to_string(cachesize) + " done." << endl;
 	}
 			
-	writeToFile("datatimes1_static_" + filePath, matrix1, maxCache, maxThreads);
-	writeToFile("datatimes2_static_" + filePath, matrix2, maxCache, maxThreads);
-	*/
+	writeToFile("datatimes1_static_" + nameAdditive + filePath, matrix1, maxCache, maxThreads);
+	writeToFile("datatimes2_static_" + nameAdditive + filePath, matrix2, maxCache, maxThreads);
 	
 	// PHASE 2
-	
-	for (int threadAmount = 1; threadAmount < (maxThreads + 1); threadAmount++){
+	/*
+	for (int threadAmount = minThreads; threadAmount < (maxThreads + 1); threadAmount++){
 		omp_set_num_threads(threadAmount);
-		for (int cachesize = 1; cachesize < (maxCache + 1); cachesize++){
+		for (int cachesize = minCache; cachesize < (maxCache + 1); cachesize++){
 			for (int i = 0; i < 100; i++){
 				calculateTimes2_Static(matrix, b0, P, counter, time1, cachesize);
 				times1.push_back(time1);
@@ -813,12 +800,13 @@ int main(int argc, char* argv[]) {
 	}
 	
 	writeToFile("datatimes3_static_" + filePath, matrix1, maxCache, maxThreads);
+	*/
 	
 	std::cout << "Starting Dynamic Runtime" << endl;
 		
-	/*
-	for (int cachesize = 1; cachesize < (maxCache + 1); cachesize++){
-		for (int threadAmount = 1; threadAmount < (maxThreads + 1); threadAmount++){
+	// PHASE 1
+	for (int cachesize = minCache; cachesize < (maxCache + 1); cachesize++){
+		for (int threadAmount = minThreads; threadAmount < (maxThreads + 1); threadAmount++){
 			// Generate runtime-data
 			omp_set_num_threads(threadAmount);
 			for (int i = 0; i < 100; i++){ // Should be sufficient
@@ -838,14 +826,15 @@ int main(int argc, char* argv[]) {
 		std::cout << "Cache " + to_string(cachesize) + " done." << endl;
 	}
 				
-	writeToFile("datatimes1_dynamic_" + filePath, matrix1, maxCache, maxThreads);
-	writeToFile("datatimes2_dynamic_" + filePath, matrix2, maxCache, maxThreads);
-	*/
+	writeToFile("datatimes1_dynamic_" + nameAdditive + filePath, matrix1, maxCache, maxThreads);
+	writeToFile("datatimes2_dynamic_" + nameAdditive + filePath, matrix2, maxCache, maxThreads);
+	
 	
 	// PHASE 2
-	for (int threadAmount = 1; threadAmount < (maxThreads + 1); threadAmount++){
+	/*
+	for (int threadAmount = minThreads; threadAmount < (maxThreads + 1); threadAmount++){
 		omp_set_num_threads(threadAmount);
-		for (int cachesize = 1; cachesize < (maxCache + 1); cachesize++){
+		for (int cachesize = minCache; cachesize < (maxCache + 1); cachesize++){
 			for (int i = 0; i < 100; i++){
 				calculateTimes2_Dynamic(matrix, b0, P, counter, time1, cachesize); // TODO: y, b0, P
 				times1.push_back(time1);
@@ -860,12 +849,13 @@ int main(int argc, char* argv[]) {
 	}
 	
 	writeToFile("datatimes3_dynamic_" + filePath, matrix1, maxCache, maxThreads);
+	*/
 	
 	std::cout << "Starting Guided Runtime" << endl;
 	
-	/*
-	for (int cachesize = 1; cachesize < (maxCache + 1); cachesize++){
-		for (int threadAmount = 1; threadAmount < (maxThreads + 1); threadAmount++){
+	// PHASE 1
+	for (int cachesize = minCache; cachesize < (maxCache + 1); cachesize++){
+		for (int threadAmount = minThreads; threadAmount < (maxThreads + 1); threadAmount++){
 			// Generate runtime-data
 			omp_set_num_threads(threadAmount);
 			for (int i = 0; i < 100; i++){ // Should be sufficient
@@ -885,14 +875,14 @@ int main(int argc, char* argv[]) {
 		std::cout << "Cache " + to_string(cachesize) + " done." << endl;
 	}
 			
-	writeToFile("datatimes1_guided_" + filePath, matrix1, maxCache, maxThreads);
-	writeToFile("datatimes2_guided_" + filePath, matrix2, maxCache, maxThreads);
-	*/
+	writeToFile("datatimes1_guided_" + nameAdditive + filePath, matrix1, maxCache, maxThreads);
+	writeToFile("datatimes2_guided_" + nameAdditive + filePath, matrix2, maxCache, maxThreads);
 	
 	// PHASE 2
-	for (int threadAmount = 1; threadAmount < (maxThreads + 1); threadAmount++){
+	/*
+	for (int threadAmount = minThreads; threadAmount < (maxThreads + 1); threadAmount++){
 		omp_set_num_threads(threadAmount);
-		for (int cachesize = 1; cachesize < (maxCache + 1); cachesize++){
+		for (int cachesize = minCache; cachesize < (maxCache + 1); cachesize++){
 			for(int i = 0; i < 100; i++){
 				calculateTimes2_Guided(matrix, b0, P, counter, time1, cachesize); // TODO: y, b0, P
 				times1.push_back(time1);
@@ -907,8 +897,7 @@ int main(int argc, char* argv[]) {
 	}
 	
 	writeToFile("datatimes3_guided_" + filePath, matrix1, maxCache, maxThreads);
-	
-	std::cout << "Counter is: " + to_string(counter) << endl;
+	*/
 	
 	std::cout << "All jobs done!" << endl;
 }

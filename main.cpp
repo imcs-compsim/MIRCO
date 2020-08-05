@@ -8,6 +8,7 @@
 #include <vector>
 #include "include/Epetra_SerialSpdDenseSolver.h"
 #include "include/Epetra_SerialSymDenseMatrix.h"
+#include <chrono> // time stuff
 
 using namespace std;
 
@@ -35,7 +36,7 @@ void SetParameters(double& E1, double& E2, int& csteps, int& flagwarm,
                            0.826126871395416, 0.841369158110513,
                            0.851733020725652, 0.858342234203154,
                            0.862368243479785, 0.864741597831785};
-  int nn = 2;  // TODO: CHANGE THIS WHEN CHANGING FILES
+  int nn = 5;  // TODO: CHANGE THIS WHEN CHANGING FILES
   alpha = alpha_con[nn - 1];
   csteps = 1;
   ampface = 1;
@@ -140,34 +141,6 @@ void LinearSolve(Epetra_SerialSymDenseMatrix& matrix,
   }
 }
 
-// Only for y
-void writeToFile(string fileName, string datavalue, Epetra_SerialDenseMatrix values, int dim1, int dim2){
-	ofstream outfile; outfile.open(datavalue + "_" + fileName);
-	outfile << std::scientific;
-	for (int y = 0; y < dim2; y++){
-		for (int x = 0; x < dim1; x++){
-				outfile << to_string(values(x, y)) << endl;
-		}
-	}
-	outfile.close();
-}
-
-void writeToFile(string fileName, string datavalue, vector<int> values){
-	ofstream outfile; outfile.open(datavalue + "_" + fileName);
-	outfile << std::scientific;
-	for (int i = 0; i < values.size(); i++){
-		outfile << to_string(values[i]) << endl;
-	}
-	outfile.close();
-}
-
-void writeToFile(string fileName, string datavalue, int value){
-	ofstream outfile; outfile.open(datavalue + "_" + fileName);
-	outfile << std::scientific;
-	outfile << to_string(value) << endl;
-	outfile.close();	
-}
-
 /*------------------------------------------*/
 void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
                     Epetra_SerialDenseMatrix& b0, std::vector<double>& y0,
@@ -191,6 +164,7 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
   // Initialize active set
   vector<int> positions;
   int counter = 0;
+  
   for (int i = 0; i < y0.size(); i++) {
     if (y0[i] >= nnlstol) {
       positions.push_back(i);
@@ -317,15 +291,17 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
 /*------------------------------------------*/
 
 int main(int argc, char* argv[]) {
-  omp_set_num_threads(2);
-
+  omp_set_num_threads(4);
+  
+  auto start = std::chrono::high_resolution_clock::now();
+ 
   int csteps, flagwarm;
   double nu1, nu2, G1, G2, E, G, nu, alpha, H, rnd, k_el, delta, nnodi, to1, E1,
       E2, lato, zref, ampface, errf;
 
   double Delta = 50;  // TODO only used for debugging
 
-  string randomPath = "sup2.dat";
+  string randomPath = "sup5.dat";
 
   SetParameters(E1, E2, csteps, flagwarm, lato, zref, ampface, nu1, nu2, G1, G2,
                 E, G, nu, alpha, H, rnd, k_el, delta, nnodi, errf, to1);
@@ -333,6 +309,8 @@ int main(int argc, char* argv[]) {
   // Meshgrid-Command
   // Identical Vectors/Matricies, therefore only created one here.
   vector<double> x;
+  
+//#pragma omp parallel for  
   for (double i = delta / 2; i < lato; i = i + delta) {
     x.push_back(i);
   }
@@ -343,6 +321,8 @@ int main(int argc, char* argv[]) {
 
   double zmax = 0;
   double zmean = 0;
+  
+#pragma omp parallel for
 
   for (int i = 0; i < topology.M(); i++)
     for (int j = 0; j < topology.N(); j++) {
@@ -390,19 +370,21 @@ int main(int argc, char* argv[]) {
 
     // Works until this point
 
-    xv0.clear();
-    yv0.clear();
-    b0.clear();
-    for (int b = 0; b < n0; b++) {
-      xv0.push_back(x[col[b]]);
+    xv0.clear(); xv0.resize(n0);
+    yv0.clear(); yv0.resize(n0);
+    b0.clear(); b0.resize(n0);
+    
+#pragma omp parallel for
+    for (int b = 0; b < (n0 - 1); b++){
+    	xv0[b] = x[col[b]];
     }
-
-    for (int b = 0; b < n0; b++) {
-      yv0.push_back(x[row[b]]);
+#pragma omp parallle for
+    for (int b = 0; b < (n0 - 1); b++) {
+      yv0[b] = x[row[b]];
     }
-
-    for (int b = 0; b < n0; b++) {
-      b0.push_back(Delta + w_el - (zmax - topology(row[b], col[b])));
+#pragma omp parallel for
+    for (int b = 0; b < (n0 - 1); b++) {
+      b0[b] = Delta + w_el - (zmax - topology(row[b], col[b]));
     }
 
     int err = A.Shape(xv0.size(), xv0.size());
@@ -509,4 +491,10 @@ int main(int argc, char* argv[]) {
     std::runtime_error("Differenz ist zu groß!");  // for nn=2
   // if (abs(sigmaz - 0.246623) > to1)
   //   std::runtime_error("Differenz ist zu groß!");  // for nn=5
+  
+  
+  auto finish = std::chrono::high_resolution_clock::now();
+  double elapsedTime2 = std::chrono::duration_cast<std::chrono::seconds>(finish - start).count();
+  std::cout << "Elapsed time is: " + to_string(elapsedTime2) + "s." << endl;
+
 }
