@@ -100,7 +100,7 @@ void SetParameters(double& E1, double& E2, int& csteps, int& flagwarm,
                            0.826126871395416, 0.841369158110513,
                            0.851733020725652, 0.858342234203154,
                            0.862368243479785, 0.864741597831785};
-  int nn = 8;  // Matrix sent has the parameter nn=2!
+  int nn = 2;  // Matrix sent has the parameter nn=2!
   alpha = alpha_con[nn - 1];
   csteps = 1;
   ampface = 1;
@@ -724,7 +724,7 @@ int main(int argc, char* argv[]) {
 	double time1 = 0, time2 = 0, min1 = 0, min2 = 0;
 	vector<double> times1, times2, mins1, mins2;
 	Epetra_SerialDenseMatrix matrix1, matrix2;
-	string filePath = "sup8.dat";
+	string filePath = "sup2.dat";
 	matrix1.Shape(maxCache, maxThreads); matrix2.Shape(maxCache, maxThreads);
 	
 	std::cout << "Generating pre-work data." << endl;
@@ -750,7 +750,7 @@ int main(int argc, char* argv[]) {
 	// counter = 513;
 	
 	// sup8 ONLY
-	counter = 2049;
+	// counter = 2049;
 	
 	/*
 	// Only for finding out counter-value's! Since other way doesnt work out ...
