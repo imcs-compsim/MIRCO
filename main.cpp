@@ -109,7 +109,8 @@ void SetUpMatrix(Epetra_SerialDenseMatrix& A, std::vector<double> xv0,
   for (int i = 0; i < systemsize; i++) {
     A(i, i) = 1 * C;
   }
-
+// #pragma omp parallel for collapse(2) // this causes issues
+  // TODO do this!
   for (int i = 0; i < systemsize; i++) {
     for (int j = 0; j < i; j++) {
       r = sqrt(pow((xv0[j] - xv0[i]), 2) + pow((yv0[j] - yv0[i]), 2));
@@ -193,7 +194,7 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
   while (aux1 == true) {
     // [wi,i]=min(w);
     double minValue = w(0, 0), minPosition = 0;
-    for (int i = 0; i < w.M(); i++) {
+    for (int i = 0; i < w.M(); i++) { // this doesnt make sense
       if (minValue > w(i, 0)) {
         minValue = w(i, 0);
         minPosition = i;
@@ -220,7 +221,8 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
       vector_x.Shape(counter, 1);
       vector_b.Shape(counter, 1);
       solverMatrix.Shape(counter, counter);
-
+      
+#pragma omp parallel for
       for (int x = 0; x < counter; x++) {
         vector_b(x, 0) = b0(P[x], 0);
 
@@ -234,11 +236,13 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
 
       LinearSolve(solverMatrix, vector_x, vector_b);
 
+#pragma omp parallel for
       for (int x = 0; x < counter; x++) {
         s0(P[x], 0) = vector_x(x, 0);
       }
 
       bool allBigger = true;
+#pragma omp parallel for
       for (int x = 0; x < counter; x++) {
         if (s0(P[x], 0) < nnlstol) {
           allBigger = false;
@@ -247,12 +251,14 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
 
       if (allBigger == true) {
         aux2 = false;
+#pragma omp parallel
         for (int x = 0; x < counter; x++) {
           y(P[x], 0) = s0(P[x], 0);
         }
 
         // w=A(:,P(1:nP))*y(P(1:nP))-b;
         w.Scale(0.0);
+#pragma omp parallel for
         for (int a = 0; a < matrix.M(); a++) {
           w(a, 0) = 0;
           for (int b = 0; b < counter; b++) { 
@@ -264,6 +270,7 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
       } else {
         j = 0;
         alpha = 1.0e8;
+#pragma omp parallel for
         for (int i = 0; i < counter; i++) {
           if (s0(P[i], 0) < nnlstol) {
             alphai = y(P[i], 0) / (eps + y(P[i], 0) - s0(P[i], 0));
@@ -273,7 +280,7 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
             }
           }
         }
-
+#pragma omp parallel for
         for (int a = 0; a < counter; a++)
           y(P[a], 0) = y(P[a], 0) + alpha * (s0(P[a], 0) - y(P[a], 0));
         if (j > 0) {
@@ -309,11 +316,12 @@ int main(int argc, char* argv[]) {
   // Meshgrid-Command
   // Identical Vectors/Matricies, therefore only created one here.
   vector<double> x;
+  std::cout << "Calc: " + to_string(floor((lato - (delta / 2) / delta))) << endl;
   
-//#pragma omp parallel for  
   for (double i = delta / 2; i < lato; i = i + delta) {
     x.push_back(i);
   }
+  std::cout << "x.size: " + to_string(x.size()) << endl;
 
   // Setup Topology
   Epetra_SerialDenseMatrix topology, y;
@@ -334,14 +342,12 @@ int main(int argc, char* argv[]) {
   zmean = zmean / (topology.N() * topology.M());
 
   vector<double> force0, area0;
-  double w_el = 0;
-  double area = 0, force = 0;
-  int k = 0;
-  int n0;
+  double w_el = 0, area = 0, force = 0;
+  int k = 0, n0 = 0;
   std::vector<double> xv0, yv0, b0, x0, xvf, yvf,
       pf;  // x0: initialized in Warmstart!
+  vector<int> col, row;
   double nf, xvfaux, yvfaux, pfaux;
-
   Epetra_SerialDenseMatrix A;
 
   while (errf > to1 && k < 100) {
@@ -352,7 +358,6 @@ int main(int argc, char* argv[]) {
     // @{
 
     // [ind1,ind2]=find(z>=(zmax-(Delta(s)+w_el(k))));
-    vector<int> col, row;
     double value = zmax - Delta - w_el;
 
     row.clear();
@@ -375,15 +380,15 @@ int main(int argc, char* argv[]) {
     b0.clear(); b0.resize(n0);
     
 #pragma omp parallel for
-    for (int b = 0; b < (n0 - 1); b++){
+    for (int b = 0; b < (n0 - 1); b++){ // usually would run until no, but col.size isnt always n0??? TODO Fix this!
     	xv0[b] = x[col[b]];
     }
-#pragma omp parallle for
-    for (int b = 0; b < (n0 - 1); b++) {
+#pragma omp parallel for
+    for (int b = 0; b < (n0 - 1); b++) { // TODO Fix this aswell!
       yv0[b] = x[row[b]];
     }
 #pragma omp parallel for
-    for (int b = 0; b < (n0 - 1); b++) {
+    for (int b = 0; b < (n0 - 1); b++) { // TODO Fix this aswell!
       b0[b] = Delta + w_el - (zmax - topology(row[b], col[b]));
     }
 
@@ -418,6 +423,7 @@ int main(int argc, char* argv[]) {
     // res1=A*sol-b0(:,k)-wsol;
     // Should work now.
 
+#pragma omp parallel for
     for (int x = 0; x < A.N(); x++) {
       for (int z = 0; z < y.M(); z++) {
         res1(x, 0) += A(x, z) * y(z, 0);
@@ -434,6 +440,7 @@ int main(int argc, char* argv[]) {
     xvf.resize(y.M());
     yvf.resize(y.M());
     pf.resize(y.M());
+//#pragma omp parallel for // This causes issues
     for (int i = 0; i < y.M(); i++) {
       if (y(i, 0) != 0) {
         xvf[cont] = xv0[i];
