@@ -76,7 +76,6 @@ void CreateTopology(int systemsize, Epetra_SerialDenseMatrix& topology,
   ifstream stream(filePath);
   string line;
   while (getline(stream, line)) {
-    // Split up Values into Double-Array
     int separatorPosition = 0;
     lineCounter += 1;  // Has to happen here, since baseline value is 0.
 
@@ -86,9 +85,7 @@ void CreateTopology(int systemsize, Epetra_SerialDenseMatrix& topology,
       line = line.substr(separatorPosition + 1, line.length());
 
       double value = stod(container);
-
       topology(lineCounter - 1, i) = value;
-
       position += 1;
     }
   }
@@ -109,7 +106,7 @@ void SetUpMatrix(Epetra_SerialDenseMatrix& A, std::vector<double> xv0,
   for (int i = 0; i < systemsize; i++) {
     A(i, i) = 1 * C;
   }
-// #pragma omp parallel for collapse(2) // this causes issues
+#pragma omp parallel for private(r) // this causes issues
   // TODO do this!
   for (int i = 0; i < systemsize; i++) {
     for (int j = 0; j < i; j++) {
@@ -166,7 +163,7 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
   vector<int> positions;
   int counter = 0;
   
-  for (int i = 0; i < y0.size(); i++) {
+  for (int i = 0; i < y0.size(); i++) { // TODO
     if (y0[i] >= nnlstol) {
       positions.push_back(i);
       counter += 1;
@@ -176,11 +173,13 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
   w.Reshape(b0.M(), b0.N());
 
   if (counter == 0) {
+#pragma omp parallel for
     for (int x = 0; x < b0.M(); x++) {
       w(x, 0) = -b0(x, 0);
     }
     init = false;
   } else {
+#pragma omp parallel for
     for (int i = 0; i < counter; i++) {
       P[i] = positions[i];
     }
@@ -194,7 +193,7 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
   while (aux1 == true) {
     // [wi,i]=min(w);
     double minValue = w(0, 0), minPosition = 0;
-    for (int i = 0; i < w.M(); i++) { // this doesnt make sense
+    for (int i = 0; i < w.M(); i++) { // TODO
       if (minValue > w(i, 0)) {
         minValue = w(i, 0);
         minPosition = i;
@@ -315,14 +314,14 @@ int main(int argc, char* argv[]) {
 
   // Meshgrid-Command
   // Identical Vectors/Matricies, therefore only created one here.
-  vector<double> x;
-  std::cout << "Calc: " + to_string(floor((lato - (delta / 2) / delta))) << endl;
+  int iter = int (ceil((lato - (delta / 2)) / delta)); // Replacement for "for (double i = delta / 2; i < lato; i = i + delta)"
+  vector<double> x(iter);
   
-  for (double i = delta / 2; i < lato; i = i + delta) {
-    x.push_back(i);
+#pragma omp parallel
+  for (int i = 0; i < iter; i++) { // TODO
+    x[i] = (delta / 2) + i * delta;
   }
-  std::cout << "x.size: " + to_string(x.size()) << endl;
-
+  
   // Setup Topology
   Epetra_SerialDenseMatrix topology, y;
   CreateTopology(topology.N(), topology, randomPath);
@@ -331,7 +330,6 @@ int main(int argc, char* argv[]) {
   double zmean = 0;
   
 #pragma omp parallel for
-
   for (int i = 0; i < topology.M(); i++)
     for (int j = 0; j < topology.N(); j++) {
       {
@@ -344,8 +342,8 @@ int main(int argc, char* argv[]) {
   vector<double> force0, area0;
   double w_el = 0, area = 0, force = 0;
   int k = 0, n0 = 0;
-  std::vector<double> xv0, yv0, b0, x0, xvf, yvf,
-      pf;  // x0: initialized in Warmstart!
+  std::vector<double> xv0, yv0, b0, x0, xvf, 
+  yvf, pf;  // x0: initialized in Warmstart!
   vector<int> col, row;
   double nf, xvfaux, yvfaux, pfaux;
   Epetra_SerialDenseMatrix A;
@@ -353,8 +351,7 @@ int main(int argc, char* argv[]) {
   while (errf > to1 && k < 100) {
     // First predictor for contact set
     // All points, for which gap is bigger than the displacement of the rigid
-    // indenter, cannot be in contact and thus are not checked in nonlinear
-    // solve
+    // indenter, cannot be in contact and thus are not checked in nonlinear solve
     // @{
 
     // [ind1,ind2]=find(z>=(zmax-(Delta(s)+w_el(k))));
@@ -362,8 +359,8 @@ int main(int argc, char* argv[]) {
 
     row.clear();
     col.clear();
+ // #pragma omp parallel for // This causes issues TODO
     for (int i = 0; i < topology.N(); i++) {
-      //      cout << "x= " << x[i] << endl;
       for (int j = 0; j < topology.N(); j++) {
         if (topology(i, j) >= value) {
           row.push_back(i);
@@ -373,23 +370,30 @@ int main(int argc, char* argv[]) {
     }
     n0 = col.size();
 
-    // Works until this point
-
     xv0.clear(); xv0.resize(n0);
     yv0.clear(); yv0.resize(n0);
     b0.clear(); b0.resize(n0);
     
 #pragma omp parallel for
-    for (int b = 0; b < (n0 - 1); b++){ // usually would run until no, but col.size isnt always n0??? TODO Fix this!
-    	xv0[b] = x[col[b]];
+    for (int b = 0; b < n0; b++){
+    	try{
+    		xv0[b] = x[col[b]];
+    	} catch (const std::exception& e){}
+    	
     }
+    
 #pragma omp parallel for
-    for (int b = 0; b < (n0 - 1); b++) { // TODO Fix this aswell!
-      yv0[b] = x[row[b]];
+    for (int b = 0; b < n0; b++) {
+      try{
+    	  yv0[b] = x[row[b]];
+      } catch (const std::exception& e){}
     }
+    
 #pragma omp parallel for
-    for (int b = 0; b < (n0 - 1); b++) { // TODO Fix this aswell!
-      b0[b] = Delta + w_el - (zmax - topology(row[b], col[b]));
+    for (int b = 0; b < n0; b++) {
+    	try{
+    		b0[b] = Delta + w_el - (zmax - topology(row[b], col[b]));
+    	} catch (const std::exception& e) {}
     }
 
     int err = A.Shape(xv0.size(), xv0.size());
@@ -400,12 +404,11 @@ int main(int argc, char* argv[]) {
     // Second predictor for contact set
     // @{
 
-    x0.clear();
-    x0.resize(b0.size());
-
+    x0.clear(); x0.resize(b0.size());
     Epetra_SerialDenseMatrix b0new;
     b0new.Shape(b0.size(), 1);
-
+    
+#pragma omp parallel for
     for (int i = 0; i < b0.size(); i++) {
       b0new(i, 0) = b0[i];
     }
@@ -421,7 +424,6 @@ int main(int argc, char* argv[]) {
     }
     res1.Shape(A.M(), A.M());
     // res1=A*sol-b0(:,k)-wsol;
-    // Should work now.
 
 #pragma omp parallel for
     for (int x = 0; x < A.N(); x++) {
@@ -435,12 +437,12 @@ int main(int argc, char* argv[]) {
     // Compute number of contact nodes
     // @{
     int cont = 0;
-    xvf.clear();
-    yvf.clear();
-    xvf.resize(y.M());
-    yvf.resize(y.M());
+    xvf.clear(); xvf.resize(y.M());
+    yvf.clear(); yvf.resize(y.M());
     pf.resize(y.M());
+    
 //#pragma omp parallel for // This causes issues
+    // Via private push_back
     for (int i = 0; i < y.M(); i++) {
       if (y(i, 0) != 0) {
         xvf[cont] = xv0[i];
@@ -450,7 +452,6 @@ int main(int argc, char* argv[]) {
       }
     }
     nf = cont;
-
     // }
 
     // Compute contact force and contact area
@@ -503,5 +504,4 @@ int main(int argc, char* argv[]) {
   auto finish = std::chrono::high_resolution_clock::now();
   double elapsedTime2 = std::chrono::duration_cast<std::chrono::seconds>(finish - start).count();
   std::cout << "Elapsed time is: " + to_string(elapsedTime2) + "s." << endl;
-
 }
