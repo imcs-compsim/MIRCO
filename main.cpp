@@ -36,7 +36,7 @@ void SetParameters(double& E1, double& E2, int& csteps, int& flagwarm,
                            0.826126871395416, 0.841369158110513,
                            0.851733020725652, 0.858342234203154,
                            0.862368243479785, 0.864741597831785};
-  int nn = 5;  // TODO: CHANGE THIS WHEN CHANGING FILES
+  int nn = 6;  // TODO: CHANGE THIS WHEN CHANGING FILES
   alpha = alpha_con[nn - 1];
   csteps = 1;
   ampface = 1;
@@ -106,7 +106,7 @@ void SetUpMatrix(Epetra_SerialDenseMatrix& A, std::vector<double> xv0,
   for (int i = 0; i < systemsize; i++) {
     A(i, i) = 1 * C;
   }
-#pragma omp parallel for private(r) // this causes issues
+#pragma omp parallel for private(r)
   // TODO do this!
   for (int i = 0; i < systemsize; i++) {
     for (int j = 0; j < i; j++) {
@@ -307,8 +307,10 @@ int main(int argc, char* argv[]) {
 
   double Delta = 50;  // TODO only used for debugging
 
-  string randomPath = "sup5.dat";
+  string randomPath = "sup6.dat";
 
+  std::cout << "File is " + randomPath << endl;
+  
   SetParameters(E1, E2, csteps, flagwarm, lato, zref, ampface, nu1, nu2, G1, G2,
                 E, G, nu, alpha, H, rnd, k_el, delta, nnodi, errf, to1);
 
@@ -318,7 +320,7 @@ int main(int argc, char* argv[]) {
   vector<double> x(iter);
   
 #pragma omp parallel
-  for (int i = 0; i < iter; i++) { // TODO
+  for (int i = 0; i < iter; i++) {
     x[i] = (delta / 2) + i * delta;
   }
   
