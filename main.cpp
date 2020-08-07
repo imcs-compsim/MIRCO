@@ -36,7 +36,7 @@ void SetParameters(double& E1, double& E2, int& csteps, int& flagwarm,
                            0.826126871395416, 0.841369158110513,
                            0.851733020725652, 0.858342234203154,
                            0.862368243479785, 0.864741597831785};
-  int nn = 6;  // TODO: CHANGE THIS WHEN CHANGING FILES
+  int nn = 5;  // TODO: CHANGE THIS WHEN CHANGING FILES
   alpha = alpha_con[nn - 1];
   csteps = 1;
   ampface = 1;
@@ -307,7 +307,7 @@ int main(int argc, char* argv[]) {
 
   double Delta = 50;  // TODO only used for debugging
 
-  string randomPath = "sup6.dat";
+  string randomPath = "sup5.dat";
 
   std::cout << "File is " + randomPath << endl;
   
