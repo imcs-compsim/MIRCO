@@ -107,7 +107,6 @@ void SetUpMatrix(Epetra_SerialDenseMatrix& A, std::vector<double> xv0,
     A(i, i) = 1 * C;
   }
 #pragma omp parallel for private(r)
-  // TODO do this!
   for (int i = 0; i < systemsize; i++) {
     for (int j = 0; j < i; j++) {
       r = sqrt(pow((xv0[j] - xv0[i]), 2) + pow((yv0[j] - yv0[i]), 2));
@@ -361,15 +360,27 @@ int main(int argc, char* argv[]) {
 
     row.clear();
     col.clear();
- // #pragma omp parallel for // This causes issues TODO
-    for (int i = 0; i < topology.N(); i++) {
-      for (int j = 0; j < topology.N(); j++) {
-        if (topology(i, j) >= value) {
-          row.push_back(i);
-          col.push_back(j);
-        }
-      }
+
+#pragma omp parallel
+    {
+    	std::vector<double> colP, rowP;
+#pragma omp for nowait
+    	for (int i = 0; i < topology.N(); i++) {
+    		for (int j = 0; j < topology.N(); j++) {
+    			if (topology(i, j) >= value) {
+    				rowP.push_back(i);
+    				colP.push_back(j);
+    			}
+    		}
+    	}
+#pragma omp critical
+    	{
+    		row.insert(row.end(), std::make_move_iterator(rowP.begin()), std::make_move_iterator(rowP.end()));
+    		col.insert(col.end(), std::make_move_iterator(colP.begin()), std::make_move_iterator(colP.end()));
+    	}
     }
+    
+    
     n0 = col.size();
 
     xv0.clear(); xv0.resize(n0);
