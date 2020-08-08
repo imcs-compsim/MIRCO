@@ -96,9 +96,22 @@ void CreateTopology(int systemsize, Epetra_SerialDenseMatrix& topology,
 void SetUpMatrix(Epetra_SerialDenseMatrix& A, std::vector<double> xv0,
                  std::vector<double> yv0, double delta, double E,
                  int systemsize, int k) {
-  double r;
+  double r, pi, raggio;
+  /*
   double pi = atan(1) * 4;
   double raggio = delta / 2;
+  */
+#pragma omp parallel sections
+  {
+#pragma omp section
+	  {
+		  pi = atan(1) * 4;
+	  }
+#pragma omp section
+	  {
+		  raggio = delta / 2;
+	  }
+  }
   double C = 1 / (E * pi * raggio);
 
 #pragma omp parallel for
@@ -119,8 +132,8 @@ void SetUpMatrix(Epetra_SerialDenseMatrix& A, std::vector<double> xv0,
 
 void LinearSolve(Epetra_SerialSymDenseMatrix& matrix,
                  Epetra_SerialDenseMatrix& vector_x,
-                 Epetra_SerialDenseMatrix& vector_b) { // PARALLEL
-  Epetra_SerialSpdDenseSolver solver;
+                 Epetra_SerialDenseMatrix& vector_b) { // Parallel not possible, since multiple accesses on the same object
+  Epetra_SerialSpdDenseSolver solver; 
   int err = solver.SetMatrix(matrix);
   if (err != 0) {
     std::cout << "Error setting matrix for linear solver (1)";
@@ -130,7 +143,7 @@ void LinearSolve(Epetra_SerialSymDenseMatrix& matrix,
   if (err != 0) {
     std::cout << "Error setting vectors for linear solver (2)";
   }
-
+  
   err = solver.Solve();
   if (err != 0) {
     std::cout << "Error setting up solver (3)";
@@ -160,10 +173,11 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
   // Initialize active set
   vector<int> positions;
   int counter = 0;
-  
-  for (int i = 0; i < y0.size(); i++) { // TODO
+#pragma omp parallel for
+  for (int i = 0; i < y0.size(); i++) {
     if (y0[i] >= nnlstol) {
-      positions.push_back(i);
+      positions[counter] = i;
+// #pragma omp atomic // this works faster without this directive, no errors so far.
       counter += 1;
     }
   }
@@ -190,12 +204,23 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
 
   while (aux1 == true) {
     // [wi,i]=min(w);
-    double minValue = w(0, 0), minPosition = 0;
-    for (int i = 0; i < w.M(); i++) { // TODO
-      if (minValue > w(i, 0)) {
-        minValue = w(i, 0);
-        minPosition = i;
-      }
+    double minValue = w(0, 0); int minPosition = 0;
+#pragma omp parallel
+    {
+    	double minVP = w(0,0);
+    	int minPosP = 0;
+#pragma omp parallel for
+    	for (int i = 0; i < w.M(); i++) {
+    		if (minVP > w(i, 0)) {
+    			minVP = w(i, 0);
+    			minPosP = i;
+    		}
+    	}
+#pragma omp critical
+    		{
+    			minValue = minVP;
+    			minPosition = minPosP;
+    		}
     }
 
     if (((counter == n0) || (minValue > -nnlstol) || (iter >= maxiter)) &&
@@ -259,7 +284,6 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
         for (int a = 0; a < matrix.M(); a++) {
           w(a, 0) = 0;
           for (int b = 0; b < counter; b++) { 
-           // w(a, 0) += (matrix(P[b], a) * y(P[b], 0)); // Seems to be a mistake here!
         	  w(a, 0) += (matrix(a, P[b]) * y(P[b], 0));
           }
           w(a, 0) -= b0(a, 0);
@@ -285,6 +309,7 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
           s0(P[j], 0) = 0;
 
           P.erase(P.begin() + j);
+// #pragma omp atomic // Seems to work without it just aswell
           counter -= 1;
         }
       }
@@ -295,13 +320,13 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
 /*------------------------------------------*/
 
 int main(int argc, char* argv[]) {
-  omp_set_num_threads(4);
+  omp_set_num_threads(6);
   
   auto start = std::chrono::high_resolution_clock::now();
   int csteps, flagwarm;
   double nu1, nu2, G1, G2, E, G, nu, alpha, H, rnd, k_el, delta, nnodi, to1, E1,
       E2, lato, zref, ampface, errf;
-  double Delta = 50;  // TODO only used for debugging
+  double Delta = 50;  // only used for debugging
   string randomPath = "sup5.dat";
   SetParameters(E1, E2, csteps, flagwarm, lato, zref, ampface, nu1, nu2, G1, G2,
                 E, G, nu, alpha, H, rnd, k_el, delta, nnodi, errf, to1);
@@ -381,7 +406,7 @@ int main(int argc, char* argv[]) {
     
     
     n0 = col.size();
-#pragma omp parallel sections
+#pragma omp parallel sections // Slows down program
     {
 #pragma omp section
     	{
@@ -459,12 +484,23 @@ int main(int argc, char* argv[]) {
     // Compute number of contact node
     // @{
     int cont = 0;
-    xvf.clear(); xvf.resize(y.M());
-    yvf.clear(); yvf.resize(y.M());
-    pf.resize(y.M());
+#pragma omp parallel sections // Should slow down program
+    {
+#pragma omp section
+    	{
+    	    xvf.clear(); xvf.resize(y.M());
+    	}
+#pragma omp section
+    	{
+    	    yvf.clear(); yvf.resize(y.M());
+    	}
+#pragma omp section
+    	{
+    	    pf.resize(y.M());
+    	}
+    }
     
 //#pragma omp parallel for // TODO: This causes issues
-    // Via private push_back
     for (int i = 0; i < y.M(); i++) {
       if (y(i, 0) != 0) {
         xvf[cont] = xv0[i];
