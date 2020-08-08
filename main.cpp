@@ -320,12 +320,12 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
 /*------------------------------------------*/
 
 int main(int argc, char* argv[]) {
-  omp_set_num_threads(6);
+  omp_set_num_threads(4);
   
   auto start = std::chrono::high_resolution_clock::now();
   int csteps, flagwarm;
   double nu1, nu2, G1, G2, E, G, nu, alpha, H, rnd, k_el, delta, nnodi, to1, E1,
-      E2, lato, zref, ampface, errf;
+      E2, lato, zref, ampface, errf, sum = 0;
   double Delta = 50;  // only used for debugging
   string randomPath = "sup5.dat";
   SetParameters(E1, E2, csteps, flagwarm, lato, zref, ampface, nu1, nu2, G1, G2,
@@ -349,6 +349,7 @@ int main(int argc, char* argv[]) {
 
   double zmax = 0;
   double zmean = 0;
+  int cont = 0;
   
 #pragma omp parallel for
   for (int i = 0; i < topology.M(); i++){
@@ -483,7 +484,6 @@ int main(int argc, char* argv[]) {
 
     // Compute number of contact node
     // @{
-    int cont = 0;
 #pragma omp parallel sections // Should slow down program
     {
 #pragma omp section
@@ -500,6 +500,7 @@ int main(int argc, char* argv[]) {
     	}
     }
     
+    cont = 0;
 //#pragma omp parallel for // TODO: This causes issues
     for (int i = 0; i < y.M(); i++) {
       if (y(i, 0) != 0) {
@@ -515,11 +516,18 @@ int main(int argc, char* argv[]) {
     // Compute contact force and contact area
     // @{
     force0.push_back(0);
-    for (int i = 0; i < nf; i++) { // TODO
-      force0[k] = force0[k] + pf[i];
-    }
+    sum = 0;
+    
+    iter = ceil(nf);
+#pragma omp parallel for
+    for (int i = 0; i < iter; i++){ // nf is of type double, calculate amount of iterations!
+#pragma omp atomic
+    	sum += pf[i];
+ 	}
+    force0[k] += sum;
     area0.push_back(nf * (pow(delta, 2) / pow(lato, 2)) * 100);
     w_el = force0[k] / k_el;
+    
     // }
 
     // Compute error because of nonlinear correction
