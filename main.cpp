@@ -77,16 +77,15 @@ void CreateTopology(int systemsize, Epetra_SerialDenseMatrix& topology,
   string line;
   while (getline(stream, line)) {
     int separatorPosition = 0;
-    lineCounter += 1;  // Has to happen here, since baseline value is 0.
-
-    for (int i = 0; i < dimension; i++) {  // prevent duplication of values!
+    lineCounter += 1;
+    for (int i = 0; i < dimension; i++) { // TODO
       separatorPosition = line.find_first_of(';');
       string container = line.substr(0, separatorPosition);
+      position += 1;
       line = line.substr(separatorPosition + 1, line.length());
 
       double value = stod(container);
       topology(lineCounter - 1, i) = value;
-      position += 1;
     }
   }
   stream.close();
@@ -120,7 +119,7 @@ void SetUpMatrix(Epetra_SerialDenseMatrix& A, std::vector<double> xv0,
 
 void LinearSolve(Epetra_SerialSymDenseMatrix& matrix,
                  Epetra_SerialDenseMatrix& vector_x,
-                 Epetra_SerialDenseMatrix& vector_b) {
+                 Epetra_SerialDenseMatrix& vector_b) { // PARALLEL
   Epetra_SerialSpdDenseSolver solver;
   int err = solver.SetMatrix(matrix);
   if (err != 0) {
@@ -299,19 +298,15 @@ int main(int argc, char* argv[]) {
   omp_set_num_threads(4);
   
   auto start = std::chrono::high_resolution_clock::now();
- 
   int csteps, flagwarm;
   double nu1, nu2, G1, G2, E, G, nu, alpha, H, rnd, k_el, delta, nnodi, to1, E1,
       E2, lato, zref, ampface, errf;
-
   double Delta = 50;  // TODO only used for debugging
-
   string randomPath = "sup5.dat";
-
-  std::cout << "File is " + randomPath << endl;
-  
   SetParameters(E1, E2, csteps, flagwarm, lato, zref, ampface, nu1, nu2, G1, G2,
                 E, G, nu, alpha, H, rnd, k_el, delta, nnodi, errf, to1);
+
+  std::cout << "File is " + randomPath << endl;
 
   // Meshgrid-Command
   // Identical Vectors/Matricies, therefore only created one here.
@@ -331,13 +326,17 @@ int main(int argc, char* argv[]) {
   double zmean = 0;
   
 #pragma omp parallel for
-  for (int i = 0; i < topology.M(); i++)
+  for (int i = 0; i < topology.M(); i++){
     for (int j = 0; j < topology.N(); j++) {
-      {
         zmean += topology(i, j);
-        if (topology(i, j) > zmax) zmax = topology(i, j);
-      }
+#pragma omp critical // worked without just fine, so might remove this anyway
+        {
+        	if (topology(i, j) > zmax){
+        		zmax = topology(i, j);
+        	}
+        }
     }
+  }
   zmean = zmean / (topology.N() * topology.M());
 
   vector<double> force0, area0;
@@ -382,11 +381,21 @@ int main(int argc, char* argv[]) {
     
     
     n0 = col.size();
-
-    xv0.clear(); xv0.resize(n0);
-    yv0.clear(); yv0.resize(n0);
-    b0.clear(); b0.resize(n0);
-    
+#pragma omp parallel sections
+    {
+#pragma omp section
+    	{
+    	    xv0.clear(); xv0.resize(n0);
+    	}
+#pragma omp section
+    	{
+    		yv0.clear(); yv0.resize(n0);
+    	}
+#pragma omp section
+    	{
+    		b0.clear(); b0.resize(n0);
+    	}
+    }
 #pragma omp parallel for
     for (int b = 0; b < n0; b++){
     	try{
@@ -447,14 +456,14 @@ int main(int argc, char* argv[]) {
     }
     // }
 
-    // Compute number of contact nodes
+    // Compute number of contact node
     // @{
     int cont = 0;
     xvf.clear(); xvf.resize(y.M());
     yvf.clear(); yvf.resize(y.M());
     pf.resize(y.M());
     
-//#pragma omp parallel for // This causes issues
+//#pragma omp parallel for // TODO: This causes issues
     // Via private push_back
     for (int i = 0; i < y.M(); i++) {
       if (y(i, 0) != 0) {
@@ -470,7 +479,7 @@ int main(int argc, char* argv[]) {
     // Compute contact force and contact area
     // @{
     force0.push_back(0);
-    for (int i = 0; i < nf; i++) {
+    for (int i = 0; i < nf; i++) { // TODO
       force0[k] = force0[k] + pf[i];
     }
     area0.push_back(nf * (pow(delta, 2) / pow(lato, 2)) * 100);
