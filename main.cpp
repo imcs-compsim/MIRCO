@@ -31,7 +31,6 @@ void SetParameters(double& E1, double& E2, int& csteps, int& flagwarm,
   E = 1 / ((1 - pow(nu1, 2)) / E1 + (1 - pow(nu2, 2) / E2));
   G = 1 / ((2 - nu1) / (4 * G1) + (2 - nu2) / (4 * G2));
   nu = E / (2 * G) - 1;
-
   vector<double> alpha_con{0.778958541513360, 0.805513388666376,
                            0.826126871395416, 0.841369158110513,
                            0.851733020725652, 0.858342234203154,
@@ -48,7 +47,6 @@ void SetParameters(double& E1, double& E2, int& csteps, int& flagwarm,
   k_el = lato * E / alpha;
   delta = lato / (pow(2, nn) + 1);
   nnodi = pow(pow(2, nn + 1), 2);
-
   errf = 100000000;
   to1 = 0.01;
 }
@@ -114,11 +112,11 @@ void SetUpMatrix(Epetra_SerialDenseMatrix& A, std::vector<double> xv0,
   }
   double C = 1 / (E * pi * raggio);
 
-#pragma omp parallel for
+#pragma omp parallel for schedule (static, 16)
   for (int i = 0; i < systemsize; i++) {
     A(i, i) = 1 * C;
   }
-#pragma omp parallel for private(r)
+#pragma omp parallel for schedule (static, 16) private(r)
   for (int i = 0; i < systemsize; i++) {
     for (int j = 0; j < i; j++) {
       r = sqrt(pow((xv0[j] - xv0[i]), 2) + pow((yv0[j] - yv0[i]), 2));
@@ -173,7 +171,7 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
   // Initialize active set
   vector<int> positions;
   int counter = 0;
-#pragma omp parallel for
+#pragma omp parallel for schedule (static, 16)
   for (int i = 0; i < y0.size(); i++) {
     if (y0[i] >= nnlstol) {
       positions[counter] = i;
@@ -185,13 +183,13 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
   w.Reshape(b0.M(), b0.N());
 
   if (counter == 0) {
-#pragma omp parallel for
+#pragma omp parallel for schedule (static, 16)
     for (int x = 0; x < b0.M(); x++) {
       w(x, 0) = -b0(x, 0);
     }
     init = false;
   } else {
-#pragma omp parallel for
+#pragma omp parallel for schedule (static, 16)
     for (int i = 0; i < counter; i++) {
       P[i] = positions[i];
     }
@@ -209,7 +207,7 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
     {
     	double minVP = w(0,0);
     	int minPosP = 0;
-#pragma omp parallel for
+#pragma omp parallel for schedule (static, 16)
     	for (int i = 0; i < w.M(); i++) {
     		if (minVP > w(i, 0)) {
     			minVP = w(i, 0);
@@ -244,7 +242,7 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
       vector_b.Shape(counter, 1);
       solverMatrix.Shape(counter, counter);
       
-#pragma omp parallel for
+#pragma omp parallel for schedule (static, 16)
       for (int x = 0; x < counter; x++) {
         vector_b(x, 0) = b0(P[x], 0);
 
@@ -258,13 +256,13 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
 
       LinearSolve(solverMatrix, vector_x, vector_b);
 
-#pragma omp parallel for
+#pragma omp parallel for schedule (static, 16)
       for (int x = 0; x < counter; x++) {
         s0(P[x], 0) = vector_x(x, 0);
       }
 
       bool allBigger = true;
-#pragma omp parallel for
+#pragma omp parallel for schedule (static, 16)
       for (int x = 0; x < counter; x++) {
         if (s0(P[x], 0) < nnlstol) {
           allBigger = false;
@@ -280,7 +278,7 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
 
         // w=A(:,P(1:nP))*y(P(1:nP))-b;
         w.Scale(0.0);
-#pragma omp parallel for
+#pragma omp parallel for schedule (static, 16)
         for (int a = 0; a < matrix.M(); a++) {
           w(a, 0) = 0;
           for (int b = 0; b < counter; b++) { 
@@ -291,7 +289,7 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
       } else {
         j = 0;
         alpha = 1.0e8;
-#pragma omp parallel for
+#pragma omp parallel for schedule (static, 16)
         for (int i = 0; i < counter; i++) {
           if (s0(P[i], 0) < nnlstol) {
             alphai = y(P[i], 0) / (eps + y(P[i], 0) - s0(P[i], 0));
@@ -301,7 +299,7 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
             }
           }
         }
-#pragma omp parallel for
+#pragma omp parallel for schedule (static, 16)
         for (int a = 0; a < counter; a++)
           y(P[a], 0) = y(P[a], 0) + alpha * (s0(P[a], 0) - y(P[a], 0));
         if (j > 0) {
@@ -320,7 +318,7 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
 /*------------------------------------------*/
 
 int main(int argc, char* argv[]) {
-  omp_set_num_threads(4);
+  omp_set_num_threads(9);
   
   auto start = std::chrono::high_resolution_clock::now();
   int csteps, flagwarm;
@@ -351,7 +349,7 @@ int main(int argc, char* argv[]) {
   double zmean = 0;
   int cont = 0;
   
-#pragma omp parallel for
+#pragma omp parallel for schedule (static, 16)
   for (int i = 0; i < topology.M(); i++){
     for (int j = 0; j < topology.N(); j++) {
         zmean += topology(i, j);
@@ -422,7 +420,7 @@ int main(int argc, char* argv[]) {
     		b0.clear(); b0.resize(n0);
     	}
     }
-#pragma omp parallel for
+#pragma omp parallel for schedule (static, 16)
     for (int b = 0; b < n0; b++){
     	try{
     		xv0[b] = x[col[b]];
@@ -430,14 +428,14 @@ int main(int argc, char* argv[]) {
     	
     }
     
-#pragma omp parallel for
+#pragma omp parallel for schedule (static, 16)
     for (int b = 0; b < n0; b++) {
       try{
     	  yv0[b] = x[row[b]];
       } catch (const std::exception& e){}
     }
     
-#pragma omp parallel for
+#pragma omp parallel for schedule (static, 16)
     for (int b = 0; b < n0; b++) {
     	try{
     		b0[b] = Delta + w_el - (zmax - topology(row[b], col[b]));
@@ -456,7 +454,7 @@ int main(int argc, char* argv[]) {
     Epetra_SerialDenseMatrix b0new;
     b0new.Shape(b0.size(), 1);
     
-#pragma omp parallel for
+#pragma omp parallel for schedule (static, 16)
     for (int i = 0; i < b0.size(); i++) {
       b0new(i, 0) = b0[i];
     }
@@ -473,7 +471,7 @@ int main(int argc, char* argv[]) {
     res1.Shape(A.M(), A.M());
     // res1=A*sol-b0(:,k)-wsol;
 
-#pragma omp parallel for
+#pragma omp parallel for schedule (static, 16)
     for (int x = 0; x < A.N(); x++) {
       for (int z = 0; z < y.M(); z++) {
         res1(x, 0) += A(x, z) * y(z, 0);
@@ -501,7 +499,7 @@ int main(int argc, char* argv[]) {
     }
     
     cont = 0;
-//#pragma omp parallel for // TODO: This causes issues
+//#pragma omp parallel for schedule (static, 16) // TODO: This causes issues
     for (int i = 0; i < y.M(); i++) {
       if (y(i, 0) != 0) {
         xvf[cont] = xv0[i];
@@ -519,9 +517,9 @@ int main(int argc, char* argv[]) {
     sum = 0;
     
     iter = ceil(nf);
-#pragma omp parallel for
+#pragma omp parallel for schedule (static, 16)
     for (int i = 0; i < iter; i++){ // nf is of type double, calculate amount of iterations!
-#pragma omp atomic
+#pragma omp atomic // Avoid race condition
     	sum += pf[i];
  	}
     force0[k] += sum;
