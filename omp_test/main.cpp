@@ -135,7 +135,7 @@ void SetUpMatrix_Static(Epetra_SerialDenseMatrix &A, std::vector<double> xv0,
 	auto finish = std::chrono::high_resolution_clock::now();
 	time = std::chrono::duration_cast < std::chrono::microseconds
 			> (finish - start).count();
-	// Hint: Micro is 10^-6
+	// Note: Micro is 10^-6
 
 	// std::chrono::duration<double> elapsed = finish - start;
 	// time = elapsed.count();

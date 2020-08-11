@@ -192,7 +192,7 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
   while (aux1 == true) {
     // [wi,i]=min(w);
     double minValue = w(0, 0); int minPosition = 0;
-#pragma omp parallel
+#pragma omp parallel // TODO: Maybe insert reduction for minimum
     {
     	double minVP = w(0,0);
     	int minPosP = 0;
@@ -341,7 +341,7 @@ int main(int argc, char* argv[]) {
   for (int i = 0; i < topology.M(); i++){
     for (int j = 0; j < topology.N(); j++) {
         zmean += topology(i, j);
-#pragma omp critical
+#pragma omp critical // TODO: Insert reduction for maximum
         {
         	if (topology(i, j) > zmax){
         		zmax = topology(i, j);
@@ -510,7 +510,7 @@ int main(int argc, char* argv[]) {
     sum = 0; iter = ceil(nf);
 #pragma omp parallel for schedule (static, 16)
     for (int i = 0; i < iter; i++){ // nf is of type double, calculate amount of iterations!
-#pragma omp atomic // Avoid race condition
+#pragma omp atomic // Avoid race condition, TODO: Insert reduction for sum's
     	sum += pf[i];
  	}
     force0[k] += sum;
