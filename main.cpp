@@ -99,7 +99,7 @@ void SetUpMatrix(Epetra_SerialDenseMatrix& A, std::vector<double> xv0,
   double pi = atan(1) * 4;
   double raggio = delta / 2;
   */
-#pragma omp parallel sections
+#pragma omp parallel sections // Test if this slows down program
   {
 #pragma omp section
 	  {
@@ -175,7 +175,7 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
   for (int i = 0; i < y0.size(); i++) {
     if (y0[i] >= nnlstol) {
       positions[counter] = i;
-// #pragma omp atomic // this works faster without this directive, no errors so far.
+#pragma omp atomic
       counter += 1;
     }
   }
@@ -207,14 +207,14 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
     {
     	double minVP = w(0,0);
     	int minPosP = 0;
-#pragma omp parallel for schedule (static, 16)
+#pragma omp parallel for schedule (static, 16) // Dynamic/Guided might be better
     	for (int i = 0; i < w.M(); i++) {
     		if (minVP > w(i, 0)) {
     			minVP = w(i, 0);
     			minPosP = i;
     		}
     	}
-#pragma omp critical
+#pragma omp critical // Synchronize thread-data into mainthread-data
     		{
     			minValue = minVP;
     			minPosition = minPosP;
@@ -242,7 +242,7 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
       vector_b.Shape(counter, 1);
       solverMatrix.Shape(counter, counter);
       
-#pragma omp parallel for schedule (static, 16)
+#pragma omp parallel for schedule (static, 16) // Static should be faster, try others out anyway!
       for (int x = 0; x < counter; x++) {
         vector_b(x, 0) = b0(P[x], 0);
 
@@ -262,7 +262,7 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
       }
 
       bool allBigger = true;
-#pragma omp parallel for schedule (static, 16)
+#pragma omp parallel for schedule (static, 16) // Dynamic/Guided might be faster!
       for (int x = 0; x < counter; x++) {
         if (s0(P[x], 0) < nnlstol) {
           allBigger = false;
@@ -271,7 +271,7 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
 
       if (allBigger == true) {
         aux2 = false;
-#pragma omp parallel
+#pragma omp parallel for schedule(static, 16)
         for (int x = 0; x < counter; x++) {
           y(P[x], 0) = s0(P[x], 0);
         }
@@ -289,7 +289,7 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
       } else {
         j = 0;
         alpha = 1.0e8;
-#pragma omp parallel for schedule (static, 16)
+#pragma omp parallel for schedule (static, 16) // Dynamic/Guided might be better!
         for (int i = 0; i < counter; i++) {
           if (s0(P[i], 0) < nnlstol) {
             alphai = y(P[i], 0) / (eps + y(P[i], 0) - s0(P[i], 0));
@@ -307,7 +307,7 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
           s0(P[j], 0) = 0;
 
           P.erase(P.begin() + j);
-// #pragma omp atomic // Seems to work without it just aswell
+#pragma omp atomic
           counter -= 1;
         }
       }
@@ -318,7 +318,7 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
 /*------------------------------------------*/
 
 int main(int argc, char* argv[]) {
-  omp_set_num_threads(9);
+  omp_set_num_threads(6); // 6 seems to be optimal
   
   auto start = std::chrono::high_resolution_clock::now();
   int csteps, flagwarm;
@@ -336,7 +336,7 @@ int main(int argc, char* argv[]) {
   int iter = int (ceil((lato - (delta / 2)) / delta)); // Replacement for "for (double i = delta / 2; i < lato; i = i + delta)"
   vector<double> x(iter);
   
-#pragma omp parallel
+#pragma omp parallel for schedule(static, 16) // Same amount of work -> static
   for (int i = 0; i < iter; i++) {
     x[i] = (delta / 2) + i * delta;
   }
@@ -349,7 +349,7 @@ int main(int argc, char* argv[]) {
   double zmean = 0;
   int cont = 0;
   
-#pragma omp parallel for schedule (static, 16)
+#pragma omp parallel for schedule (static, 16) // Dynamic/Guided might be better here
   for (int i = 0; i < topology.M(); i++){
     for (int j = 0; j < topology.N(); j++) {
         zmean += topology(i, j);
@@ -387,7 +387,7 @@ int main(int argc, char* argv[]) {
 #pragma omp parallel
     {
     	std::vector<double> colP, rowP;
-#pragma omp for nowait
+#pragma omp for schedule(static, 16) // Schedule dynamic/guided might be better here
     	for (int i = 0; i < topology.N(); i++) {
     		for (int j = 0; j < topology.N(); j++) {
     			if (topology(i, j) >= value) {
@@ -396,7 +396,7 @@ int main(int argc, char* argv[]) {
     			}
     		}
     	}
-#pragma omp critical
+#pragma omp critical // Necessary to merge vectors into original ones, so program can work with it
     	{
     		row.insert(row.end(), std::make_move_iterator(rowP.begin()), std::make_move_iterator(rowP.end()));
     		col.insert(col.end(), std::make_move_iterator(colP.begin()), std::make_move_iterator(colP.end()));
@@ -405,21 +405,12 @@ int main(int argc, char* argv[]) {
     
     
     n0 = col.size();
-#pragma omp parallel sections // Slows down program
-    {
-#pragma omp section
-    	{
-    	    xv0.clear(); xv0.resize(n0);
-    	}
-#pragma omp section
-    	{
-    		yv0.clear(); yv0.resize(n0);
-    	}
-#pragma omp section
-    	{
-    		b0.clear(); b0.resize(n0);
-    	}
-    }
+    // @{
+    xv0.clear(); xv0.resize(n0);
+    yv0.clear(); yv0.resize(n0);
+    b0.clear(); b0.resize(n0);
+    // @} Parallelizing slows down program here, so not parallel
+
 #pragma omp parallel for schedule (static, 16)
     for (int b = 0; b < n0; b++){
     	try{
@@ -482,23 +473,14 @@ int main(int argc, char* argv[]) {
 
     // Compute number of contact node
     // @{
-#pragma omp parallel sections // Should slow down program
-    {
-#pragma omp section
-    	{
-    	    xvf.clear(); xvf.resize(y.M());
-    	}
-#pragma omp section
-    	{
-    	    yvf.clear(); yvf.resize(y.M());
-    	}
-#pragma omp section
-    	{
-    	    pf.resize(y.M());
-    	}
-    }
     
+    // @{
+    xvf.clear(); xvf.resize(y.M());
+    yvf.clear(); yvf.resize(y.M());
+    pf.resize(y.M());
     cont = 0;
+    // @} Parallelizing this slows down program, so removed it.
+    
 //#pragma omp parallel for schedule (static, 16) // TODO: This causes issues
     for (int i = 0; i < y.M(); i++) {
       if (y(i, 0) != 0) {
