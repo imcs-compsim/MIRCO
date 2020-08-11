@@ -94,9 +94,7 @@ void CreateTopology(int systemsize, Epetra_SerialDenseMatrix& topology,
 void SetUpMatrix(Epetra_SerialDenseMatrix& A, std::vector<double> xv0,
                  std::vector<double> yv0, double delta, double E,
                  int systemsize, int k) {
-	double r;
-	double pi = atan(1) * 4;
-	double raggio = delta / 2;
+	double r, pi = atan(1) * 4, raggio = delta / 2;
 	double C = 1 / (E * pi * raggio);
 
 #pragma omp parallel for schedule (static, 16) // Always same workload -> static
