@@ -97,7 +97,7 @@ void SetParameters(double &E1, double &E2, int &csteps, int &flagwarm,
 	vector<double> alpha_con { 0.778958541513360, 0.805513388666376,
 			0.826126871395416, 0.841369158110513, 0.851733020725652,
 			0.858342234203154, 0.862368243479785, 0.864741597831785 };
-	int nn = 2;  // Matrix sent has the parameter nn=2!
+	int nn = 7;  // Matrix sent has the parameter nn=2!
 	alpha = alpha_con[nn - 1];
 	csteps = 1;
 	ampface = 1;
@@ -750,7 +750,7 @@ int main(int argc, char *argv[]) {
 	double time1 = 0, time2 = 0, min1 = 0, min2 = 0;
 	vector<double> times1, times2, mins1, mins2;
 	Epetra_SerialDenseMatrix matrix1, matrix2;
-	string filePath = "sup6.dat", nameAdditive = "";
+	string filePath = "sup7.dat", nameAdditive = "";
 	matrix1.Shape(maxCache, maxThreads);
 	matrix2.Shape(maxCache, maxThreads);
 
@@ -786,16 +786,14 @@ int main(int argc, char *argv[]) {
 	for (int cachesize = minCache; cachesize < (maxCache + 1); cachesize++) {
 		for (int threadAmount = minThreads; threadAmount < (maxThreads + 1);
 				threadAmount++) {
-			// Generate runtime-data
 			omp_set_num_threads(threadAmount);
-			for (int i = 0; i < 100; i++) { // Should be sufficient
+			for (int i = 0; i < 100; i++) {
 				calculateTimes_Static(time1, time2, cachesize, filePath);
 				times1.push_back(time1);
 				times2.push_back(time2);
 			}
 			min1 = generateMinimum(times1);
 			min2 = generateMinimum(times2);
-			// std::cout << to_string(min1) << endl;
 			matrix1(cachesize - 1, threadAmount - 1) = min1;
 			matrix2(cachesize - 1, threadAmount - 1) = min2;
 			min1 = 0;
@@ -823,8 +821,7 @@ int main(int argc, char *argv[]) {
 	 }
 	 std::cout << "Cache " + to_string(cachesize) + " done." << endl;
 	 min1 = generateMinimum(times1);
-	 // std::cout << to_string(min1) << endl;
-	 matrix1(cachesize, threadAmount) = min1;
+	 matrix1(cachesize - 1, threadAmount - 1) = min1;
 	 min1 = 0; times1.clear();
 	 }
 	 std::cout << "Thread " + to_string(threadAmount) + " done." << endl;
@@ -839,16 +836,14 @@ int main(int argc, char *argv[]) {
 	for (int cachesize = minCache; cachesize < (maxCache + 1); cachesize++) {
 		for (int threadAmount = minThreads; threadAmount < (maxThreads + 1);
 				threadAmount++) {
-			// Generate runtime-data
 			omp_set_num_threads(threadAmount);
-			for (int i = 0; i < 100; i++) { // Should be sufficient
+			for (int i = 0; i < 100; i++) {
 				calculateTimes_Dynamic(time1, time2, cachesize, filePath);
 				times1.push_back(time1);
 				times2.push_back(time2);
 			}
 			min1 = generateMinimum(times1);
 			min2 = generateMinimum(times2);
-			// std::cout << to_string(min1) << endl;
 			matrix1(cachesize - 1, threadAmount - 1) = min1;
 			matrix2(cachesize - 1, threadAmount - 1) = min2;
 			min1 = 0;

@@ -94,39 +94,25 @@ void CreateTopology(int systemsize, Epetra_SerialDenseMatrix& topology,
 void SetUpMatrix(Epetra_SerialDenseMatrix& A, std::vector<double> xv0,
                  std::vector<double> yv0, double delta, double E,
                  int systemsize, int k) {
-  // double r, pi, raggio;
-  
 	double r;
 	double pi = atan(1) * 4;
 	double raggio = delta / 2;
-  /*
-#pragma omp parallel sections // Test if this slows down program
-  {
-#pragma omp section
-	  {
-		  pi = atan(1) * 4;
-	  }
-#pragma omp section
-	  {
-		  raggio = delta / 2;
-	  }
-  }
-  */
-  double C = 1 / (E * pi * raggio);
+	double C = 1 / (E * pi * raggio);
 
 #pragma omp parallel for schedule (static, 16) // Always same workload -> static
-  for (int i = 0; i < systemsize; i++) {
-    A(i, i) = 1 * C;
-  }
+	for (int i = 0; i < systemsize; i++) {
+		A(i, i) = 1 * C;
+	}
+	
 #pragma omp parallel for schedule (static, 16) private(r) // Always same workload -> static
-  // Every iteration needs to have a different r! -> private(r)
-  for (int i = 0; i < systemsize; i++) {
-    for (int j = 0; j < i; j++) {
-      r = sqrt(pow((xv0[j] - xv0[i]), 2) + pow((yv0[j] - yv0[i]), 2));
-      A(i, j) = C * asin(raggio / r);
-      A(j, i) = C * asin(raggio / r);
-    }
-  }
+	// Every iteration needs to have a different r! -> private(r)
+	for (int i = 0; i < systemsize; i++) {
+		for (int j = 0; j < i; j++) {
+			r = sqrt(pow((xv0[j] - xv0[i]), 2) + pow((yv0[j] - yv0[i]), 2));
+			A(i, j) = C * asin(raggio / r);
+			A(j, i) = C * asin(raggio / r);
+		}
+	}
 }
 
 /*------------------------------------------*/
@@ -310,7 +296,6 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
         if (j > 0) {
           // jth entry in P leaves active set
           s0(P[j], 0) = 0;
-
           P.erase(P.begin() + j);
 #pragma omp atomic
           counter -= 1;
@@ -366,6 +351,7 @@ int main(int argc, char* argv[]) {
         }
     }
   }
+  
   zmean = zmean / (topology.N() * topology.M());
 
   vector<double> force0, area0;
@@ -396,8 +382,11 @@ int main(int argc, char* argv[]) {
     	for (int i = 0; i < topology.N(); i++) {
     		for (int j = 0; j < topology.N(); j++) {
     			if (topology(i, j) >= value) {
-    				rowP.push_back(i);
-    				colP.push_back(j);
+#pragma omp critical
+    				{
+    					rowP.push_back(i);
+    					colP.push_back(j);
+    				}
     			}
     		}
     	}
@@ -408,8 +397,8 @@ int main(int argc, char* argv[]) {
     	}
     }
     
-    
     n0 = col.size();
+    
     // @{
     xv0.clear(); xv0.resize(n0);
     yv0.clear(); yv0.resize(n0);
@@ -450,7 +439,7 @@ int main(int argc, char* argv[]) {
     x0.clear(); x0.resize(b0.size());
     Epetra_SerialDenseMatrix b0new;
     b0new.Shape(b0.size(), 1);
-    // @} Parallel region makes around this makes program slower
+    // } Parallel region makes around this makes program slower
     
 #pragma omp parallel for schedule (static, 16)
     for (int i = 0; i < b0.size(); i++) {
