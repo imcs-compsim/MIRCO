@@ -796,8 +796,8 @@ int main(int argc, char *argv[]) {
 			min1 = generateMinimum(times1);
 			min2 = generateMinimum(times2);
 			// std::cout << to_string(min1) << endl;
-			matrix1(cachesize, threadAmount) = min1;
-			matrix2(cachesize, threadAmount) = min2;
+			matrix1(cachesize - 1, threadAmount - 1) = min1;
+			matrix2(cachesize - 1, threadAmount - 1) = min2;
 			min1 = 0;
 			times1.clear();
 			min2 = 0;
@@ -849,8 +849,8 @@ int main(int argc, char *argv[]) {
 			min1 = generateMinimum(times1);
 			min2 = generateMinimum(times2);
 			// std::cout << to_string(min1) << endl;
-			matrix1(cachesize, threadAmount) = min1;
-			matrix2(cachesize, threadAmount) = min2;
+			matrix1(cachesize - 1, threadAmount - 1) = min1;
+			matrix2(cachesize - 1, threadAmount - 1) = min2;
 			min1 = 0;
 			times1.clear();
 			min2 = 0;
@@ -902,8 +902,8 @@ int main(int argc, char *argv[]) {
 			min1 = generateMinimum(times1);
 			min2 = generateMinimum(times2);
 			// std::cout << to_string(min1) << endl;
-			matrix1(cachesize, threadAmount) = min1;
-			matrix2(cachesize, threadAmount) = min2;
+			matrix1(cachesize - 1, threadAmount - 1) = min1;
+			matrix2(cachesize - 1, threadAmount - 1) = min2;
 			min1 = 0;
 			times1.clear();
 			min2 = 0;

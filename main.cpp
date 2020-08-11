@@ -94,11 +94,12 @@ void CreateTopology(int systemsize, Epetra_SerialDenseMatrix& topology,
 void SetUpMatrix(Epetra_SerialDenseMatrix& A, std::vector<double> xv0,
                  std::vector<double> yv0, double delta, double E,
                  int systemsize, int k) {
-  double r, pi, raggio;
+  // double r, pi, raggio;
+  
+	double r;
+	double pi = atan(1) * 4;
+	double raggio = delta / 2;
   /*
-  double pi = atan(1) * 4;
-  double raggio = delta / 2;
-  */
 #pragma omp parallel sections // Test if this slows down program
   {
 #pragma omp section
@@ -110,13 +111,15 @@ void SetUpMatrix(Epetra_SerialDenseMatrix& A, std::vector<double> xv0,
 		  raggio = delta / 2;
 	  }
   }
+  */
   double C = 1 / (E * pi * raggio);
 
-#pragma omp parallel for schedule (static, 16)
+#pragma omp parallel for schedule (static, 16) // Always same workload -> static
   for (int i = 0; i < systemsize; i++) {
     A(i, i) = 1 * C;
   }
-#pragma omp parallel for schedule (static, 16) private(r)
+#pragma omp parallel for schedule (static, 16) private(r) // Always same workload -> static
+  // Every iteration needs to have a different r! -> private(r)
   for (int i = 0; i < systemsize; i++) {
     for (int j = 0; j < i; j++) {
       r = sqrt(pow((xv0[j] - xv0[i]), 2) + pow((yv0[j] - yv0[i]), 2));
@@ -130,7 +133,9 @@ void SetUpMatrix(Epetra_SerialDenseMatrix& A, std::vector<double> xv0,
 
 void LinearSolve(Epetra_SerialSymDenseMatrix& matrix,
                  Epetra_SerialDenseMatrix& vector_x,
-                 Epetra_SerialDenseMatrix& vector_b) { // Parallel not possible, since multiple accesses on the same object
+                 Epetra_SerialDenseMatrix& vector_b) { 
+	// Parallel not possible, since multiple accesses on the same object.
+	// In addition, parallel programming not supported for LinearSolve.
   Epetra_SerialSpdDenseSolver solver; 
   int err = solver.SetMatrix(matrix);
   if (err != 0) {
@@ -171,7 +176,7 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
   // Initialize active set
   vector<int> positions;
   int counter = 0;
-#pragma omp parallel for schedule (static, 16)
+#pragma omp parallel for schedule (static, 16) // Dynamic/Guided might be faster!
   for (int i = 0; i < y0.size(); i++) {
     if (y0[i] >= nnlstol) {
       positions[counter] = i;
@@ -183,13 +188,13 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
   w.Reshape(b0.M(), b0.N());
 
   if (counter == 0) {
-#pragma omp parallel for schedule (static, 16)
+#pragma omp parallel for schedule (static, 16) // Always same workload -> static
     for (int x = 0; x < b0.M(); x++) {
       w(x, 0) = -b0(x, 0);
     }
     init = false;
   } else {
-#pragma omp parallel for schedule (static, 16)
+#pragma omp parallel for schedule (static, 16) // Always same workload -> static
     for (int i = 0; i < counter; i++) {
       P[i] = positions[i];
     }
@@ -353,7 +358,7 @@ int main(int argc, char* argv[]) {
   for (int i = 0; i < topology.M(); i++){
     for (int j = 0; j < topology.N(); j++) {
         zmean += topology(i, j);
-#pragma omp critical // worked without just fine, so might remove this anyway
+#pragma omp critical
         {
         	if (topology(i, j) > zmax){
         		zmax = topology(i, j);
@@ -411,7 +416,7 @@ int main(int argc, char* argv[]) {
     b0.clear(); b0.resize(n0);
     // @} Parallelizing slows down program here, so not parallel
 
-#pragma omp parallel for schedule (static, 16)
+#pragma omp for schedule (static, 16)
     for (int b = 0; b < n0; b++){
     	try{
     		xv0[b] = x[col[b]];
@@ -441,9 +446,11 @@ int main(int argc, char* argv[]) {
     // Second predictor for contact set
     // @{
 
+    // {
     x0.clear(); x0.resize(b0.size());
     Epetra_SerialDenseMatrix b0new;
     b0new.Shape(b0.size(), 1);
+    // @} Parallel region makes around this makes program slower
     
 #pragma omp parallel for schedule (static, 16)
     for (int i = 0; i < b0.size(); i++) {
@@ -481,24 +488,39 @@ int main(int argc, char* argv[]) {
     cont = 0;
     // @} Parallelizing this slows down program, so removed it.
     
-//#pragma omp parallel for schedule (static, 16) // TODO: This causes issues
+    /*
     for (int i = 0; i < y.M(); i++) {
-      if (y(i, 0) != 0) {
-        xvf[cont] = xv0[i];
-        yvf[cont] = yv0[i];
-        pf[cont] = y(i, 0);
-        cont += 1;
-      }
+    	if (y(i, 0) != 0) {
+    		xvf[cont] = xv0[i];
+    	    yvf[cont] = yv0[i];
+    	    pf[cont] = y(i, 0);
+    	    cont += 1;
+    	}
     }
+    */
+    
+  
+#pragma omp for schedule(static, 16) // Dynamic/Guided might be faster
+    for (int i = 0; i < y.M(); i++) {
+    	if (y(i, 0) != 0) {
+#pragma omp critical
+    		{
+    			xvf[cont] = xv0[i];
+    			yvf[cont] = yv0[i];
+    			pf[cont] = y(i, 0);
+    			cont += 1;
+    		}
+    	}
+    }
+    
     nf = cont;
     // }
 
     // Compute contact force and contact area
     // @{
     force0.push_back(0);
-    sum = 0;
     
-    iter = ceil(nf);
+    sum = 0; iter = ceil(nf);
 #pragma omp parallel for schedule (static, 16)
     for (int i = 0; i < iter; i++){ // nf is of type double, calculate amount of iterations!
 #pragma omp atomic // Avoid race condition
