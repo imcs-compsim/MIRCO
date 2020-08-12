@@ -10,12 +10,10 @@
 #include "include/Epetra_SerialSymDenseMatrix.h"
 #include <chrono> // time stuff
 
+#pragma omp declare reduction(merge:std::vector<int>:omp_out.insert(omp_out.end(), omp_in.begin(), omp_in.end()))
+
 using namespace std;
 
-/**
- * Sets up any given parameter.
- * Cross-checked for functionality. Should work as intented.
- */
 void SetParameters(double& E1, double& E2, int& csteps, int& flagwarm,
                    double& lato, double& zref, double& ampface, double& nu1,
                    double& nu2, double& G1, double& G2, double& E, double& G,
@@ -52,11 +50,6 @@ void SetParameters(double& E1, double& E2, int& csteps, int& flagwarm,
 }
 
 /*------------------------------------------*/
-
-/**
- * Readin Matrix from a file. Elements have to be separated by a ';'.
- * Cross-checked for functionality. Should work as intended.
- */
 void CreateTopology(int systemsize, Epetra_SerialDenseMatrix& topology,
                     string filePath) {
   // Readin for amount of lines -> dimension of matrix
@@ -68,29 +61,27 @@ void CreateTopology(int systemsize, Epetra_SerialDenseMatrix& topology,
   }
   reader.close();
   topology.Shape(dimension, dimension);
-  int lineCounter = 0;
   float elements[264];
-  int position = 0;
+  int position = 0, separatorPosition, lineCounter = 0;
   ifstream stream(filePath);
-  string line;
+  string line, container;
+  double value;
   while (getline(stream, line)) {
-    int separatorPosition = 0;
+    separatorPosition = 0;
     lineCounter += 1;
-    for (int i = 0; i < dimension; i++) { // TODO
-      separatorPosition = line.find_first_of(';');
-      string container = line.substr(0, separatorPosition);
-      position += 1;
-      line = line.substr(separatorPosition + 1, line.length());
-
-      double value = stod(container);
-      topology(lineCounter - 1, i) = value;
+    for (int i = 0; i < dimension; i++) { // Parallel not possible, since no synchronization points possible
+    	separatorPosition = line.find_first_of(';');
+    	container = line.substr(0, separatorPosition);
+    	position += 1;
+    	line = line.substr(separatorPosition + 1, line.length());
+    	value = stod(container);
+    	topology(lineCounter - 1, i) = value;
     }
   }
   stream.close();
 }
 
 /*------------------------------------------*/
-
 void SetUpMatrix(Epetra_SerialDenseMatrix& A, std::vector<double> xv0,
                  std::vector<double> yv0, double delta, double E,
                  int systemsize, int k) {
@@ -186,7 +177,6 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
   }
 
   s0.Shape(n0, 1);  // Replacement for s
-
   bool aux1 = true, aux2 = true;
 
   while (aux1 == true) {
@@ -245,7 +235,7 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
 
       LinearSolve(solverMatrix, vector_x, vector_b);
 
-#pragma omp parallel for schedule (static, 16)
+#pragma omp parallel for schedule (static, 16) // Always same workload -> Static!
       for (int x = 0; x < counter; x++) {
         s0(P[x], 0) = vector_x(x, 0);
       }
@@ -260,14 +250,14 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
 
       if (allBigger == true) {
         aux2 = false;
-#pragma omp parallel for schedule(static, 16)
+#pragma omp parallel for schedule(static, 16) // Always same workload, but indirect indexing -> Guided might be faster
         for (int x = 0; x < counter; x++) {
           y(P[x], 0) = s0(P[x], 0);
         }
 
         // w=A(:,P(1:nP))*y(P(1:nP))-b;
         w.Scale(0.0);
-#pragma omp parallel for schedule (static, 16)
+#pragma omp parallel for schedule (static, 16) // Static, same workload; but guided might be faster for indirect indexing
         for (int a = 0; a < matrix.M(); a++) {
           w(a, 0) = 0;
           for (int b = 0; b < counter; b++) { 
@@ -295,7 +285,7 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
           // jth entry in P leaves active set
           s0(P[j], 0) = 0;
           P.erase(P.begin() + j);
-#pragma omp atomic
+#pragma omp atomic // Necessary
           counter -= 1;
         }
       }
@@ -337,15 +327,12 @@ int main(int argc, char* argv[]) {
   double zmean = 0;
   int cont = 0;
   
-#pragma omp parallel for schedule (static, 16) // Dynamic/Guided might be better here
+#pragma omp parallel for schedule (static, 16) reduction(+:zmean) reduction(max:zmax) // Dynamic/Guided might be better here
   for (int i = 0; i < topology.M(); i++){
     for (int j = 0; j < topology.N(); j++) {
         zmean += topology(i, j);
-#pragma omp critical // TODO: Insert reduction for maximum
-        {
-        	if (topology(i, j) > zmax){
-        		zmax = topology(i, j);
-        	}
+        if (topology(i, j) > zmax){
+        	zmax = topology(i, j);
         }
     }
   }
@@ -356,8 +343,7 @@ int main(int argc, char* argv[]) {
   double w_el = 0, area = 0, force = 0;
   int k = 0, n0 = 0;
   std::vector<double> xv0, yv0, b0, x0, xvf, 
-  yvf, pf;  // x0: initialized in Warmstart!
-  vector<int> col, row;
+  yvf, pf; vector<int> col, row;
   double nf, xvfaux, yvfaux, pfaux;
   Epetra_SerialDenseMatrix A;
 
@@ -369,10 +355,10 @@ int main(int argc, char* argv[]) {
 
     // [ind1,ind2]=find(z>=(zmax-(Delta(s)+w_el(k))));
     double value = zmax - Delta - w_el;
-
     row.clear();
     col.clear();
-
+    
+/*
 #pragma omp parallel
     {
     	std::vector<double> colP, rowP;
@@ -394,7 +380,17 @@ int main(int argc, char* argv[]) {
     		col.insert(col.end(), std::make_move_iterator(colP.begin()), std::make_move_iterator(colP.end()));
     	}
     }
+    */
     
+    // TODO: This needs testing which one generates better performance!
+#pragma omp parallel for schedule(static, 16) reduction(merge:row) reduction(merge:col)
+		for (int i = 0; i < topology.N(); i++){
+			for (int j = 0; j < topology.N(); j++){
+				row.push_back(i);
+				col.push_back(j);
+			}
+		}
+		
     n0 = col.size();
     
     // @{
@@ -403,7 +399,7 @@ int main(int argc, char* argv[]) {
     b0.clear(); b0.resize(n0);
     // @} Parallelizing slows down program here, so not parallel
 
-#pragma omp for schedule (static, 16)
+#pragma omp for schedule (static, 16) // Always same workload but testing might be good
     for (int b = 0; b < n0; b++){
     	try{
     		xv0[b] = x[col[b]];
@@ -411,14 +407,14 @@ int main(int argc, char* argv[]) {
     	
     }
     
-#pragma omp parallel for schedule (static, 16)
+#pragma omp parallel for schedule (static, 16) // Same
     for (int b = 0; b < n0; b++) {
       try{
     	  yv0[b] = x[row[b]];
       } catch (const std::exception& e){}
     }
     
-#pragma omp parallel for schedule (static, 16)
+#pragma omp parallel for schedule (static, 16) // Same
     for (int b = 0; b < n0; b++) {
     	try{
     		b0[b] = Delta + w_el - (zmax - topology(row[b], col[b]));
@@ -439,7 +435,7 @@ int main(int argc, char* argv[]) {
     b0new.Shape(b0.size(), 1);
     // } Parallel region makes around this makes program slower
     
-#pragma omp parallel for schedule (static, 16)
+#pragma omp parallel for schedule (static, 16) // Always same workload -> Static!
     for (int i = 0; i < b0.size(); i++) {
       b0new(i, 0) = b0[i];
     }
@@ -454,9 +450,9 @@ int main(int argc, char* argv[]) {
       std::runtime_error("Error 1: Matrix dimensions imcompatible");
     }
     res1.Shape(A.M(), A.M());
+    
     // res1=A*sol-b0(:,k)-wsol;
-
-#pragma omp parallel for schedule (static, 16)
+#pragma omp parallel for schedule (static, 16) // Always same workload -> Static, testing?
     for (int x = 0; x < A.N(); x++) {
       for (int z = 0; z < y.M(); z++) {
         res1(x, 0) += A(x, z) * y(z, 0);
@@ -474,18 +470,6 @@ int main(int argc, char* argv[]) {
     pf.resize(y.M());
     cont = 0;
     // @} Parallelizing this slows down program, so removed it.
-    
-    /*
-    for (int i = 0; i < y.M(); i++) {
-    	if (y(i, 0) != 0) {
-    		xvf[cont] = xv0[i];
-    	    yvf[cont] = yv0[i];
-    	    pf[cont] = y(i, 0);
-    	    cont += 1;
-    	}
-    }
-    */
-    
   
 #pragma omp for schedule(static, 16) // Dynamic/Guided might be faster
     for (int i = 0; i < y.M(); i++) {
@@ -508,9 +492,9 @@ int main(int argc, char* argv[]) {
     force0.push_back(0);
     
     sum = 0; iter = ceil(nf);
-#pragma omp parallel for schedule (static, 16)
-    for (int i = 0; i < iter; i++){ // nf is of type double, calculate amount of iterations!
-#pragma omp atomic // Avoid race condition, TODO: Insert reduction for sum's
+#pragma omp parallel for schedule (static, 16) reduction(+: sum) // Always same workload -> Static!
+    // Reduction is faster than atomic directive!
+    for (int i = 0; i < iter; i++){
     	sum += pf[i];
  	}
     force0[k] += sum;
