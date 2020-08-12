@@ -12,6 +12,7 @@
 
 #pragma omp declare reduction(mergeI:std::vector<int>:omp_out.insert(omp_out.end(), omp_in.begin(), omp_in.end()))
 #pragma omp declare reduction(mergeD:std::vector<double>:omp_out.insert(omp_out.end(), omp_in.begin(), omp_in.end()))
+
 using namespace std;
 
 void SetParameters(double& E1, double& E2, int& csteps, int& flagwarm,
@@ -149,17 +150,16 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
   Epetra_SerialSymDenseMatrix solverMatrix;
 
   // Initialize active set
-  vector<int> positions;
+  vector<int> positions; 
   int counter = 0;
-#pragma omp parallel for schedule (static, 16) // Dynamic/Guided might be faster!
-  for (int i = 0; i < y0.size(); i++) {
-    if (y0[i] >= nnlstol) {
-      positions[counter] = i;
-#pragma omp atomic
-      counter += 1;
-    }
+#pragma omp parallel for schedule(static, 16) reduction(mergeI:positions) //
+  for (int i = 0; i < y0.size(); i++){
+	  if (y0[i] >= nnlstol) {
+		  positions.push_back(i);
+	  }
   }
-
+  
+  counter = positions.size();
   w.Reshape(b0.M(), b0.N());
 
   if (counter == 0) {
@@ -167,12 +167,14 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
     for (int x = 0; x < b0.M(); x++) {
       w(x, 0) = -b0(x, 0);
     }
+    
     init = false;
   } else {
 #pragma omp parallel for schedule (static, 16) // Always same workload -> static
     for (int i = 0; i < counter; i++) {
       P[i] = positions[i];
     }
+    
     init = true;
   }
 
@@ -180,11 +182,9 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
   bool aux1 = true, aux2 = true;
 
   while (aux1 == true) {
-    // [wi,i]=min(w);
+	  // [wi,i]=min(w);
 	  
-	  // double minValue = w(0,0); int minPosition = 0; // For commented part.
-	  double minValue = w(0, 0); int minPosition = w.M();
-    
+	  double minValue; int minPosition;
 #pragma omp parallel // Reduction too slow and complex
     {
     	double minVP = w(0,0);
@@ -236,7 +236,7 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
 
       LinearSolve(solverMatrix, vector_x, vector_b);
 
-#pragma omp parallel for schedule (static, 16) // Always same workload -> Static!
+#pragma omp parallel for schedule (static, 16) // Always same workload -> Static! (indirect indexing)
       for (int x = 0; x < counter; x++) {
         s0(P[x], 0) = vector_x(x, 0);
       }
@@ -269,17 +269,24 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
       } else {
         j = 0;
         alpha = 1.0e8;
+        
+        // Searching for minimum value with index position
 #pragma omp parallel for schedule (static, 16) // Dynamic/Guided might be better!
         for (int i = 0; i < counter; i++) {
           if (s0(P[i], 0) < nnlstol) {
-            alphai = y(P[i], 0) / (eps + y(P[i], 0) - s0(P[i], 0));
-            if (alphai < alpha) {
-              alpha = alphai;
-              j = i;
-            }
+#pragma omp critical
+        	  {
+        		  alphai = y(P[i], 0) / (eps + y(P[i], 0) - s0(P[i], 0));
+        		  if (alphai < alpha) {
+        			  alpha = alphai;
+        			  j = i;
+        		  }  
+        	  }
           }
         }
-#pragma omp parallel for schedule (static, 16)
+        
+        // TODO: WHAT BELONGS TO THIS LOOP?
+#pragma omp parallel for schedule (static, 16) // Indirect indexing -> Guided might be better
         for (int a = 0; a < counter; a++)
           y(P[a], 0) = y(P[a], 0) + alpha * (s0(P[a], 0) - y(P[a], 0));
         if (j > 0) {
@@ -400,7 +407,7 @@ int main(int argc, char* argv[]) {
     b0.clear(); b0.resize(n0);
     // @} Parallelizing slows down program here, so not parallel
 
-#pragma omp for schedule (static, 16) // Always same workload but testing might be good
+#pragma omp for schedule (static, 16) // Always same workload but testing might be good -> Guided?
     for (int b = 0; b < n0; b++){
     	try{
     		xv0[b] = x[col[b]];
@@ -472,8 +479,7 @@ int main(int argc, char* argv[]) {
     cont = 0;
     // @} Parallelizing this slows down program, so removed it.
   
-#pragma omp for schedule(static, 16) // Dynamic/Guided might be faster
-    // Reduction not possible!
+#pragma omp for schedule(static, 16) // Dynamic/Guided might be faster // Reduction not possible!
     for (int i = 0; i < y.M(); i++) {
     	if (y(i, 0) != 0) {
 #pragma omp critical
