@@ -10,8 +10,8 @@
 #include "include/Epetra_SerialSymDenseMatrix.h"
 #include <chrono> // time stuff
 
-#pragma omp declare reduction(merge:std::vector<int>:omp_out.insert(omp_out.end(), omp_in.begin(), omp_in.end()))
-
+#pragma omp declare reduction(mergeI:std::vector<int>:omp_out.insert(omp_out.end(), omp_in.begin(), omp_in.end()))
+#pragma omp declare reduction(mergeD:std::vector<double>:omp_out.insert(omp_out.end(), omp_in.begin(), omp_in.end()))
 using namespace std;
 
 void SetParameters(double& E1, double& E2, int& csteps, int& flagwarm,
@@ -181,8 +181,11 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
 
   while (aux1 == true) {
     // [wi,i]=min(w);
-    double minValue = w(0, 0); int minPosition = 0;
-#pragma omp parallel // TODO: Maybe insert reduction for minimum
+	  
+	  // double minValue = w(0,0); int minPosition = 0; // For commented part.
+	  double minValue = w(0, 0); int minPosition = w.M();
+    
+#pragma omp parallel // Reduction too slow and complex
     {
     	double minVP = w(0,0);
     	int minPosP = 0;
@@ -216,9 +219,7 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
     aux2 = true;
     while (aux2 == true) {
       iter++;
-
-      vector_x.Shape(counter, 1);
-      vector_b.Shape(counter, 1);
+      vector_x.Shape(counter, 1); vector_b.Shape(counter, 1);
       solverMatrix.Shape(counter, counter);
       
 #pragma omp parallel for schedule (static, 16) // Static should be faster, try others out anyway!
@@ -383,7 +384,7 @@ int main(int argc, char* argv[]) {
     */
     
     // TODO: This needs testing which one generates better performance!
-#pragma omp parallel for schedule(static, 16) reduction(merge:row) reduction(merge:col)
+#pragma omp parallel for schedule(static, 16) reduction(mergeI:row) reduction(mergeI:col)
 		for (int i = 0; i < topology.N(); i++){
 			for (int j = 0; j < topology.N(); j++){
 				row.push_back(i);
@@ -472,6 +473,7 @@ int main(int argc, char* argv[]) {
     // @} Parallelizing this slows down program, so removed it.
   
 #pragma omp for schedule(static, 16) // Dynamic/Guided might be faster
+    // Reduction not possible!
     for (int i = 0; i < y.M(); i++) {
     	if (y(i, 0) != 0) {
 #pragma omp critical
