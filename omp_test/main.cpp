@@ -785,7 +785,7 @@ int main(int argc, char *argv[]) {
 		for (int threadAmount = minThreads; threadAmount < (maxThreads + 1);
 				threadAmount++) {
 			omp_set_num_threads(threadAmount);
-			for (int i = 0; i < 1000; i++) {
+			for (int i = 0; i < 500; i++) {
 				calculateTimes_Static(time1, time2, cachesize, filePath);
 				times1.push_back(time1);
 				times2.push_back(time2);
@@ -798,9 +798,9 @@ int main(int argc, char *argv[]) {
 			times1.clear();
 			min2 = 0;
 			times2.clear();
-			std::cout << "Thread " + to_string(threadAmount) + " done." << endl;
-		}
-		std::cout << "Cache " + to_string(cachesize) + " done." << endl;
+			std::cout << "Thread " + to_string(threadAmount) + " done. " + to_string(((cachesize*maxThreads+threadAmount)*100)/(3*maxCache*maxThreads)) + "% done." << endl;
+					}
+					std::cout << "Cache " + to_string(cachesize) + " done. " + to_string(((cachesize*maxThreads)*100)/(3*maxCache*maxThreads)) + "% done." << endl;
 	}
 
 	writeToFile("datatimes1_static_" + nameAdditive + filePath, matrix1,
@@ -835,7 +835,7 @@ int main(int argc, char *argv[]) {
 		for (int threadAmount = minThreads; threadAmount < (maxThreads + 1);
 				threadAmount++) {
 			omp_set_num_threads(threadAmount);
-			for (int i = 0; i < 1000; i++) {
+			for (int i = 0; i < 500; i++) {
 				calculateTimes_Dynamic(time1, time2, cachesize, filePath);
 				times1.push_back(time1);
 				times2.push_back(time2);
@@ -848,9 +848,9 @@ int main(int argc, char *argv[]) {
 			times1.clear();
 			min2 = 0;
 			times2.clear();
-			std::cout << "Thread " + to_string(threadAmount) + " done." << endl;
+			std::cout << "Thread " + to_string(threadAmount) + " done. " + to_string(((maxCache*maxThreads + cachesize*maxThreads+threadAmount)*100)/(3*maxCache*maxThreads)) + "% done." << endl;
 		}
-		std::cout << "Cache " + to_string(cachesize) + " done." << endl;
+		std::cout << "Cache " + to_string(cachesize) + " done. " + to_string(((maxCache*maxThreads + cachesize*maxThreads)*100)/(3*maxCache*maxThreads)) + "% done." << endl;
 	}
 
 	writeToFile("datatimes1_dynamic_" + nameAdditive + filePath, matrix1,
@@ -863,15 +863,14 @@ int main(int argc, char *argv[]) {
 	 for (int threadAmount = minThreads; threadAmount < (maxThreads + 1); threadAmount++){
 	 omp_set_num_threads(threadAmount);
 	 for (int cachesize = minCache; cachesize < (maxCache + 1); cachesize++){
-	 for (int i = 0; i < 100; i++){
-	 calculateTimes2_Dynamic(matrix, b0, P, counter, time1, cachesize); // TODO: y, b0, P
-	 times1.push_back(time1);
-	 }
-	 std::cout << "Cache " + to_string(cachesize) + " done." << endl;
-	 min1 = generateMinimum(times1);
-	 // std::cout << to_string(min1) << endl;
-	 matrix1(cachesize, threadAmount) = min1;
-	 min1 = 0; times1.clear();
+	 	 for (int i = 0; i < 100; i++){
+	 	 	 calculateTimes2_Dynamic(matrix, b0, P, counter, time1, cachesize); // TODO: y, b0, P
+	 	 	 times1.push_back(time1);
+	 	 }
+	 	 std::cout << "Cache " + to_string(cachesize) + " done." << endl;
+	 	 min1 = generateMinimum(times1);
+	 	 matrix1(cachesize, threadAmount) = min1;
+	 	 min1 = 0; times1.clear();
 	 }
 	 std::cout << "Thread " + to_string(threadAmount) + " done." << endl;
 	 }
@@ -885,25 +884,23 @@ int main(int argc, char *argv[]) {
 	for (int cachesize = minCache; cachesize < (maxCache + 1); cachesize++) {
 		for (int threadAmount = minThreads; threadAmount < (maxThreads + 1);
 				threadAmount++) {
-			// Generate runtime-data
 			omp_set_num_threads(threadAmount);
-			for (int i = 0; i < 1000; i++) { // Should be sufficient
+			for (int i = 0; i < 500; i++) {
 				calculateTimes_Static(time1, time2, cachesize, filePath);
 				times1.push_back(time1);
 				times2.push_back(time2);
 			}
 			min1 = generateMinimum(times1);
 			min2 = generateMinimum(times2);
-			// std::cout << to_string(min1) << endl;
 			matrix1(cachesize - 1, threadAmount - 1) = min1;
 			matrix2(cachesize - 1, threadAmount - 1) = min2;
 			min1 = 0;
 			times1.clear();
 			min2 = 0;
 			times2.clear();
-			std::cout << "Thread " + to_string(threadAmount) + " done." << endl;
+			std::cout << "Thread " + to_string(threadAmount) + " done. " + to_string(((2*maxCache*maxThreads + cachesize*maxThreads+threadAmount)*100)/(3*maxCache*maxThreads)) + "% done." << endl;
 		}
-		std::cout << "Cache " + to_string(cachesize) + " done." << endl;
+		std::cout << "Cache " + to_string(cachesize) + " done. " + to_string(((2*maxCache*maxThreads + cachesize*maxThreads)*100)/(3*maxCache*maxThreads)) + "% done." << endl;
 	}
 
 	writeToFile("datatimes1_guided_" + nameAdditive + filePath, matrix1,
