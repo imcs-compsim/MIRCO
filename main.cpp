@@ -9,14 +9,13 @@
 #include "include/Epetra_SerialSpdDenseSolver.h"	// Seems obvious
 #include "include/Epetra_SerialSymDenseMatrix.h"	// Seems obvious
 #include <chrono> // time stuff
+using namespace std;
 
 // Declaration for std::vector<int> reduction in parallel loops.
 #pragma omp declare reduction(mergeI:std::vector<int>:omp_out.insert(omp_out.end(), omp_in.begin(), omp_in.end()))
 
 // Declaration for std::vector<double> reduction in parallel loops.
 #pragma omp declare reduction(mergeD:std::vector<double>:omp_out.insert(omp_out.end(), omp_in.begin(), omp_in.end()))
-
-using namespace std;
 
 void SetParameters(double& E1, double& E2, int& csteps, int& flagwarm,
                    double& lato, double& zref, double& ampface, double& nu1,
@@ -155,7 +154,7 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
   // Initialize active set
   vector<int> positions; 
   int counter = 0;
-#pragma omp parallel for schedule(static, 16) reduction(mergeI:positions) //
+#pragma omp parallel for schedule(guided, 16) reduction(mergeI:positions) // Guided: -1s (sup5)
   for (int i = 0; i < y0.size(); i++){
 	  if (y0[i] >= nnlstol) {
 		  positions.push_back(i);
@@ -192,7 +191,7 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
     {
     	double minVP = w(0,0);
     	int minPosP = 0;
-#pragma omp parallel for schedule (static, 16) // Dynamic/Guided might be better
+#pragma omp parallel for schedule (guided, 16) // Static and Guided seem to be even, but guided makes more sense
     	for (int i = 0; i < w.M(); i++) {
     		if (minVP > w(i, 0)) {
     			minVP = w(i, 0);
@@ -225,7 +224,7 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
       vector_x.Shape(counter, 1); vector_b.Shape(counter, 1);
       solverMatrix.Shape(counter, counter);
       
-#pragma omp parallel for schedule (static, 16) // Static should be faster, try others out anyway!
+#pragma omp parallel for schedule (static, 16) // Always same workload -> Static!
       for (int x = 0; x < counter; x++) {
         vector_b(x, 0) = b0(P[x], 0);
 
@@ -239,29 +238,30 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
 
       LinearSolve(solverMatrix, vector_x, vector_b);
 
-#pragma omp parallel for schedule (static, 16) // Always same workload -> Static! (indirect indexing)
+#pragma omp parallel for schedule (static, 16) // Always same workload -> Static!
       for (int x = 0; x < counter; x++) {
         s0(P[x], 0) = vector_x(x, 0);
       }
 
       bool allBigger = true;
-#pragma omp parallel for schedule (static, 16) // Dynamic/Guided might be faster!
+#pragma omp parallel for schedule (static, 16) // Always same workload -> Static!
       for (int x = 0; x < counter; x++) {
         if (s0(P[x], 0) < nnlstol) {
           allBigger = false;
+          // break; // -> Terminate Loop!
         }
       }
 
       if (allBigger == true) {
         aux2 = false;
-#pragma omp parallel for schedule(static, 16) // Always same workload, but indirect indexing -> Guided might be faster
+#pragma omp parallel for schedule(guided, 16) // Guided: -1s (sup5)
         for (int x = 0; x < counter; x++) {
           y(P[x], 0) = s0(P[x], 0);
         }
 
         // w=A(:,P(1:nP))*y(P(1:nP))-b;
         w.Scale(0.0);
-#pragma omp parallel for schedule (static, 16) // Static, same workload; but guided might be faster for indirect indexing
+#pragma omp parallel for schedule (dynamic, 16) // Dynamic: -1s (sup5) -> Deviations from test environment
         for (int a = 0; a < matrix.M(); a++) {
           w(a, 0) = 0;
           for (int b = 0; b < counter; b++) { 
@@ -274,22 +274,28 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
         alpha = 1.0e8;
         
         // Searching for minimum value with index position
-        // TODO: Do this with parallel and synchronized variables! See row ~180 for example.
-#pragma omp parallel for schedule (static, 16) // Dynamic/Guided might be better!
-        for (int i = 0; i < counter; i++) {
-          if (s0(P[i], 0) < nnlstol) {
+#pragma omp parallel
+        {
+        	int jP = 0;
+        	double alphaP = alpha;
+#pragma omp parallel for schedule(guided, 16) // Even, guided seems fitting
+        	for (int i = 0; i < counter; i++) {
+        		if (s0(P[i], 0) < nnlstol) {
+        			alphai = y(P[i], 0) / (eps + y(P[i], 0) - s0(P[i], 0));
+        			if (alphai < alphaP) {
+        				alphaP = alphai;
+        				jP = i;
+        			}
+        		}
+        	}
 #pragma omp critical
-        	  {
-        		  alphai = y(P[i], 0) / (eps + y(P[i], 0) - s0(P[i], 0));
-        		  if (alphai < alpha) {
-        			  alpha = alphai;
-        			  j = i;
-        		  }  
-        	  }
-          }
+        	{
+        		alpha = alphaP;
+        		j = jP;
+        	}
         }
         
-        // TODO: WHAT BELONGS TO THIS LOOP?
+        // TODO: WHAT BELONGS TO THIS LOOP?????????????????????
 #pragma omp parallel for schedule (static, 16) // Indirect indexing -> Guided might be better
         for (int a = 0; a < counter; a++)
           y(P[a], 0) = y(P[a], 0) + alpha * (s0(P[a], 0) - y(P[a], 0));
