@@ -1,16 +1,19 @@
-#include <omp.h>
-#include <unistd.h>
+#include <omp.h>	// Seems obvious
+#include <unistd.h>		// Linux stuff
 #include <cmath>  //pow
-#include <cstdio>
+#include <cstdio>	// IO stuff
 #include <fstream>   //ifstream
 #include <iostream>  //ifstream
 #include <string>    //std::to_string, std::stod
-#include <vector>
-#include "include/Epetra_SerialSpdDenseSolver.h"
-#include "include/Epetra_SerialSymDenseMatrix.h"
+#include <vector>	// Seems obvious
+#include "include/Epetra_SerialSpdDenseSolver.h"	// Seems obvious
+#include "include/Epetra_SerialSymDenseMatrix.h"	// Seems obvious
 #include <chrono> // time stuff
 
+// Declaration for std::vector<int> reduction in parallel loops.
 #pragma omp declare reduction(mergeI:std::vector<int>:omp_out.insert(omp_out.end(), omp_in.begin(), omp_in.end()))
+
+// Declaration for std::vector<double> reduction in parallel loops.
 #pragma omp declare reduction(mergeD:std::vector<double>:omp_out.insert(omp_out.end(), omp_in.begin(), omp_in.end()))
 
 using namespace std;
@@ -271,6 +274,7 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
         alpha = 1.0e8;
         
         // Searching for minimum value with index position
+        // TODO: Do this with parallel and synchronized variables! See row ~180 for example.
 #pragma omp parallel for schedule (static, 16) // Dynamic/Guided might be better!
         for (int i = 0; i < counter; i++) {
           if (s0(P[i], 0) < nnlstol) {
