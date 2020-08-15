@@ -377,38 +377,17 @@ int main(int argc, char* argv[]) {
     row.clear();
     col.clear();
     
-/*
-#pragma omp parallel
-    {
-    	std::vector<double> colP, rowP;
-#pragma omp for schedule(static, 16) // Schedule dynamic/guided might be better here
-    	for (int i = 0; i < topology.N(); i++) {
-    		for (int j = 0; j < topology.N(); j++) {
-    			if (topology(i, j) >= value) {
-#pragma omp critical
-    				{
-    					rowP.push_back(i);
-    					colP.push_back(j);
-    				}
-    			}
-    		}
-    	}
-#pragma omp critical // Necessary to merge vectors into original ones, so program can work with it
-    	{
-    		row.insert(row.end(), std::make_move_iterator(rowP.begin()), std::make_move_iterator(rowP.end()));
-    		col.insert(col.end(), std::make_move_iterator(colP.begin()), std::make_move_iterator(colP.end()));
-    	}
-    }
-    */
-    
-    // TODO: This needs testing which one generates better performance!
-#pragma omp parallel for schedule(static, 16) reduction(mergeI:row) reduction(mergeI:col)
-		for (int i = 0; i < topology.N(); i++){
-			for (int j = 0; j < topology.N(); j++){
-				row.push_back(i);
-				col.push_back(j);
+#pragma omp parallel for schedule(guided, 16) reduction(mergeI:row) reduction(mergeI:col)
+    // Data is even, guided makes more sense
+    for (int i = 0; i < topology.N(); i++){
+    	for (int j = 0; j < topology.N(); j++){
+    		if (topology(i, j) >= value){
+    			row.push_back(i);
+    			col.push_back(j);
 			}
 		}
+	}
+		
 		
     n0 = col.size();
     
@@ -418,7 +397,7 @@ int main(int argc, char* argv[]) {
     b0.clear(); b0.resize(n0);
     // @} Parallelizing slows down program here, so not parallel
 
-#pragma omp for schedule (static, 16) // Always same workload but testing might be good -> Guided?
+#pragma omp for schedule (guided, 16) // Always same workload but testing might be good -> Guided?
     for (int b = 0; b < n0; b++){
     	try{
     		xv0[b] = x[col[b]];
@@ -426,14 +405,14 @@ int main(int argc, char* argv[]) {
     	
     }
     
-#pragma omp parallel for schedule (static, 16) // Same
+#pragma omp parallel for schedule (guided, 16) // Same
     for (int b = 0; b < n0; b++) {
       try{
     	  yv0[b] = x[row[b]];
       } catch (const std::exception& e){}
     }
     
-#pragma omp parallel for schedule (static, 16) // Same
+#pragma omp parallel for schedule (guided, 16) // Same
     for (int b = 0; b < n0; b++) {
     	try{
     		b0[b] = Delta + w_el - (zmax - topology(row[b], col[b]));
