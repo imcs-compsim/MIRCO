@@ -296,14 +296,14 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
         }
         
         // TODO: WHAT BELONGS TO THIS LOOP?????????????????????
-#pragma omp parallel for schedule (static, 16) // Indirect indexing -> Guided might be better
+#pragma omp parallel for schedule (guided, 16) // Guided: -1s (sup5)
         for (int a = 0; a < counter; a++)
           y(P[a], 0) = y(P[a], 0) + alpha * (s0(P[a], 0) - y(P[a], 0));
         if (j > 0) {
           // jth entry in P leaves active set
           s0(P[j], 0) = 0;
           P.erase(P.begin() + j);
-#pragma omp atomic // Necessary
+#pragma omp atomic // Necessary?
           counter -= 1;
         }
       }
@@ -345,7 +345,8 @@ int main(int argc, char* argv[]) {
   double zmean = 0;
   int cont = 0;
   
-#pragma omp parallel for schedule (static, 16) reduction(+:zmean) reduction(max:zmax) // Dynamic/Guided might be better here
+#pragma omp parallel for schedule (guided, 16) reduction(+:zmean) reduction(max:zmax)
+  // Seems even, but guided makes more sense
   for (int i = 0; i < topology.M(); i++){
     for (int j = 0; j < topology.N(); j++) {
         zmean += topology(i, j);
