@@ -450,7 +450,7 @@ int main(int argc, char* argv[]) {
     res1.Shape(A.M(), A.M());
     
     // res1=A*sol-b0(:,k)-wsol;
-#pragma omp parallel for schedule (static, 16) // Always same workload -> Static, testing?
+#pragma omp parallel for schedule (static, 16) // Always same workload -> Static
     for (int x = 0; x < A.N(); x++) {
       for (int z = 0; z < y.M(); z++) {
         res1(x, 0) += A(x, z) * y(z, 0);
@@ -469,7 +469,8 @@ int main(int argc, char* argv[]) {
     cont = 0;
     // @} Parallelizing this slows down program, so removed it.
   
-#pragma omp for schedule(static, 16) // Dynamic/Guided might be faster // Reduction not possible!
+#pragma omp for schedule(guided, 16)
+    // Everything seems even, but guided makes more sense.
     for (int i = 0; i < y.M(); i++) {
     	if (y(i, 0) != 0) {
 #pragma omp critical
@@ -501,7 +502,7 @@ int main(int argc, char* argv[]) {
     
     // }
 
-    // Compute error because of nonlinear correction
+    // Compute error due to nonlinear correction
     // @{
     if (k > 0) {
       errf = abs(force0[k] - force0[k - 1]) / force0[k];
