@@ -36,7 +36,7 @@ void SetParameters(double& E1, double& E2, int& csteps, int& flagwarm,
                            0.826126871395416, 0.841369158110513,
                            0.851733020725652, 0.858342234203154,
                            0.862368243479785, 0.864741597831785};
-  int nn = 5;  // TODO: CHANGE THIS WHEN CHANGING FILES
+  int nn = 2;  // TODO: CHANGE THIS WHEN CHANGING FILES
   alpha = alpha_con[nn - 1];
   csteps = 1;
   ampface = 1;
@@ -72,7 +72,7 @@ void CreateTopology(int systemsize, Epetra_SerialDenseMatrix& topology,
   while (getline(stream, line)) {
     separatorPosition = 0;
     lineCounter += 1;
-    for (int i = 0; i < dimension; i++) { // Parallel not possible, since no synchronization points possible
+    for (int i = 0; i < dimension; i++) {    // Parallel not possible, since no synchronization points possible
     	separatorPosition = line.find_first_of(';');
     	container = line.substr(0, separatorPosition);
     	position += 1;
@@ -107,28 +107,29 @@ void SetUpMatrix(Epetra_SerialDenseMatrix& A, std::vector<double> xv0,
 	}
 }
 
+// Parallel not possible, since multiple accesses on the same object.
+// In addition, parallel programming not supported for LinearSolve.
+
 /*------------------------------------------*/
 
 void LinearSolve(Epetra_SerialSymDenseMatrix& matrix,
                  Epetra_SerialDenseMatrix& vector_x,
                  Epetra_SerialDenseMatrix& vector_b) { 
-	// Parallel not possible, since multiple accesses on the same object.
-	// In addition, parallel programming not supported for LinearSolve.
-  Epetra_SerialSpdDenseSolver solver; 
-  int err = solver.SetMatrix(matrix);
-  if (err != 0) {
-    std::cout << "Error setting matrix for linear solver (1)";
-  }
+	Epetra_SerialSpdDenseSolver solver; 
+	int err = solver.SetMatrix(matrix);
+	if (err != 0) {
+		std::cout << "Error setting matrix for linear solver (1)";
+	}
 
-  err = solver.SetVectors(vector_x, vector_b);
-  if (err != 0) {
-    std::cout << "Error setting vectors for linear solver (2)";
-  }
+	err = solver.SetVectors(vector_x, vector_b);
+	if (err != 0) {
+		std::cout << "Error setting vectors for linear solver (2)";
+	}
   
-  err = solver.Solve();
-  if (err != 0) {
-    std::cout << "Error setting up solver (3)";
-  }
+	err = solver.Solve();
+	if (err != 0) {
+		std::cout << "Error setting up solver (3)";
+	}
 }
 
 /*------------------------------------------*/
@@ -153,14 +154,14 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
 
   // Initialize active set
   vector<int> positions; 
-  int counter = 0;
-#pragma omp parallel for schedule(guided, 16) reduction(mergeI:positions) // Guided: -1s (sup5)
+#pragma omp parallel for schedule(guided, 16) reduction(mergeI:positions)
   for (int i = 0; i < y0.size(); i++){
 	  if (y0[i] >= nnlstol) {
 		  positions.push_back(i);
 	  }
   }
   
+  int counter = 0;
   counter = positions.size();
   w.Reshape(b0.M(), b0.N());
 
@@ -182,16 +183,21 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
 
   s0.Shape(n0, 1);  // Replacement for s
   bool aux1 = true, aux2 = true;
+  
+  // New searching algorithm
+  vector<double> values, newValues;
+  vector<int> poss, newPositions;
+  double minValue; int minPosition;
 
   while (aux1 == true) {
 	  // [wi,i]=min(w);
 	  
 	  double minValue; int minPosition;
-#pragma omp parallel // Reduction too slow and complex
+#pragma omp parallel
     {
     	double minVP = w(0,0);
     	int minPosP = 0;
-#pragma omp parallel for schedule (guided, 16) // Static and Guided seem to be even, but guided makes more sense
+#pragma omp parallel for schedule (guided, 16) // Guided and Static seem even but guided makes more sense
     	for (int i = 0; i < w.M(); i++) {
     		if (minVP > w(i, 0)) {
     			minVP = w(i, 0);
@@ -204,6 +210,56 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
     			minPosition = minPosP;
     		}
     }
+
+	  
+	  /*
+	  // This makes small deviations in the force
+	  double minValue = w(0, 0); int minPosition = 0;
+	#pragma omp parallel for schedule (guided, 16) shared(minValue) shared(minPosition)
+	    	for (int i = 0; i < w.M(); i++) {
+	    		if (minValue > w(i, 0)) {
+	    			{
+	    				minValue = w(i, 0);
+	    				minPosition = i;
+	    			}
+	    		}
+	    	}
+	    	*/
+	   
+
+    
+	  
+	  // Why does this not work???
+	  // This works serial  	
+	  /*
+#pragma omp parallel for schedule(static, 16) reduction(mergeI:poss) reduction(mergeD:values)
+	  for(int i = 0; i < w.M(); i++){
+		  values.push_back(w(i, 0));
+		  poss.push_back(i);
+	  }
+	  
+	  // Get all values bigger than initial one
+	  while(values.size() > 1){
+#pragma omp parallel for schedule(static, 16) reduction(mergeI:newPositions) reduction(mergeD:newValues)
+		  for (int i = 1; i < values.size(); i++){
+			  if (values[i] < values[0]){
+				  newValues.push_back(values[i]);
+				  newPositions.push_back(poss[i]);
+			  }
+		  }
+		  
+		  if (newValues.size() == 0){
+			  newValues.push_back(values[0]);
+			  newPositions.push_back(poss[0]);
+		  }
+		  
+		  values = newValues; poss = newPositions;
+		  newValues.clear(); newPositions.clear();
+	  }
+	  minValue = values[0]; minPosition = positions[0];
+	  values.clear(); positions.clear();
+	  */
+	  
 
     if (((counter == n0) || (minValue > -nnlstol) || (iter >= maxiter)) &&
         (init == false)) {
@@ -254,14 +310,14 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
 
       if (allBigger == true) {
         aux2 = false;
-#pragma omp parallel for schedule(guided, 16) // Guided: -1s (sup5)
+#pragma omp parallel for schedule(guided, 16)
         for (int x = 0; x < counter; x++) {
           y(P[x], 0) = s0(P[x], 0);
         }
 
         // w=A(:,P(1:nP))*y(P(1:nP))-b;
         w.Scale(0.0);
-#pragma omp parallel for schedule (dynamic, 16) // Dynamic: -1s (sup5) -> Deviations from test environment
+#pragma omp parallel for schedule (dynamic, 16)
         for (int a = 0; a < matrix.M(); a++) {
           w(a, 0) = 0;
           for (int b = 0; b < counter; b++) { 
@@ -296,7 +352,7 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
         }
         
         // TODO: WHAT BELONGS TO THIS LOOP?????????????????????
-#pragma omp parallel for schedule (guided, 16) // Guided: -1s (sup5)
+#pragma omp parallel for schedule (guided, 16)
         for (int a = 0; a < counter; a++)
           y(P[a], 0) = y(P[a], 0) + alpha * (s0(P[a], 0) - y(P[a], 0));
         if (j > 0) {
@@ -321,7 +377,7 @@ int main(int argc, char* argv[]) {
   double nu1, nu2, G1, G2, E, G, nu, alpha, H, rnd, k_el, delta, nnodi, to1, E1,
       E2, lato, zref, ampface, errf, sum = 0;
   double Delta = 50;  // only used for debugging
-  string randomPath = "sup5.dat";
+  string randomPath = "sup2.dat";
   SetParameters(E1, E2, csteps, flagwarm, lato, zref, ampface, nu1, nu2, G1, G2,
                 E, G, nu, alpha, H, rnd, k_el, delta, nnodi, errf, to1);
 
@@ -345,8 +401,8 @@ int main(int argc, char* argv[]) {
   double zmean = 0;
   int cont = 0;
   
-#pragma omp parallel for schedule (guided, 16) reduction(+:zmean) reduction(max:zmax)
-  // Seems even, but guided makes more sense
+#pragma omp parallel for schedule (guided, 16) reduction(+:zmean) reduction(max:zmax) 
+  // Static and Guided seem even but Guided makes more sense
   for (int i = 0; i < topology.M(); i++){
     for (int j = 0; j < topology.N(); j++) {
         zmean += topology(i, j);
@@ -470,7 +526,6 @@ int main(int argc, char* argv[]) {
     // @} Parallelizing this slows down program, so removed it.
   
 #pragma omp for schedule(guided, 16)
-    // Everything seems even, but guided makes more sense.
     for (int i = 0; i < y.M(); i++) {
     	if (y(i, 0) != 0) {
 #pragma omp critical
@@ -492,7 +547,6 @@ int main(int argc, char* argv[]) {
     
     sum = 0; iter = ceil(nf);
 #pragma omp parallel for schedule (static, 16) reduction(+: sum) // Always same workload -> Static!
-    // Reduction is faster than atomic directive!
     for (int i = 0; i < iter; i++){
     	sum += pf[i];
  	}
