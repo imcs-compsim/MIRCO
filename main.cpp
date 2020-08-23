@@ -9,6 +9,7 @@
 #include "include/Epetra_SerialSpdDenseSolver.h"	// Seems obvious
 #include "include/Epetra_SerialSymDenseMatrix.h"	// Seems obvious
 #include <chrono> // time stuff
+#include <ctime>
 using namespace std;
 
 // Declaration for std::vector<int> reduction in parallel loops.
@@ -36,7 +37,7 @@ void SetParameters(double& E1, double& E2, int& csteps, int& flagwarm,
                            0.826126871395416, 0.841369158110513,
                            0.851733020725652, 0.858342234203154,
                            0.862368243479785, 0.864741597831785};
-  int nn = 5;  // TODO: CHANGE THIS WHEN CHANGING FILES
+  int nn = 6;  // TODO: CHANGE THIS WHEN CHANGING FILES
   alpha = alpha_con[nn - 1];
   csteps = 1;
   ampface = 1;
@@ -187,13 +188,13 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
   // New searching algorithm
   vector<double> values, newValues;
   vector<int> poss, newPositions;
-  double minValue; int minPosition;
+  double minValue = w(0, 0); int minPosition = 0;
 
   while (aux1 == true) {
 	  // [wi,i]=min(w);
 	  
 	  /*
-	  double minValue; int minPosition;
+	  // Seems to be the fastest one. So far. (for small problems)
 #pragma omp parallel
     {
     	double minVP = w(0,0);
@@ -213,7 +214,23 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
     }
 	   */
 	  
-	  // This works now
+	  // This doesnt work.
+	  /*
+#pragma omp parallel for schedule(static, 16) reduction(min:minValue)
+	  for (int i = 0; i < w.M(); i++){
+		  minValue = w(i, 0);
+	  }
+	  
+#pragma omp parallel for schedule(static, 16)
+	  for (int i = 0; i < w.M(); i++){
+		  if (w(i, 0) == minValue){
+			  minPosition = i;
+		  }
+	  }
+	  */
+	  
+	  
+	  // This is slightly slower than the optimal one. So far at least. Should have a bit better scaling.
 #pragma omp parallel for schedule(static, 16) reduction(mergeI:poss) reduction(mergeD:values)
 	  for(int i = 0; i < w.M(); i++){
 		  values.push_back(w(i, 0));
@@ -222,7 +239,7 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
 	  
 	  // Get all values bigger than initial one
 	  while(values.size() > 1){
-#pragma omp parallel for schedule(static, 16) reduction(mergeI:newPositions) reduction(mergeD:newValues)
+#pragma omp parallel for schedule(dynamic, 16) reduction(mergeI:newPositions) reduction(mergeD:newValues)
 		  for (int i = 1; i < values.size(); i++){
 			  if (values[i] < values[0]){
 				  newValues.push_back(values[i]);
@@ -241,7 +258,6 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
 	  minValue = values[0]; minPosition = poss[0];
 	  values.clear(); poss.clear();
 	  
-
     if (((counter == n0) || (minValue > -nnlstol) || (iter >= maxiter)) &&
         (init == false)) {
       aux1 = false;
@@ -358,11 +374,16 @@ int main(int argc, char* argv[]) {
   double nu1, nu2, G1, G2, E, G, nu, alpha, H, rnd, k_el, delta, nnodi, to1, E1,
       E2, lato, zref, ampface, errf, sum = 0;
   double Delta = 50;  // only used for debugging
-  string randomPath = "sup5.dat";
+  string randomPath = "sup6.dat";
   SetParameters(E1, E2, csteps, flagwarm, lato, zref, ampface, nu1, nu2, G1, G2,
                 E, G, nu, alpha, H, rnd, k_el, delta, nnodi, errf, to1);
 
   std::cout << "File is " + randomPath << endl;
+  
+  time_t now = time(0);
+  tm *ltm = localtime(&now);
+  std::cout << "Time is: " << ltm->tm_hour << ":";
+  std::cout << 1 + ltm->tm_min << endl;
 
   // Meshgrid-Command
   // Identical Vectors/Matricies, therefore only created one here.
