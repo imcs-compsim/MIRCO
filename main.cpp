@@ -37,7 +37,7 @@ void SetParameters(double& E1, double& E2, int& csteps, int& flagwarm,
                            0.826126871395416, 0.841369158110513,
                            0.851733020725652, 0.858342234203154,
                            0.862368243479785, 0.864741597831785};
-  int nn = 6;  // TODO: CHANGE THIS WHEN CHANGING FILES
+  int nn = 5;  // TODO: CHANGE THIS WHEN CHANGING FILES
   alpha = alpha_con[nn - 1];
   csteps = 1;
   ampface = 1;
@@ -193,27 +193,6 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
   while (aux1 == true) {
 	  // [wi,i]=min(w);
 	  
-	  /*
-	  // Seems to be the fastest one. So far. (for small problems)
-#pragma omp parallel
-    {
-    	double minVP = w(0,0);
-    	int minPosP = 0;
-#pragma omp parallel for schedule (guided, 16) // Guided and Static seem even but guided makes more sense
-    	for (int i = 0; i < w.M(); i++) {
-    		if (minVP > w(i, 0)) {
-    			minVP = w(i, 0);
-    			minPosP = i;
-    		}
-    	}
-#pragma omp critical // Synchronize thread-data into mainthread-data
-    		{
-    			minValue = minVP;
-    			minPosition = minPosP;
-    		}
-    }
-	   */
-	  
 	  // This doesnt work.
 	  /*
 #pragma omp parallel for schedule(static, 16) reduction(min:minValue)
@@ -229,8 +208,8 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
 	  }
 	  */
 	  
-	  
 	  // This is slightly slower than the optimal one. So far at least. Should have a bit better scaling.
+	  // @{
 #pragma omp parallel for schedule(static, 16) reduction(mergeI:poss) reduction(mergeD:values)
 	  for(int i = 0; i < w.M(); i++){
 		  values.push_back(w(i, 0));
@@ -257,6 +236,7 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
 	  }
 	  minValue = values[0]; minPosition = poss[0];
 	  values.clear(); poss.clear();
+	  // }
 	  
     if (((counter == n0) || (minValue > -nnlstol) || (iter >= maxiter)) &&
         (init == false)) {
@@ -374,7 +354,7 @@ int main(int argc, char* argv[]) {
   double nu1, nu2, G1, G2, E, G, nu, alpha, H, rnd, k_el, delta, nnodi, to1, E1,
       E2, lato, zref, ampface, errf, sum = 0;
   double Delta = 50;  // only used for debugging
-  string randomPath = "sup6.dat";
+  string randomPath = "sup5.dat";
   SetParameters(E1, E2, csteps, flagwarm, lato, zref, ampface, nu1, nu2, G1, G2,
                 E, G, nu, alpha, H, rnd, k_el, delta, nnodi, errf, to1);
 
