@@ -203,8 +203,10 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
 #pragma omp parallel for schedule(static, 16)
 	  for (int i = 0; i < w.M(); i++){
 		  if (w(i, 0) == minValue){
-			  minPosition = i;
-		  }
+#pragma omp critcal
+		  	  {
+			  	  minPosition = i;
+			  }
 	  }
 	  */
 	  
@@ -212,8 +214,7 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
 	  // @{
 #pragma omp parallel for schedule(static, 16) reduction(mergeI:poss) reduction(mergeD:values)
 	  for(int i = 0; i < w.M(); i++){
-		  values.push_back(w(i, 0));
-		  poss.push_back(i);
+		  values.push_back(w(i, 0)); poss.push_back(i);
 	  }
 	  
 	  // Get all values bigger than initial one
@@ -221,14 +222,12 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
 #pragma omp parallel for schedule(dynamic, 16) reduction(mergeI:newPositions) reduction(mergeD:newValues)
 		  for (int i = 1; i < values.size(); i++){
 			  if (values[i] < values[0]){
-				  newValues.push_back(values[i]);
-				  newPositions.push_back(poss[i]);
+				  newValues.push_back(values[i]); newPositions.push_back(poss[i]);
 			  }
 		  }
 		  
 		  if (newValues.size() == 0){
-			  newValues.push_back(values[0]);
-			  newPositions.push_back(poss[0]);
+			  newValues.push_back(values[0]); newPositions.push_back(poss[0]);
 		  }
 		  
 		  values = newValues; poss = newPositions;
@@ -347,101 +346,97 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
 /*------------------------------------------*/
 
 int main(int argc, char* argv[]) {
-  omp_set_num_threads(6); // 6 seems to be optimal
+	omp_set_num_threads(6); // 6 seems to be optimal
   
-  auto start = std::chrono::high_resolution_clock::now();
-  int csteps, flagwarm;
-  double nu1, nu2, G1, G2, E, G, nu, alpha, H, rnd, k_el, delta, nnodi, to1, E1,
-      E2, lato, zref, ampface, errf, sum = 0;
-  double Delta = 50;  // only used for debugging
-  string randomPath = "sup5.dat";
-  SetParameters(E1, E2, csteps, flagwarm, lato, zref, ampface, nu1, nu2, G1, G2,
+	auto start = std::chrono::high_resolution_clock::now();
+	int csteps, flagwarm;
+	double nu1, nu2, G1, G2, E, G, nu, alpha, H, rnd, k_el, delta, nnodi, to1, E1,
+		E2, lato, zref, ampface, errf, sum = 0;
+	double Delta = 50;  // only used for debugging
+	string randomPath = "sup5.dat";
+	SetParameters(E1, E2, csteps, flagwarm, lato, zref, ampface, nu1, nu2, G1, G2,
                 E, G, nu, alpha, H, rnd, k_el, delta, nnodi, errf, to1);
 
-  std::cout << "File is " + randomPath << endl;
+	std::cout << "File is " + randomPath << endl;
   
-  time_t now = time(0);
-  tm *ltm = localtime(&now);
-  std::cout << "Time is: " << ltm->tm_hour << ":";
-  std::cout << 1 + ltm->tm_min << endl;
+	ytime_t now = time(0);
+	tm *ltm = localtime(&now);
+	std::cout << "Time is: " << ltm->tm_hour << ":";
+	std::cout << 1 + ltm->tm_min << endl;
 
-  // Meshgrid-Command
-  // Identical Vectors/Matricies, therefore only created one here.
-  int iter = int (ceil((lato - (delta / 2)) / delta)); // Replacement for "for (double i = delta / 2; i < lato; i = i + delta)"
-  vector<double> x(iter);
+	// Meshgrid-Command
+	// Identical Vectors/Matricies, therefore only created one here.
+	int iter = int (ceil((lato - (delta / 2)) / delta)); // Replacement for "for (double i = delta / 2; i < lato; i = i + delta)"
+	vector<double> x(iter);
   
 #pragma omp parallel for schedule(static, 16) // Same amount of work -> static
-  for (int i = 0; i < iter; i++) {
-    x[i] = (delta / 2) + i * delta;
-  }
+	for (int i = 0; i < iter; i++) {
+		x[i] = (delta / 2) + i * delta;
+	}
   
-  // Setup Topology
-  Epetra_SerialDenseMatrix topology, y;
-  CreateTopology(topology.N(), topology, randomPath);
+	// Setup Topology
+	Epetra_SerialDenseMatrix topology, y;
+	CreateTopology(topology.N(), topology, randomPath);
 
-  double zmax = 0;
-  double zmean = 0;
-  int cont = 0;
+	double zmax = 0;
+	double zmean = 0;
+	int cont = 0;
   
 #pragma omp parallel for schedule (guided, 16) reduction(+:zmean) reduction(max:zmax) 
-  // Static and Guided seem even but Guided makes more sense
-  for (int i = 0; i < topology.M(); i++){
-    for (int j = 0; j < topology.N(); j++) {
-        zmean += topology(i, j);
-        if (topology(i, j) > zmax){
-        	zmax = topology(i, j);
-        }
-    }
-  }
-  
-  zmean = zmean / (topology.N() * topology.M());
-
-  vector<double> force0, area0;
-  double w_el = 0, area = 0, force = 0;
-  int k = 0, n0 = 0;
-  std::vector<double> xv0, yv0, b0, x0, xvf, 
-  yvf, pf; vector<int> col, row;
-  double nf, xvfaux, yvfaux, pfaux;
-  Epetra_SerialDenseMatrix A;
-
-  while (errf > to1 && k < 100) {
-    // First predictor for contact set
-    // All points, for which gap is bigger than the displacement of the rigid
-    // indenter, cannot be in contact and thus are not checked in nonlinear solve
-    // @{
-
-    // [ind1,ind2]=find(z>=(zmax-(Delta(s)+w_el(k))));
-    double value = zmax - Delta - w_el;
-    row.clear();
-    col.clear();
-    
-#pragma omp parallel for schedule(guided, 16) reduction(mergeI:row) reduction(mergeI:col)
-    // Data is even, guided makes more sense
-    for (int i = 0; i < topology.N(); i++){
-    	for (int j = 0; j < topology.N(); j++){
-    		if (topology(i, j) >= value){
-    			row.push_back(i);
-    			col.push_back(j);
+	// Static and Guided seem even but Guided makes more sense
+	for (int i = 0; i < topology.M(); i++){
+		for (int j = 0; j < topology.N(); j++) {
+			zmean += topology(i, j);
+			if (topology(i, j) > zmax){
+				zmax = topology(i, j);
 			}
 		}
 	}
-		
-		
-    n0 = col.size();
+  
+	zmean = zmean / (topology.N() * topology.M());
+
+	vector<double> force0, area0;
+	double w_el = 0, area = 0, force = 0;
+	int k = 0, n0 = 0;
+	std::vector<double> xv0, yv0, b0, x0, xvf, 
+	yvf, pf; vector<int> col, row;
+	double nf, xvfaux, yvfaux, pfaux;
+	Epetra_SerialDenseMatrix A;
+
+	while (errf > to1 && k < 100) {
+		// First predictor for contact set
+		// All points, for which gap is bigger than the displacement of the rigid
+		// indenter, cannot be in contact and thus are not checked in nonlinear solve
+		// @{
+
+		// [ind1,ind2]=find(z>=(zmax-(Delta(s)+w_el(k))));
+		double value = zmax - Delta - w_el;
+		row.clear(); col.clear();
     
-    // @{
-    xv0.clear(); xv0.resize(n0);
-    yv0.clear(); yv0.resize(n0);
-    b0.clear(); b0.resize(n0);
-    // @} Parallelizing slows down program here, so not parallel
+#pragma omp parallel for schedule(guided, 16) reduction(mergeI:row) reduction(mergeI:col)
+		// Data is even, guided makes more sense
+		for (int i = 0; i < topology.N(); i++){
+			for (int j = 0; j < topology.N(); j++){
+				if (topology(i, j) >= value){
+					row.push_back(i); col.push_back(j);
+				}
+			}
+		}
+		
+		n0 = col.size();
+    
+		// @{
+		xv0.clear(); xv0.resize(n0);
+		yv0.clear(); yv0.resize(n0);
+		b0.clear(); b0.resize(n0);
+		// @} Parallelizing slows down program here, so not parallel
 
 #pragma omp for schedule (guided, 16) // Always same workload but testing might be good -> Guided?
-    for (int b = 0; b < n0; b++){
-    	try{
-    		xv0[b] = x[col[b]];
-    	} catch (const std::exception& e){}
-    	
-    }
+		for (int b = 0; b < n0; b++){
+			try{
+				xv0[b] = x[col[b]];
+			} catch (const std::exception& e){}
+		}
     
 #pragma omp parallel for schedule (guided, 16) // Same
     for (int b = 0; b < n0; b++) {
