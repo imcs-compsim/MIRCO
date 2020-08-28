@@ -41,7 +41,7 @@ void SetParameters(double& E1, double& E2, int& csteps, int& flagwarm,
   alpha = alpha_con[nn - 1];
   csteps = 1;
   ampface = 1;
-  flagwarm = 0;
+  flagwarm = 1;
   lato = 1000;  // Lateral side of the surface [micrometers]
   H = 0.1;      // Hurst Exponent (D = 3 - H)
   rnd = 95.0129;
@@ -110,6 +110,45 @@ void SetUpMatrix(Epetra_SerialDenseMatrix& A, std::vector<double> xv0,
 
 // Parallel not possible, since multiple accesses on the same object.
 // In addition, parallel programming not supported for LinearSolve.
+
+/*------------------------------------------*/
+Epetra_SerialDenseMatrix Warmstart(Epetra_SerialDenseMatrix xv0, Epetra_SerialDenseMatrix yv0, Epetra_SerialDenseMatrix& xvf,
+    Epetra_SerialDenseMatrix& yvf, Epetra_SerialDenseMatrix& pf) {
+    Epetra_SerialDenseMatrix x0; x0.Shape(xv0.N(), 1);
+    Epetra_SerialDenseMatrix combinedMatrix;
+    combinedMatrix.Shape(2 * xv0.N(), xv0.N());
+    // matfin = [xv0, yv0]
+    for (int i = 0; i < xv0.N(); i++) {
+        for (int j = 0; j < xv0.N(); j++) {
+            combinedMatrix(i, j) = xv0(i, j);
+        }
+    }
+    for (int i = xv0.N(); i < yv0.N() * 2; i++) {
+        for (int j = 0; j < yv0.N(); j++) {
+            combinedMatrix(i, j) = yv0(i - xv0.N(), j);
+        }
+    }
+
+    // loop
+
+    // TODO: vector.push_back()!
+    vector<int> index;
+    for (int i = 0; i < pf.N(); i++) {
+        // ind=find(matfin(:,1)==xvf(i) & matfin(:,2)==yvf(i));
+        for (int j = 0; j < xvf.N(); j++) {
+            if ((combinedMatrix(j, 1) == xvf(i, 1)) && (combinedMatrix(j, 2) == yvf(i, 1))) {
+                index.push_back(j);
+            }
+        }
+
+        // x0(ind,1)=pf(i);
+        for (int y = 0; y < index.size(); y++) {
+            x0(y, 1) = pf(y, 1);
+        }
+        index.clear();
+    }
+    return x0;
+}
 
 /*------------------------------------------*/
 
@@ -457,8 +496,43 @@ int main(int argc, char* argv[]) {
     // Construction of the Matrix H = A
     SetUpMatrix(A, xv0, yv0, delta, E, n0, k);
 
-    // Second predictor for contact set
-    // @{
+
+        // Second predictor for contact set
+        // @{
+        
+        Epetra_SerialDenseMatrix xv0t, yv0t, xvft, yvft, pft; // Temporary variables for warmup
+        if (flagwarm == 1 && k > 1) {
+        	// DEBUG
+        	cout << "Warmstart active. \n";
+        	
+            // x0=warm_x(xv0(1:n0(k),k),yv0(1:n0(k),k),xvf(1:nf(k-1),k-1),yvf(1:nf(k-1),k-1),pf(1:nf(k-1),k-1));
+            xv0t.Shape(1, n0[k]); yv0t.Shape(1, n0[k]); xvft.Shape(1, nf(k - 1, 1));
+            yvft.Shape(1, nf(k - 1, 1)); pft.Shape(1, nf(k - 1, 1));
+            for (int i = 0; i < n0[k]; i++) {
+                xv0t(1, i) = xv0(i, k);
+                yv0t(1, i) = yv0(i, k);
+            }
+            for (int i = 0; i < nf(k - 1, 1); i++) {
+                xvft(1, i) = xvf(i, k - 1);
+                yvft(1, i) = yvf(i, k - 1);
+                pft(1, i) = pf(i, k - 1);
+            }
+            x0 = Warmstart(xv0t, yv0t, xvft, yvf, pft);
+        } else {
+        	// DEBUG
+        	cout << "Warmstart inactive. \n";
+        	
+        	if (b0.N() > 0) {
+        		x0.Shape(b0.N(), 1);
+        	} else {
+        		x0.Shape(1, 1);
+        	}
+        }
+        // }
+        
+        // DEBUG
+        cout << "Second predictor done. \n";
+        cout << "Size b0 = " << b0.size() << endl;
 
     // {
     x0.clear(); x0.resize(b0.size());
