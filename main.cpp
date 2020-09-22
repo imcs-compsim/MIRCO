@@ -37,7 +37,7 @@ void SetParameters(double& E1, double& E2, int& csteps, int& flagwarm,
                            0.826126871395416, 0.841369158110513,
                            0.851733020725652, 0.858342234203154,
                            0.862368243479785, 0.864741597831785};
-  int nn = 5;  // TODO: CHANGE THIS WHEN CHANGING FILES
+  int nn = 2;  // TODO: CHANGE THIS WHEN CHANGING FILES
   alpha = alpha_con[nn - 1];
   csteps = 1;
   ampface = 1;
@@ -118,32 +118,34 @@ Epetra_SerialDenseMatrix Warmstart(Epetra_SerialDenseMatrix xv0, Epetra_SerialDe
     Epetra_SerialDenseMatrix combinedMatrix;
     combinedMatrix.Shape(2 * xv0.N(), xv0.N());
     // matfin = [xv0, yv0]
+#pragma omp parallel for schedule (static, 16) // Always same workload -> Static
     for (int i = 0; i < xv0.N(); i++) {
         for (int j = 0; j < xv0.N(); j++) {
             combinedMatrix(i, j) = xv0(i, j);
         }
     }
+    
+#pragma omp parallel for schedule (static, 16) // Always same workload -> Static
     for (int i = xv0.N(); i < yv0.N() * 2; i++) {
         for (int j = 0; j < yv0.N(); j++) {
             combinedMatrix(i, j) = yv0(i - xv0.N(), j);
         }
     }
 
-    // loop
-
-    // TODO: vector.push_back()!
     vector<int> index;
+#pragma omp parallel for schedule (guided, 16) // Workload can differ vastly -> Guided
     for (int i = 0; i < pf.N(); i++) {
         // ind=find(matfin(:,1)==xvf(i) & matfin(:,2)==yvf(i));
         for (int j = 0; j < xvf.N(); j++) {
-            if ((combinedMatrix(j, 1) == xvf(i, 1)) && (combinedMatrix(j, 2) == yvf(i, 1))) {
+            if ((combinedMatrix(j, 0) == xvf(i, 0)) && (combinedMatrix(j, 1) == yvf(i, 0))) {
                 index.push_back(j);
             }
         }
 
         // x0(ind,1)=pf(i);
+#pragma omp parallel for schedule(static, 16) // Always same workload -> Static
         for (int y = 0; y < index.size(); y++) {
-            x0(y, 1) = pf(y, 1);
+            x0(y, 0) = pf(y, 0);
         }
         index.clear();
     }
@@ -231,24 +233,6 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
 
   while (aux1 == true) {
 	  // [wi,i]=min(w);
-	  
-	  // This doesnt work.
-	  /*
-#pragma omp parallel for schedule(static, 16) reduction(min:minValue)
-	  for (int i = 0; i < w.M(); i++){
-		  minValue = w(i, 0);
-	  }
-	  
-#pragma omp parallel for schedule(static, 16)
-	  for (int i = 0; i < w.M(); i++){
-		  if (w(i, 0) == minValue){
-#pragma omp critcal
-		  	  {
-			  	  minPosition = i;
-			  }
-	  }
-	  */
-	  
 	  // This is slightly slower than the optimal one. So far at least. Should have a bit better scaling.
 	  // @{
 #pragma omp parallel for schedule(static, 16) reduction(mergeI:poss) reduction(mergeD:values)
@@ -392,13 +376,13 @@ int main(int argc, char* argv[]) {
 	double nu1, nu2, G1, G2, E, G, nu, alpha, H, rnd, k_el, delta, nnodi, to1, E1,
 		E2, lato, zref, ampface, errf, sum = 0;
 	double Delta = 50;  // only used for debugging
-	string randomPath = "sup5.dat";
+	string randomPath = "sup2.dat";
 	SetParameters(E1, E2, csteps, flagwarm, lato, zref, ampface, nu1, nu2, G1, G2,
                 E, G, nu, alpha, H, rnd, k_el, delta, nnodi, errf, to1);
 
 	std::cout << "File is " + randomPath << endl;
   
-	ytime_t now = time(0);
+	time_t now = time(0);
 	tm *ltm = localtime(&now);
 	std::cout << "Time is: " << ltm->tm_hour << ":";
 	std::cout << 1 + ltm->tm_min << endl;
@@ -441,6 +425,7 @@ int main(int argc, char* argv[]) {
 	yvf, pf; vector<int> col, row;
 	double nf, xvfaux, yvfaux, pfaux;
 	Epetra_SerialDenseMatrix A;
+	int nf2 = floor(nf);
 
 	while (errf > to1 && k < 100) {
 		// First predictor for contact set
@@ -500,40 +485,39 @@ int main(int argc, char* argv[]) {
         // Second predictor for contact set
         // @{
         
-        Epetra_SerialDenseMatrix xv0t, yv0t, xvft, yvft, pft; // Temporary variables for warmup
-        if (flagwarm == 1 && k > 1) {
-        	// DEBUG
-        	cout << "Warmstart active. \n";
-        	
-            // x0=warm_x(xv0(1:n0(k),k),yv0(1:n0(k),k),xvf(1:nf(k-1),k-1),yvf(1:nf(k-1),k-1),pf(1:nf(k-1),k-1));
-            xv0t.Shape(1, n0[k]); yv0t.Shape(1, n0[k]); xvft.Shape(1, nf(k - 1, 1));
-            yvft.Shape(1, nf(k - 1, 1)); pft.Shape(1, nf(k - 1, 1));
-            for (int i = 0; i < n0[k]; i++) {
-                xv0t(1, i) = xv0(i, k);
-                yv0t(1, i) = yv0(i, k);
-            }
-            for (int i = 0; i < nf(k - 1, 1); i++) {
-                xvft(1, i) = xvf(i, k - 1);
-                yvft(1, i) = yvf(i, k - 1);
-                pft(1, i) = pf(i, k - 1);
-            }
-            x0 = Warmstart(xv0t, yv0t, xvft, yvf, pft);
-        } else {
-        	// DEBUG
-        	cout << "Warmstart inactive. \n";
-        	
-        	if (b0.N() > 0) {
-        		x0.Shape(b0.N(), 1);
-        	} else {
-        		x0.Shape(1, 1);
-        	}
-        }
-        // }
+    Epetra_SerialDenseMatrix xv0t, yv0t, xvft, yvft, pft, x0temp; // Temporary variables for warmup
+    if (flagwarm == 1 && k > 1) {
+    	// x0=warm_x(xv0(1:n0(k),k),yv0(1:n0(k),k),xvf(1:nf(k-1),k-1),yvf(1:nf(k-1),k-1),pf(1:nf(k-1),k-1));
+    	xv0t.Shape(1, n0); yv0t.Shape(1, n0); xvft.Shape(1, nf2);
+    	yvft.Shape(1, nf2); pft.Shape(1, nf2);
         
-        // DEBUG
-        cout << "Second predictor done. \n";
-        cout << "Size b0 = " << b0.size() << endl;
-
+#pragma omp parallel for schedule (static, 16) // Always same workload -> Static
+    	for (int i = 0; i < n0; i++) {
+    		xv0t(0, i) = xv0[i];
+    		yv0t(0, i) = yv0[i];
+    	}
+    	
+#pragma omp parallel for schedule (static, 16) // Always same workload -> Static
+    	for (int j = 0; j < nf2; j++) {
+    		xvft(0, j) = xvf[j];
+    		yvft(0, j) = yvf[j];
+    		pft(0, j) = pf[j];
+    	}
+    	
+    	x0temp = Warmstart(xv0t, yv0t, xvft, yvft, pft);
+    	
+#pragma omp parallel for schedule (static, 16) // Always same workload -> Static
+    	for (int i = 0; i < x0temp.N(); i++){
+    		x0[i] = x0temp(i, 1);
+    	}
+    } else {
+    	if (b0.size() > 0) {
+    		// x0.Shape(b0.N(), 1);
+    		x0.resize(b0.size());
+    	}
+    }
+    // }
+    
     // {
     x0.clear(); x0.resize(b0.size());
     Epetra_SerialDenseMatrix b0new;
