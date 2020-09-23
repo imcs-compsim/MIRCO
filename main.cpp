@@ -37,7 +37,7 @@ void SetParameters(double& E1, double& E2, int& csteps, int& flagwarm,
                            0.826126871395416, 0.841369158110513,
                            0.851733020725652, 0.858342234203154,
                            0.862368243479785, 0.864741597831785};
-  int nn = 2;  // TODO: CHANGE THIS WHEN CHANGING FILES
+  int nn = 6;  // CHANGE THIS WHEN CHANGING FILES
   alpha = alpha_con[nn - 1];
   csteps = 1;
   ampface = 1;
@@ -133,7 +133,7 @@ Epetra_SerialDenseMatrix Warmstart(Epetra_SerialDenseMatrix xv0, Epetra_SerialDe
     }
 
     vector<int> index;
-#pragma omp parallel for schedule (guided, 16) // Workload can differ vastly -> Guided
+#pragma omp parallel for schedule (dynamic, 16) // Workload can differ vastly -> Dynamic
     for (int i = 0; i < pf.N(); i++) {
         // ind=find(matfin(:,1)==xvf(i) & matfin(:,2)==yvf(i));
         for (int j = 0; j < xvf.N(); j++) {
@@ -376,7 +376,7 @@ int main(int argc, char* argv[]) {
 	double nu1, nu2, G1, G2, E, G, nu, alpha, H, rnd, k_el, delta, nnodi, to1, E1,
 		E2, lato, zref, ampface, errf, sum = 0;
 	double Delta = 50;  // only used for debugging
-	string randomPath = "sup2.dat";
+	string randomPath = "sup6.dat";
 	SetParameters(E1, E2, csteps, flagwarm, lato, zref, ampface, nu1, nu2, G1, G2,
                 E, G, nu, alpha, H, rnd, k_el, delta, nnodi, errf, to1);
 
