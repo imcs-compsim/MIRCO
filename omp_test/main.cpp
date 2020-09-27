@@ -12,37 +12,6 @@
 
 using namespace std;
 
-/*
- void TestingCode() { // Contains former test code
- double time=10000;
-
- for(int i=0; i<1000; i++) {
- const int size = 262144;
- double sinTable[size];
- auto start = std::chrono::high_resolution_clock::now();
- 
- #pragma omp parallel for
- for(int n=0; n<size; ++n) {
- sinTable[n] = std::sin(2 * M_PI * n / size);
- }
-
- auto finish = std::chrono::high_resolution_clock::now();
- std::chrono::duration<double> elapsed = finish - start;
-
- if (elapsed.count()<time) { time=elapsed.count(); }
- }
-
- std::cout << "Elapsed time: " << time << " s\n";
- 
- #pragma omp parallel 
- { 
- printf("Hello World from thread %d\n", omp_get_thread_num());
- if (omp_get_thread_num() == 0) { printf("Number of threads is %d\n", omp_get_num_threads()); 
- }
- }
- }
- */
-
 void CreateTopology(Epetra_SerialDenseMatrix &topology, string filePath) {
 	// Readin for amount of lines -> dimension of matrix
 	ifstream reader(filePath);
