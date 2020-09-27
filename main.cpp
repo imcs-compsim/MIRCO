@@ -677,7 +677,7 @@ int main(int argc, char* argv[]) {
   
   // Get number of threads
   int thread_amount = 99; // error number
-#pragma omp parallel for schedule (static, 16)
+#pragma omp parallel for schedule (static, 16) // Scheduling type irrelevant, only one iteration
   for (int i = 0; i < 1; i++){
 	  thread_amount = omp_get_num_threads();
   }
