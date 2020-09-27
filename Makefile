@@ -1,15 +1,15 @@
 CC=g++
-LDIR=/rzhome/nas/compsim/public/lib/Q1_2015/TPL/trilinos-build/lib
-LIBS= $(LDIR)/*.a -lmpi -lmpi_cxx -lblas -lkokkoscore -llapack
-IDIR=/rzhome/nas/compsim/public/lib/Q1_2015/TPL/trilinos-build/include
-MPI=/usr/lib/openmpi/lib
-CFLAGS=-std=c++11 -I$(IDIR) -L$(LDIR) -L$(MPI) -fopenmp
+LDIR=/imcs/Q1_2015/trilinos/lib
+LIBS= $(LDIR)/*.a -lmpi /imcs/lib/libopenblas.a -lkokkoscore /usr/lib64/liblapack.so.3
+IDIR=/imcs/Q1_2015/trilinos/include
+MPI=/opt/openmpi/4.0.0/gcc
+CFLAGS=-std=c++11 -O3 -I$(IDIR) -I$(MPI)/include -L$(LDIR) -L$(MPI)/lib -fopenmp
 
 %.o: %.cpp
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 bem: main.o
-	$(CC) -o bem main.o $(CFLAGS) $(LIBS)
+	$(CC) -o bem main.o -Wl,--copy-dt-needed-entries $(CFLAGS) $(LIBS)
 
 .PHONY:clean
 
