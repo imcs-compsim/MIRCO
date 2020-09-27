@@ -37,7 +37,7 @@ void SetParameters(double& E1, double& E2, int& csteps, int& flagwarm,
                            0.826126871395416, 0.841369158110513,
                            0.851733020725652, 0.858342234203154,
                            0.862368243479785, 0.864741597831785};
-  int nn = 6;  // CHANGE THIS WHEN CHANGING FILES
+  int nn = 5;  // CHANGE THIS WHEN CHANGING FILES
   alpha = alpha_con[nn - 1];
   csteps = 1;
   ampface = 1;
@@ -130,6 +130,49 @@ Epetra_SerialDenseMatrix Warmstart(Epetra_SerialDenseMatrix xv0, Epetra_SerialDe
         for (int j = 0; j < yv0.N(); j++) {
             combinedMatrix(i, j) = yv0(i - xv0.N(), j);
         }
+    }
+
+    vector<int> index;
+#pragma omp parallel for schedule (dynamic, 16) // Workload can differ vastly -> Dynamic
+    for (int i = 0; i < pf.N(); i++) {
+        // ind=find(matfin(:,1)==xvf(i) & matfin(:,2)==yvf(i));
+        for (int j = 0; j < xvf.N(); j++) {
+            if ((combinedMatrix(j, 0) == xvf(i, 0)) && (combinedMatrix(j, 1) == yvf(i, 0))) {
+                index.push_back(j);
+            }
+        }
+
+        // x0(ind,1)=pf(i);
+#pragma omp parallel for schedule(static, 16) // Always same workload -> Static
+        for (int y = 0; y < index.size(); y++) {
+            x0(y, 0) = pf(y, 0);
+        }
+        index.clear();
+    }
+    return x0;
+}
+
+void writeToFile(string time, string fileName, int threadAmount){
+	ofstream outfile;
+	outfile.open("study_data_" + fileName, std::ofstream::app);
+	outfile << "(" + to_string(threadAmount) + ") Time for " + fileName + " is: " + time + " seconds." << endl;
+	outfile.close();
+}
+
+Epetra_SerialDenseMatrix Warmstart2(Epetra_SerialDenseMatrix xv0, Epetra_SerialDenseMatrix yv0, Epetra_SerialDenseMatrix& xvf,
+    Epetra_SerialDenseMatrix& yvf, Epetra_SerialDenseMatrix& pf) {
+    Epetra_SerialDenseMatrix x0; x0.Shape(xv0.N(), 1);
+    Epetra_SerialDenseMatrix combinedMatrix;
+    combinedMatrix.Shape(2, xv0.N());
+    // matfin = [xv0, yv0]
+#pragma omp parallel for schedule (static, 16) // Always same workload -> Static
+    for (int i = 0; i < xv0.N(); i++) {
+    	combinedMatrix(0, i) = xv0(0, i);
+    }
+    
+#pragma omp parallel for schedule (static, 16)
+    for (int i = 0; i < yv0.N(); i++){
+    	combinedMatrix(1, i) = yv0(0, i);
     }
 
     vector<int> index;
@@ -376,7 +419,7 @@ int main(int argc, char* argv[]) {
 	double nu1, nu2, G1, G2, E, G, nu, alpha, H, rnd, k_el, delta, nnodi, to1, E1,
 		E2, lato, zref, ampface, errf, sum = 0;
 	double Delta = 50;  // only used for debugging
-	string randomPath = "sup6.dat";
+	string randomPath = "sup5.dat";
 	SetParameters(E1, E2, csteps, flagwarm, lato, zref, ampface, nu1, nu2, G1, G2,
                 E, G, nu, alpha, H, rnd, k_el, delta, nnodi, errf, to1);
 
@@ -504,7 +547,7 @@ int main(int argc, char* argv[]) {
     		pft(0, j) = pf[j];
     	}
     	
-    	x0temp = Warmstart(xv0t, yv0t, xvft, yvft, pft);
+    	x0temp = Warmstart2(xv0t, yv0t, xvft, yvft, pft);
     	
 #pragma omp parallel for schedule (static, 16) // Always same workload -> Static
     	for (int i = 0; i < x0temp.N(); i++){
@@ -631,4 +674,13 @@ int main(int argc, char* argv[]) {
   auto finish = std::chrono::high_resolution_clock::now();
   double elapsedTime2 = std::chrono::duration_cast<std::chrono::seconds>(finish - start).count();
   std::cout << "Elapsed time is: " + to_string(elapsedTime2) + "s." << endl;
+  
+  // Get number of threads
+  int thread_amount = 99; // error number
+#pragma omp parallel for schedule (static, 16)
+  for (int i = 0; i < 1; i++){
+	  thread_amount = omp_get_num_threads();
+  }
+  
+  writeToFile(to_string(elapsedTime2), randomPath, thread_amount);
 }
