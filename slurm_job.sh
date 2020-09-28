@@ -5,7 +5,7 @@
 ###############################
 #
 # Job name:
-#SBATCH --job-name bemsup5
+#SBATCH --job-name BEM
 #SBATCH --output=slurm-%j-%x.out
 #SBATCH --error=slurm-%j-%x.err
 #
