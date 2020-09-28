@@ -116,7 +116,7 @@ void writeToFile(string time, string fileName, int threadAmount){
 }
 
 Epetra_SerialDenseMatrix Warmstart(Epetra_SerialDenseMatrix xv0, Epetra_SerialDenseMatrix yv0, Epetra_SerialDenseMatrix& xvf,
-    Epetra_SerialDenseMatrix& yvf, Epetra_SerialDenseMatrix& pf) {
+				Epetra_SerialDenseMatrix& yvf, Epetra_SerialDenseMatrix& pf) {
     Epetra_SerialDenseMatrix x0; x0.Shape(xv0.N(), 1);
     Epetra_SerialDenseMatrix combinedMatrix;
     combinedMatrix.Shape(2, xv0.N());
@@ -176,17 +176,16 @@ void LinearSolve(Epetra_SerialSymDenseMatrix& matrix,
 }
 
 /*------------------------------------------*/
-void NonlinearSolve(Epetra_SerialDenseMatrix& matrix, double& elapsedTime,
+double NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
                     Epetra_SerialDenseMatrix& b0, std::vector<double>& y0,
                     Epetra_SerialDenseMatrix& w, Epetra_SerialDenseMatrix& y) {
 	// matrix -> A, b0 -> b, y0 -> y0 , y -> y, w-> w; nnstol, iter, maxiter ->
 	// unused
-	auto start = std::chrono::high_resolution_clock::now();
-	auto finish = std::chrono::high_resolution_clock::now();
 	double nnlstol = 1.0000e-08; double maxiter = 10000;
 	double eps = 2.2204e-16; double alphai = 0;
 	double alpha = 100000000; int iter = 0;
 	bool init = false; int n0 = b0.M();
+	double elapsedTime = 0;
 	y.Shape(n0, 1); elapsedTime = 0;
 	Epetra_SerialDenseMatrix s0;
 	vector<int> P(n0);
@@ -289,14 +288,13 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix, double& elapsedTime,
 				}
 			}
 
-			// Measure everything except LinearSolve
-			finish = std::chrono::high_resolution_clock::now();
-			elapsedTime += std::chrono::duration_cast<std::chrono::seconds>(finish - start).count();
+			// Measure time LinearSolve needs
+			auto start = std::chrono::high_resolution_clock::now();
 			
 			LinearSolve(solverMatrix, vector_x, vector_b);
 			
-			// Begin new measurement
-			start = std::chrono::high_resolution_clock::now();
+			auto finish = std::chrono::high_resolution_clock::now();
+			elapsedTime += std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count();
 
 #pragma omp parallel for schedule (static, 16) // Always same workload -> Static!
 			for (int x = 0; x < counter; x++) {
@@ -368,23 +366,20 @@ void NonlinearSolve(Epetra_SerialDenseMatrix& matrix, double& elapsedTime,
 			}
 		}
 	}
-	finish = std::chrono::high_resolution_clock::now();
-	elapsedTime += std::chrono::duration_cast<std::chrono::seconds>(finish - start).count();
+	return elapsedTime;
 }
 
 /*------------------------------------------*/
 
 int main(int argc, char* argv[]) {
-	omp_set_num_threads(1); // 6 seems to be optimal
+	omp_set_num_threads(6); // 6 seems to be optimal
   
-	auto start = std::chrono::high_resolution_clock::now(); // Timer for parallel part
 	auto start2 = std::chrono::high_resolution_clock::now(); // Timer for geneeralized time
-	auto finish = std::chrono::high_resolution_clock::now(); // Preallocation
 	int csteps, flagwarm;
 	double nu1, nu2, G1, G2, E, G, nu, alpha, H, rnd, k_el, delta, nnodi, to1, E1,
 		E2, lato, zref, ampface, errf, sum = 0;
 	double Delta = 50;  // only used for debugging
-	double elapsedTime1 = 0, elapsedTime2 = 0; // Preallocation
+	double elapsedTimeM = 0;
 	string randomPath = "sup5.dat";
 	SetParameters(E1, E2, csteps, flagwarm, lato, zref, ampface, nu1, nu2, G1, G2,
                 E, G, nu, alpha, H, rnd, k_el, delta, nnodi, errf, to1);
@@ -436,21 +431,12 @@ int main(int argc, char* argv[]) {
 	Epetra_SerialDenseMatrix A;
 	int nf2 = floor(nf);
 	
-	finish = std::chrono::high_resolution_clock::now();
-	elapsedTime1 = std::chrono::duration_cast<std::chrono::seconds>(finish - start).count();
-	start = std::chrono::high_resolution_clock::now();
-
 	while (errf > to1 && k < 100) {
 		// First predictor for contact set
 		// All points, for which gap is bigger than the displacement of the rigid
 		// indenter, cannot be in contact and thus are not checked in nonlinear solve
 		// @{
 		
-		finish = std::chrono::high_resolution_clock::now();
-		elapsedTime2 += std::chrono::duration_cast<std::chrono::seconds>(finish - start).count();
-		
-		start = std::chrono::high_resolution_clock::now();
-
 		// [ind1,ind2]=find(z>=(zmax-(Delta(s)+w_el(k))));
 		double value = zmax - Delta - w_el;
 		row.clear(); col.clear();
@@ -549,15 +535,7 @@ int main(int argc, char* argv[]) {
 
 		Epetra_SerialDenseMatrix w;
     
-		// NonlinearSolve has own time measurement
-		finish = std::chrono::high_resolution_clock::now();
-		elapsedTime2 += std::chrono::duration_cast<std::chrono::seconds>(finish - start).count();
-				
-    
-		NonlinearSolve(A, elapsedTime2, b0new, x0, w, y);  // y -> sol, w -> wsol; x0 -> y0
-
-		// Compute new time
-		start = std::chrono::high_resolution_clock::now();
+		elapsedTimeM += NonlinearSolve(A, b0new, x0, w, y) * pow(10, -3);  // y -> sol, w -> wsol; x0 -> y0
     
 		// Compute residial
 		// @{
@@ -631,11 +609,6 @@ int main(int argc, char* argv[]) {
 		// }
 	}
 	
-	finish = std::chrono::high_resolution_clock::now();
-	elapsedTime2 += std::chrono::duration_cast<std::chrono::seconds>(finish - start).count();
-	
-	start = std::chrono::high_resolution_clock::now();
-
 	// @{
 
 	force = force0[k - 1];
@@ -658,12 +631,12 @@ int main(int argc, char* argv[]) {
 	// if (abs(sigmaz - 0.246623) > to1)
 	//   std::runtime_error("Differenz ist zu groß!");  // for nn=5
   
-  
-	finish = std::chrono::high_resolution_clock::now();
-	double elapsedTime3 = std::chrono::duration_cast<std::chrono::seconds>(finish - start).count();
-	double elapsedTime = elapsedTime1 + elapsedTime2 + elapsedTime3;
-	double elapsedTimeG = std::chrono::duration_cast<std::chrono::seconds>(finish - start2).count();
-	std::cout << "Elapsed time is: " + to_string(elapsedTime) + "s." << endl;
+	auto finish = std::chrono::high_resolution_clock::now();
+	double elapsedTimeG = std::chrono::duration_cast<std::chrono::milliseconds>(finish - start2).count() * pow(10, -3);
+	double elapsedTime = (elapsedTimeG - elapsedTimeM);
+	
+	std::cout << "LinearSolve: elapsed time is: " + to_string(elapsedTimeM) + "s." << endl;
+	std::cout << "Parallel elapsed time is: " + to_string(elapsedTime) + "s." << endl;
 	std::cout << "General elapsed time is: " + to_string(elapsedTimeG) + "s." << endl;
   
 	// Get number of threads
