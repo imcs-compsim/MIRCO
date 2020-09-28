@@ -435,12 +435,21 @@ int main(int argc, char* argv[]) {
 	double nf, xvfaux, yvfaux, pfaux;
 	Epetra_SerialDenseMatrix A;
 	int nf2 = floor(nf);
+	
+	finish = std::chrono::high_resolution_clock::now();
+	elapsedTime1 = std::chrono::duration_cast<std::chrono::seconds>(finish - start).count();
+	start = std::chrono::high_resolution_clock::now();
 
 	while (errf > to1 && k < 100) {
 		// First predictor for contact set
 		// All points, for which gap is bigger than the displacement of the rigid
 		// indenter, cannot be in contact and thus are not checked in nonlinear solve
 		// @{
+		
+		finish = std::chrono::high_resolution_clock::now();
+		elapsedTime2 += std::chrono::duration_cast<std::chrono::seconds>(finish - start).count();
+		
+		start = std::chrono::high_resolution_clock::now();
 
 		// [ind1,ind2]=find(z>=(zmax-(Delta(s)+w_el(k))));
 		double value = zmax - Delta - w_el;
@@ -542,7 +551,8 @@ int main(int argc, char* argv[]) {
     
 		// NonlinearSolve has own time measurement
 		finish = std::chrono::high_resolution_clock::now();
-		elapsedTime1 += std::chrono::duration_cast<std::chrono::seconds>(finish - start).count();
+		elapsedTime2 += std::chrono::duration_cast<std::chrono::seconds>(finish - start).count();
+				
     
 		NonlinearSolve(A, elapsedTime2, b0new, x0, w, y);  // y -> sol, w -> wsol; x0 -> y0
 
@@ -620,6 +630,11 @@ int main(int argc, char* argv[]) {
 		k += 1;
 		// }
 	}
+	
+	finish = std::chrono::high_resolution_clock::now();
+	elapsedTime2 += std::chrono::duration_cast<std::chrono::seconds>(finish - start).count();
+	
+	start = std::chrono::high_resolution_clock::now();
 
 	// @{
 
