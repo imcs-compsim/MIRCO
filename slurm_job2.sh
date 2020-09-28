@@ -17,7 +17,7 @@
 # For hybrid mpi: e.g. 1 mpi process with
 # n openmp threads
 # SBATCH --ntasks=1
-# SBATCH --cpus-per-task=1
+# SBATCH --cpus-per-task=4
 # 
 # Allocate full node and block for other jobs
 #SBATCH --exclusive
