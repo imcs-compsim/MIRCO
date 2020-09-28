@@ -5,7 +5,7 @@
 ###############################
 #
 # Job name:
-#SBATCH --job-name bem 
+#SBATCH --job-name bemsup7
 #SBATCH --output=slurm-%j-%x.out
 #SBATCH --error=slurm-%j-%x.err
 #
@@ -17,7 +17,7 @@
 # For hybrid mpi: e.g. 1 mpi process with
 # n openmp threads
 # SBATCH --ntasks=1
-# SBATCH --cpus-per-task=4
+# SBATCH --cpus-per-task=1
 # 
 # Allocate full node and block for other jobs
 #SBATCH --exclusive
@@ -32,6 +32,6 @@ module load openmpi/gcc/4.0.0
 
 echo "Loaded mpi"
  
-export OMP_NUM_THREADS=4
+export OMP_NUM_THREADS=1
 
-srun /home/bartsch/BEM/bem #omp_test/test_program
+srun /home/bartsch/BEM/bem_sup7 #omp_test/test_program
