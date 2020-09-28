@@ -34,4 +34,4 @@ echo "Loaded mpi"
  
 export OMP_NUM_THREADS=1
 
-srun /home/bartsch/BEM/bem_sup5 #omp_test/test_program
+srun /home/bartsch/BEM/bem #omp_test/test_program
