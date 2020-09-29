@@ -372,7 +372,8 @@ double NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
 /*------------------------------------------*/
 
 int main(int argc, char* argv[]) {
-	omp_set_num_threads(6); // 6 seems to be optimal
+	// Commenting might not cause wrong thread amount on server
+	// omp_set_num_threads(6); // 6 seems to be optimal
   
 	auto start2 = std::chrono::high_resolution_clock::now(); // Timer for geneeralized time
 	int csteps, flagwarm;
