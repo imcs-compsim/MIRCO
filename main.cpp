@@ -553,7 +553,7 @@ int main(int argc, char* argv[]) {
 
 		Epetra_SerialDenseMatrix w;
     
-		elapsedTimeM += NonlinearSolve(A, b0new, x0, w, y) * pow(10, -3);  // y -> sol, w -> wsol; x0 -> y0
+		elapsedTimeM += NonlinearSolve(A, randomPath, b0new, x0, w, y) * pow(10, -3);  // y -> sol, w -> wsol; x0 -> y0
     
 		// Compute residial
 		// @{
