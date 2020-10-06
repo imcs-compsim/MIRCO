@@ -65,7 +65,7 @@ void CreateTopology(int systemsize, Epetra_SerialDenseMatrix& topology,
   }
   reader.close();
   topology.Shape(dimension, dimension);
-  float elements[264];
+  float elements[514];
   int position = 0, separatorPosition, lineCounter = 0;
   ifstream stream(filePath);
   string line, container;
@@ -233,7 +233,7 @@ double NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
 		// This is slightly slower than the optimal one. So far at least. Should have a bit better scaling.
 		// @{
 #pragma omp parallel for schedule(static, 16) reduction(mergeI:poss) reduction(mergeD:values)
-		for(int i = 0; i < w.M(); i++){
+		for(int i = 0; i < w.N(); i++){
 			values.push_back(w(i, 0)); poss.push_back(i);
 		}
 	  
