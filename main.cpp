@@ -65,7 +65,6 @@ void CreateTopology(int systemsize, Epetra_SerialDenseMatrix& topology,
   }
   reader.close();
   topology.Shape(dimension, dimension);
-  float elements[514];
   int position = 0, separatorPosition, lineCounter = 0;
   ifstream stream(filePath);
   string line, container;
@@ -229,6 +228,7 @@ double NonlinearSolve(Epetra_SerialDenseMatrix& matrix, string filename,
 	double minValue = w(0, 0); int minPosition = 0;
 
 	while (aux1 == true) {
+		/*
 		if (filename == "sup8.dat"){
 #pragma omp parallel
 					{
@@ -244,11 +244,11 @@ double NonlinearSolve(Epetra_SerialDenseMatrix& matrix, string filename,
 							minValue = minVP; minPosition = minPosP;
 						}
 					}
-				} else {
+				} else { */
 					// This is slightly slower than the optimal one. So far at least. Should have a bit better scaling.
 					// @{
 #pragma omp parallel for schedule(static, 16) reduction(mergeI:poss) reduction(mergeD:values)
-					for(int i = 0; i < w.M(); i++){
+					for(int i = 0; i < w.N(); i++){
 						values.push_back(w(i, 0)); poss.push_back(i);
 					}
 				  
@@ -270,7 +270,7 @@ double NonlinearSolve(Epetra_SerialDenseMatrix& matrix, string filename,
 					}
 					minValue = values[0]; minPosition = poss[0];
 					values.clear(); poss.clear();
-				}
+				// }
 				
 		// }
 	  
