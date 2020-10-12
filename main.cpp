@@ -329,6 +329,7 @@ double NonlinearSolve(Epetra_SerialDenseMatrix& matrix, string filename,
 
 			if (allBigger == true) {
 				aux2 = false;
+				
 #pragma omp parallel for schedule(guided, 16)
 				for (int x = 0; x < counter; x++) {
 					y(P[x], 0) = s0(P[x], 0);
