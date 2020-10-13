@@ -228,49 +228,30 @@ double NonlinearSolve(Epetra_SerialDenseMatrix& matrix, string filename,
 	double minValue = w(0, 0); int minPosition = 0;
 
 	while (aux1 == true) {
-		/*
-		if (filename == "sup8.dat"){
-#pragma omp parallel
-					{
-						double minVP = w(0,0); int minPosP = 0;
-#pragma omp parallel for schedule (guided, 16) // Guided and static seem to be even but guided makes more sense
-						for (int i = 0; i < w.N(); i++){
-							if (minVP > w(i,0)) {
-								minVP = w(i, 0); minPosP = i;
-							}
-						}
-#pragma omp critical
-						{
-							minValue = minVP; minPosition = minPosP;
-						}
-					}
-				} else { */
-					// This is slightly slower than the optimal one. So far at least. Should have a bit better scaling.
-					// @{
 #pragma omp parallel for schedule(static, 16) reduction(mergeI:poss) reduction(mergeD:values)
-					for(int i = 0; i < w.N(); i++){
-						values.push_back(w(i, 0)); poss.push_back(i);
-					}
-				  
-					// Get all values smaller than initial one
-					while(values.size() > 1) {
+		for(int i = 0; i < w.N(); i++){
+			values.push_back(w(i, 0)); poss.push_back(i);
+		}
+		
+		// Get all values smaller than initial one
+		while(values.size() > 1) {
 #pragma omp parallel for schedule(dynamic, 16) reduction(mergeI:newPositions) reduction(mergeD:newValues)
-						for (int i = 1; i < values.size(); i++){
-							if (values[i] < values[0]){
-								newValues.push_back(values[i]); newPositions.push_back(poss[i]);
-							}
-						}
-					  
-						if (newValues.size() == 0){
-							newValues.push_back(values[0]); newPositions.push_back(poss[0]);
-						}	
-					  
-						values = newValues; poss = newPositions;
-						newValues.clear(); newPositions.clear();
-					}
-					minValue = values[0]; minPosition = poss[0];
-					values.clear(); poss.clear();
-				// }
+			for (int i = 1; i < values.size(); i++){
+				if (values[i] < values[0]){
+					newValues.push_back(values[i]); newPositions.push_back(poss[i]);
+				}
+			}
+			
+			if (newValues.size() == 0){
+				newValues.push_back(values[0]); newPositions.push_back(poss[0]);
+			}	
+			
+			values = newValues; poss = newPositions;
+			newValues.clear(); newPositions.clear();
+		}
+		minValue = values[0]; minPosition = poss[0];
+		values.clear(); poss.clear();
+		// }
 				
 		// }
 	  
