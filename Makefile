@@ -1,8 +1,8 @@
 CC=g++
-LDIR=/rzhome/nas/compsim/public/lib/Q1_2015/TPL/trilinos-build/lib
-LIBS= $(LDIR)/*.a -lmpi -lmpi_cxx -lblas -lkokkoscore -llapack
-IDIR=/rzhome/nas/compsim/public/lib/Q1_2015/TPL/trilinos-build/include
-MPI=/usr/lib/openmpi/lib
+LDIR=/imcs/public/compsim/lib/Q4_2019_ubuntu20/TPL/trilinos-build-release/lib
+LIBS= $(LDIR)/*.a -lmpi -lmpi_cxx -lblas -lkokkoscore -llapack -ldl
+IDIR=/imcs/public/compsim/lib/Q4_2019_ubuntu20/TPL/trilinos-build-release/include
+MPI=/usr/lib/x86_64-linux-gnu/openmpi/lib
 CFLAGS=-std=c++11 -I$(IDIR) -L$(LDIR) -L$(MPI) -fopenmp
 
 %.o: %.cpp
