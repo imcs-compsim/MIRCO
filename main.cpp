@@ -6,8 +6,8 @@
 #include <iostream>  //ifstream
 #include <string>    //std::to_string, std::stod
 #include <vector>	// Seems obvious
-#include "include/Epetra_SerialSpdDenseSolver.h"	// Seems obvious
-#include "include/Epetra_SerialSymDenseMatrix.h"	// Seems obvious
+#include <Epetra_SerialSpdDenseSolver.h>	// Seems obvious
+#include <Epetra_SerialSymDenseMatrix.h>	// Seems obvious
 #include <chrono> // time stuff
 #include <ctime>
 using namespace std;
@@ -37,7 +37,7 @@ void SetParameters(double& E1, double& E2, int& csteps, int& flagwarm,
                            0.826126871395416, 0.841369158110513,
                            0.851733020725652, 0.858342234203154,
                            0.862368243479785, 0.864741597831785};
-  int nn = 8;  // CHANGE THIS WHEN CHANGING FILES
+  int nn = 5;  // CHANGE THIS WHEN CHANGING FILES
   alpha = alpha_con[nn - 1];
   csteps = 1;
   ampface = 1;
@@ -372,7 +372,7 @@ double NonlinearSolve(Epetra_SerialDenseMatrix& matrix, string filename,
 
 int main(int argc, char* argv[]) {
 	// Commenting might not cause wrong thread amount on server
-	// omp_set_num_threads(6); // 6 seems to be optimal
+	 omp_set_num_threads(6); // 6 seems to be optimal
   
 	auto start2 = std::chrono::high_resolution_clock::now(); // Timer for geneeralized time
 	int csteps, flagwarm;
@@ -380,7 +380,7 @@ int main(int argc, char* argv[]) {
 		E2, lato, zref, ampface, errf, sum = 0;
 	double Delta = 50;  // only used for debugging
 	double elapsedTimeM = 0;
-	string randomPath = "sup8.dat";
+	string randomPath = "sup5.dat";
 	SetParameters(E1, E2, csteps, flagwarm, lato, zref, ampface, nu1, nu2, G1, G2,
                 E, G, nu, alpha, H, rnd, k_el, delta, nnodi, errf, to1);
 
@@ -625,11 +625,11 @@ int main(int argc, char* argv[]) {
 	cout << "Mean pressure is:" + std::to_string(sigmaz) +
               " ; pressure unit per depth is:" + std::to_string(pressz) +
               " . \n";
-	if (abs(sigmaz - 0.130720) > to1) {
-		std::runtime_error("Differenz ist zu groß!");  // for nn=2
-	}
-	// if (abs(sigmaz - 0.246623) > to1)
-	//   std::runtime_error("Differenz ist zu groß!");  // for nn=5
+//	if (abs(sigmaz - 0.130720) > to1) {
+//		std::runtime_error("Differenz ist zu groß!");  // for nn=2
+//	}
+	 if (abs(sigmaz - 0.246623) > to1)
+	   cout << "Differenz ist zu groß!" << std::endl;;  // for nn=5
   
 	auto finish = std::chrono::high_resolution_clock::now();
 	double elapsedTimeG = std::chrono::duration_cast<std::chrono::milliseconds>(finish - start2).count() * pow(10, -3);
