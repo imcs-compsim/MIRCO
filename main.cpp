@@ -6,8 +6,8 @@
 #include <iostream>  //ifstream
 #include <string>    //std::to_string, std::stod
 #include <vector>	// Seems obvious
-#include "include/Epetra_SerialSpdDenseSolver.h"	// Seems obvious
-#include "include/Epetra_SerialSymDenseMatrix.h"	// Seems obvious
+#include <Epetra_SerialSpdDenseSolver.h>	// Seems obvious
+#include <Epetra_SerialSymDenseMatrix.h>	// Seems obvious
 #include <chrono> // time stuff
 #include <ctime>
 using namespace std;
@@ -665,10 +665,10 @@ int main(int argc, char* argv[]) {
   cout << "Mean pressure is:" + std::to_string(sigmaz) +
               " ; pressure unit per depth is:" + std::to_string(pressz) +
               " . \n";
-  if (abs(sigmaz - 0.130720) > to1)
-    std::runtime_error("Differenz ist zu groß!");  // for nn=2
-  // if (abs(sigmaz - 0.246623) > to1)
-  //   std::runtime_error("Differenz ist zu groß!");  // for nn=5
+ // if (abs(sigmaz - 0.130720) > to1)
+ //   std::runtime_error("Differenz ist zu groß!");  // for nn=2
+   if (abs(sigmaz - 0.246623) > to1)
+     cout << "Differenz ist zu groß!" << std::endl;  // for nn=5
   
   
   auto finish = std::chrono::high_resolution_clock::now();
