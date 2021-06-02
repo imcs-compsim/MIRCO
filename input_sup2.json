@@ -1,0 +1,21 @@
+{
+    "z_file_path" : "sup2.dat",
+    "parameters" : 
+    {
+        "material_parameters" : 
+        {
+            "E1"  : 1,
+            "nu1" : 0.3,
+            "E2"  : 1,
+            "nu2" : 0.3
+        },
+        "geometrical_parameters" : 
+        {
+            "lato" : 1000,
+            "n" : 2,
+            "Delta" : 50, 
+            "errf" : 100000000,
+            "tol" : 0.01
+        }
+    }
+}
