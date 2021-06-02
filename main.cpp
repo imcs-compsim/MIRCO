@@ -22,8 +22,8 @@ using namespace std;
 
 void SetParameters(double& E1, double& E2,
                    double& lato, double& nu1,
-                   double& nu2, double& G1, double& G2, double& E, double& G,
-                   double& nu, double& alpha,
+                   double& nu2, double& G1, double& G2, double& E,
+                   double& alpha,
                    double& k_el, double& delta, double& nnodi, double& errf,
                    double& to1, double& Delta, string& zfilePath, int& n) {
   
@@ -40,8 +40,6 @@ void SetParameters(double& E1, double& E2,
   G1 = E1 / (2 * (1 + nu1));
   G2 = E2 / (2 * (1 + nu2));
   E = 1 / ((1 - pow(nu1, 2)) / E1 + (1 - pow(nu2, 2) / E2));
-  G = 1 / ((2 - nu1) / (4 * G1) + (2 - nu2) / (4 * G2)); // not used
-  nu = E / (2 * G) - 1;  //--> not used
   vector<double> alpha_con{0.778958541513360, 0.805513388666376,
                            0.826126871395416, 0.841369158110513,
                            0.851733020725652, 0.858342234203154,
@@ -439,12 +437,12 @@ int main(int argc, char* argv[]) {
   
 	auto start = std::chrono::high_resolution_clock::now();
 	int csteps, flagwarm, n;
-	double nu1, nu2, G1, G2, E, G, nu, alpha, k_el, delta, nnodi, to1, E1,
+	double nu1, nu2, G1, G2, E, alpha, k_el, delta, nnodi, to1, E1,
 		E2, lato, errf, sum = 0, Delta;
 	string zfilePath;
 
 	SetParameters(E1, E2, lato, nu1, nu2, G1, G2,
-                E, G, nu, alpha, k_el, delta, nnodi, errf, to1, Delta, zfilePath, n);
+                E, alpha, k_el, delta, nnodi, errf, to1, Delta, zfilePath, n);
 
 	std::cout << "File is " + zfilePath << endl;
   
