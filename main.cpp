@@ -25,11 +25,11 @@ void SetParameters(double& E1, double& E2,
                    double& nu2, double& G1, double& G2, double& E,
                    double& alpha,
                    double& k_el, double& delta, double& nnodi, double& errf,
-                   double& to1, double& Delta, string& zfilePath, int& n) {
+                   double& to1, double& Delta, string& zfilePath, int& n, string& jsonFileName) {
   
   
   Json::Value parameterlist;   // will contain the root value after parsing.
-  ifstream stream("input.json", std::ifstream::binary);
+  ifstream stream(jsonFileName, std::ifstream::binary);
   stream >> parameterlist; 
 
   zfilePath = parameterlist["z_file_path"].asString();
@@ -441,8 +441,10 @@ int main(int argc, char* argv[]) {
 		E2, lato, errf, sum = 0, Delta;
 	string zfilePath;
 
+  string jsonFileName = argv[1]; // reading the json file name from the command line
+
 	SetParameters(E1, E2, lato, nu1, nu2, G1, G2,
-                E, alpha, k_el, delta, nnodi, errf, to1, Delta, zfilePath, n);
+                E, alpha, k_el, delta, nnodi, errf, to1, Delta, zfilePath, n, jsonFileName);
 
 	std::cout << "File is " + zfilePath << endl;
   
@@ -672,10 +674,6 @@ int main(int argc, char* argv[]) {
 
   force = force0[k - 1];
   area = area0[k - 1];
-
-
-  //for(int i=0; i < y.M(); i++)
-  // std::cout << y(i,0) << ' ';   to print the y output
 
   // }
   // }
