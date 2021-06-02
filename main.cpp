@@ -20,26 +20,23 @@ using namespace std;
 // Declaration for std::vector<double> reduction in parallel loops.
 #pragma omp declare reduction(mergeD:std::vector<double>:omp_out.insert(omp_out.end(), omp_in.begin(), omp_in.end()))
 
-void ReadParameters(double& E1, double& E2, int& csteps, int& flagwarm,
-                   double& lato, double& ampface, double& nu1,
+void SetParameters(double& E1, double& E2,
+                   double& lato, double& nu1,
                    double& nu2, double& G1, double& G2, double& E, double& G,
-                   double& nu, double& alpha, double& H,
+                   double& nu, double& alpha,
                    double& k_el, double& delta, double& nnodi, double& errf,
                    double& to1, double& Delta, string& zfilePath, int& n) {
   
   
-  Json::Value root;   // will contain the root value after parsing.
+  Json::Value parameterlist;   // will contain the root value after parsing.
   ifstream stream("input.json", std::ifstream::binary);
-  stream >> root; 
-  //cout << root << "\n";
-  //cout << root["z_file_path"].asString() << endl;
-  //cout << root["parameters"]["material_parameters"]["E1"].asDouble() << endl;
+  stream >> parameterlist; 
 
-  zfilePath = root["z_file_path"].asString();
-  E1 = root["parameters"]["material_parameters"]["E1"].asDouble();
-  E2 = root["parameters"]["material_parameters"]["E2"].asDouble();
-  nu1 = root["parameters"]["material_parameters"]["nu1"].asDouble();
-  nu2 = root["parameters"]["material_parameters"]["nu2"].asDouble();
+  zfilePath = parameterlist["z_file_path"].asString();
+  E1 = parameterlist["parameters"]["material_parameters"]["E1"].asDouble();
+  E2 = parameterlist["parameters"]["material_parameters"]["E2"].asDouble();
+  nu1 = parameterlist["parameters"]["material_parameters"]["nu1"].asDouble();
+  nu2 = parameterlist["parameters"]["material_parameters"]["nu2"].asDouble();
   G1 = E1 / (2 * (1 + nu1));
   G2 = E2 / (2 * (1 + nu2));
   E = 1 / ((1 - pow(nu1, 2)) / E1 + (1 - pow(nu2, 2) / E2));
@@ -49,19 +46,15 @@ void ReadParameters(double& E1, double& E2, int& csteps, int& flagwarm,
                            0.826126871395416, 0.841369158110513,
                            0.851733020725652, 0.858342234203154,
                            0.862368243479785, 0.864741597831785};
-  n = root["parameters"]["geometrical_parameters"]["n"].asInt();
+  n = parameterlist["parameters"]["geometrical_parameters"]["n"].asInt();
   alpha = alpha_con[n - 1];
-  csteps = root["parameters"]["geometrical_parameters"]["csteps"].asInt();
-  ampface = root["parameters"]["geometrical_parameters"]["ampface"].asDouble();
-  flagwarm = root["parameters"]["geometrical_parameters"]["flagwarm"].asInt();
-  lato = root["parameters"]["geometrical_parameters"]["lato"].asDouble();  // Lateral side of the surface [micrometers]
-  H = root["parameters"]["geometrical_parameters"]["H"].asDouble();      // Hurst Exponent (D = 3 - H) -- not used
+  lato = parameterlist["parameters"]["geometrical_parameters"]["lato"].asDouble();  // Lateral side of the surface [micrometers]
   k_el = lato * E / alpha; 
   delta = lato / (pow(2, n) + 1);
   nnodi = pow(pow(2, n + 1), 2);
-  errf = root["parameters"]["geometrical_parameters"]["errf"].asDouble();
-  to1 = root["parameters"]["geometrical_parameters"]["tol"].asDouble();
-  Delta = root["parameters"]["geometrical_parameters"]["Delta"].asDouble();
+  errf = parameterlist["parameters"]["geometrical_parameters"]["errf"].asDouble();
+  to1 = parameterlist["parameters"]["geometrical_parameters"]["tol"].asDouble();
+  Delta = parameterlist["parameters"]["geometrical_parameters"]["Delta"].asDouble();
 }
 
 /*------------------------------------------*/
@@ -163,32 +156,26 @@ Epetra_SerialDenseMatrix Warmstart(Epetra_SerialDenseMatrix xv0, Epetra_SerialDe
     return x0;
 }
 
-void writeToFile(string time, string fileName, int threadAmount){
-	ofstream outfile;
-	outfile.open("study_data_" + fileName, std::ofstream::app);
-	outfile << "(" + to_string(threadAmount) + ") Time for " + fileName + " is: " + time + " seconds." << endl;
-	outfile.close();
-}
-
-void writeForceToFile(Epetra_SerialDenseMatrix& y, string fileName){
+void writeForceToFile(Epetra_SerialDenseMatrix& y, string pathName, int& n){
 
   int i;
   int j;
+  int n_size = pow(2,n) + 1;
 
-  std::size_t botDirPos = fileName.find_last_of("/") + 1;
+  std::size_t botDirPos = pathName.find_last_of("/") + 1;
   // get directory
-  std::string dir = fileName.substr(0, botDirPos);
+  std::string dir = pathName.substr(0, botDirPos);
   // get file
-  std::string file = fileName.substr(botDirPos, fileName.length());
+  std::string file = pathName.substr(botDirPos, pathName.length());
   // cout << y << endl;
 
 	ofstream outfile;
 	outfile.open("result_force_" + file, std::ofstream::trunc);
 	
-  for (i=0; i<5; i++){
-    for (j=0; j<5; j++) {
+  for (i=0; i<n_size; i++){
+    for (j=0; j<n_size; j++) {
       outfile << std::setw(12);
-      outfile << y(i*5+j,0) << ";";
+      outfile << y(i*n_size+j,0) << ";";
     }
     outfile << endl;
   }  
@@ -452,12 +439,12 @@ int main(int argc, char* argv[]) {
   
 	auto start = std::chrono::high_resolution_clock::now();
 	int csteps, flagwarm, n;
-	double nu1, nu2, G1, G2, E, G, nu, alpha, H, k_el, delta, nnodi, to1, E1,
-		E2, lato, ampface, errf, sum = 0, Delta;
+	double nu1, nu2, G1, G2, E, G, nu, alpha, k_el, delta, nnodi, to1, E1,
+		E2, lato, errf, sum = 0, Delta;
 	string zfilePath;
-  
-	ReadParameters(E1, E2, csteps, flagwarm, lato, ampface, nu1, nu2, G1, G2,
-                E, G, nu, alpha, H, k_el, delta, nnodi, errf, to1, Delta, zfilePath, n);
+
+	SetParameters(E1, E2, lato, nu1, nu2, G1, G2,
+                E, G, nu, alpha, k_el, delta, nnodi, errf, to1, Delta, zfilePath, n);
 
 	std::cout << "File is " + zfilePath << endl;
   
@@ -688,11 +675,9 @@ int main(int argc, char* argv[]) {
   force = force0[k - 1];
   area = area0[k - 1];
 
-  //cout << "the number of contact points = " << nf << endl;
-  //cout << "the number of total points = " << y.M() << endl; 
 
   //for(int i=0; i < y.M(); i++)
-  // std::cout << y(i,0) << ' ';
+  // std::cout << y(i,0) << ' ';   to print the y output
 
   // }
   // }
@@ -724,6 +709,5 @@ int main(int argc, char* argv[]) {
 	  thread_amount = omp_get_num_threads();
   }
   
-  //writeToFile(to_string(elapsedTime2), zfilePath, thread_amount);
-  writeForceToFile(y, zfilePath);
+  writeForceToFile(y, zfilePath, n);
 }
