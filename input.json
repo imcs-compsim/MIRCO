@@ -1,0 +1,25 @@
+{
+    "z_file_path" : "/home/a11btasa/git_repos/bem/sup2.dat",
+    "parameters" : 
+    {
+        "material_parameters" : 
+        {
+            "E1"  : 1,
+            "nu1" : 0.3,
+            "E2"  : 1,
+            "nu2" : 0.3
+        },
+        "geometrical_parameters" : 
+        {
+            "flagwarm" : 1,
+            "csteps" : 1,
+            "lato" : 1000,
+            "ampface" : 1,
+            "H" : 0.1,
+            "n" : 2,
+            "Delta" : 50, 
+            "errf" : 100000000,
+            "tol" : 0.01
+        }
+    }
+}
