@@ -5,3 +5,4 @@ BEM_routines
 .cproject
 .project
 slurm-*
+.vscode

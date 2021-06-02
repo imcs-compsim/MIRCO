@@ -10,7 +10,9 @@
 #include <Epetra_SerialSymDenseMatrix.h>	// Seems obvious
 #include <chrono> // time stuff
 #include <ctime>
+#include <jsoncpp/json/json.h> // reading json file
 using namespace std;
+
 
 // Declaration for std::vector<int> reduction in parallel loops.
 #pragma omp declare reduction(mergeI:std::vector<int>:omp_out.insert(omp_out.end(), omp_in.begin(), omp_in.end()))
@@ -18,39 +20,39 @@ using namespace std;
 // Declaration for std::vector<double> reduction in parallel loops.
 #pragma omp declare reduction(mergeD:std::vector<double>:omp_out.insert(omp_out.end(), omp_in.begin(), omp_in.end()))
 
-void SetParameters(double& E1, double& E2, int& csteps, int& flagwarm,
-                   double& lato, double& zref, double& ampface, double& nu1,
-                   double& nu2, double& G1, double& G2, double& E, double& G,
-                   double& nu, double& alpha, double& H, double& rnd,
+void SetParameters(double& E1, double& E2,
+                   double& lato, double& nu1,
+                   double& nu2, double& G1, double& G2, double& E,
+                   double& alpha,
                    double& k_el, double& delta, double& nnodi, double& errf,
-                   double& to1) {
-  E1 = 1;
-  E2 = 1;
-  nu1 = 0.3;
-  nu2 = 0.3;
+                   double& to1, double& Delta, string& zfilePath, int& n, string& jsonFileName) {
+  
+  
+  Json::Value parameterlist;   // will contain the root value after parsing.
+  ifstream stream(jsonFileName, std::ifstream::binary);
+  stream >> parameterlist; 
+
+  zfilePath = parameterlist["z_file_path"].asString();
+  E1 = parameterlist["parameters"]["material_parameters"]["E1"].asDouble();
+  E2 = parameterlist["parameters"]["material_parameters"]["E2"].asDouble();
+  nu1 = parameterlist["parameters"]["material_parameters"]["nu1"].asDouble();
+  nu2 = parameterlist["parameters"]["material_parameters"]["nu2"].asDouble();
   G1 = E1 / (2 * (1 + nu1));
   G2 = E2 / (2 * (1 + nu2));
   E = 1 / ((1 - pow(nu1, 2)) / E1 + (1 - pow(nu2, 2) / E2));
-  G = 1 / ((2 - nu1) / (4 * G1) + (2 - nu2) / (4 * G2));
-  nu = E / (2 * G) - 1;
   vector<double> alpha_con{0.778958541513360, 0.805513388666376,
                            0.826126871395416, 0.841369158110513,
                            0.851733020725652, 0.858342234203154,
                            0.862368243479785, 0.864741597831785};
-  int nn = 5;  // CHANGE THIS WHEN CHANGING FILES
-  alpha = alpha_con[nn - 1];
-  csteps = 1;
-  ampface = 1;
-  flagwarm = 1;
-  lato = 1000;  // Lateral side of the surface [micrometers]
-  H = 0.1;      // Hurst Exponent (D = 3 - H)
-  rnd = 95.0129;
-  zref = 50;  // Reference for the Scaling, former value = 25
-  k_el = lato * E / alpha;
-  delta = lato / (pow(2, nn) + 1);
-  nnodi = pow(pow(2, nn + 1), 2);
-  errf = 100000000;
-  to1 = 0.01;
+  n = parameterlist["parameters"]["geometrical_parameters"]["n"].asInt();
+  alpha = alpha_con[n - 1];
+  lato = parameterlist["parameters"]["geometrical_parameters"]["lato"].asDouble();  // Lateral side of the surface [micrometers]
+  k_el = lato * E / alpha; 
+  delta = lato / (pow(2, n) + 1);
+  nnodi = pow(pow(2, n + 1), 2);
+  errf = parameterlist["parameters"]["geometrical_parameters"]["errf"].asDouble();
+  to1 = parameterlist["parameters"]["geometrical_parameters"]["tol"].asDouble();
+  Delta = parameterlist["parameters"]["geometrical_parameters"]["Delta"].asDouble();
 }
 
 /*------------------------------------------*/
@@ -152,10 +154,29 @@ Epetra_SerialDenseMatrix Warmstart(Epetra_SerialDenseMatrix xv0, Epetra_SerialDe
     return x0;
 }
 
-void writeToFile(string time, string fileName, int threadAmount){
+void writeForceToFile(Epetra_SerialDenseMatrix& y, string pathName, int& n){
+
+  int i;
+  int j;
+  int n_size = pow(2,n) + 1;
+
+  std::size_t botDirPos = pathName.find_last_of("/") + 1;
+  // get directory
+  std::string dir = pathName.substr(0, botDirPos);
+  // get file
+  std::string file = pathName.substr(botDirPos, pathName.length());
+  // cout << y << endl;
+
 	ofstream outfile;
-	outfile.open("study_data_" + fileName, std::ofstream::app);
-	outfile << "(" + to_string(threadAmount) + ") Time for " + fileName + " is: " + time + " seconds." << endl;
+	outfile.open("result_force_" + file, std::ofstream::trunc);
+	
+  for (i=0; i<n_size; i++){
+    for (j=0; j<n_size; j++) {
+      outfile << std::setw(12);
+      outfile << y(i*n_size+j,0) << ";";
+    }
+    outfile << endl;
+  }  
 	outfile.close();
 }
 
@@ -415,15 +436,17 @@ int main(int argc, char* argv[]) {
 	omp_set_num_threads(6); // 6 seems to be optimal
   
 	auto start = std::chrono::high_resolution_clock::now();
-	int csteps, flagwarm;
-	double nu1, nu2, G1, G2, E, G, nu, alpha, H, rnd, k_el, delta, nnodi, to1, E1,
-		E2, lato, zref, ampface, errf, sum = 0;
-	double Delta = 50;  // only used for debugging
-	string randomPath = "sup5.dat";
-	SetParameters(E1, E2, csteps, flagwarm, lato, zref, ampface, nu1, nu2, G1, G2,
-                E, G, nu, alpha, H, rnd, k_el, delta, nnodi, errf, to1);
+	int csteps, flagwarm, n;
+	double nu1, nu2, G1, G2, E, alpha, k_el, delta, nnodi, to1, E1,
+		E2, lato, errf, sum = 0, Delta;
+	string zfilePath;
 
-	std::cout << "File is " + randomPath << endl;
+  string jsonFileName = argv[1]; // reading the json file name from the command line
+
+	SetParameters(E1, E2, lato, nu1, nu2, G1, G2,
+                E, alpha, k_el, delta, nnodi, errf, to1, Delta, zfilePath, n, jsonFileName);
+
+	std::cout << "File is " + zfilePath << endl;
   
 	time_t now = time(0);
 	tm *ltm = localtime(&now);
@@ -442,7 +465,7 @@ int main(int argc, char* argv[]) {
   
 	// Setup Topology
 	Epetra_SerialDenseMatrix topology, y;
-	CreateTopology(topology.N(), topology, randomPath);
+	CreateTopology(topology.N(), topology, zfilePath);
 
 	double zmax = 0;
 	double zmean = 0;
@@ -682,5 +705,5 @@ int main(int argc, char* argv[]) {
 	  thread_amount = omp_get_num_threads();
   }
   
-  writeToFile(to_string(elapsedTime2), randomPath, thread_amount);
+  writeForceToFile(y, zfilePath, n);
 }
