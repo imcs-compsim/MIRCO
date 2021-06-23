@@ -153,12 +153,10 @@ Epetra_SerialDenseMatrix Warmstart(Epetra_SerialDenseMatrix xv0, Epetra_SerialDe
     }
     return x0;
 }
-
-void writeForceToFile(Epetra_SerialDenseMatrix& y, string pathName, int& n){
+/*------------------------------------------*/
+void writeForceToFile(Epetra_SerialDenseMatrix& y, string pathName){
 
   int i;
-  int j;
-  int n_size = pow(2,n) + 1;
 
   std::size_t botDirPos = pathName.find_last_of("/") + 1;
   // get directory
@@ -170,17 +168,14 @@ void writeForceToFile(Epetra_SerialDenseMatrix& y, string pathName, int& n){
 
 	ofstream outfile;
 	outfile.open(file, std::ofstream::trunc);
-	
-  for (i=0; i<n_size; i++){
-    for (j=0; j<n_size; j++) {
-      outfile << std::setw(12);
-      outfile << y(i*n_size+j,0) << ";";
-    }
-    outfile << endl;
-  }  
-	outfile.close();
-}
 
+  for (int i = 0; i < y.M(); i++) {
+    if (y(i, 0) != 0) {
+      outfile << y(i,0) << ";";
+    }
+  }
+}
+/*------------------------------------------*/
 Epetra_SerialDenseMatrix Warmstart2(Epetra_SerialDenseMatrix xv0, Epetra_SerialDenseMatrix yv0, Epetra_SerialDenseMatrix& xvf,
     Epetra_SerialDenseMatrix& yvf, Epetra_SerialDenseMatrix& pf) {
     Epetra_SerialDenseMatrix x0; x0.Shape(xv0.N(), 1);
@@ -706,5 +701,5 @@ int main(int argc, char* argv[]) {
 	  thread_amount = omp_get_num_threads();
   }
   
-  writeForceToFile(y, zfilePath, n);
+  writeForceToFile(y, zfilePath);
 }
