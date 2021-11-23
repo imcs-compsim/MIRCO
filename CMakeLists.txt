@@ -31,9 +31,6 @@ project(bem)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -O3 -std=c++11 -ljsoncpp")
 
 # Add libraries
-
-set(TRILINOS_PATH "/imcs/public/compsim/lib/Q4_2019_ubuntu20/TPL/trilinos-build-release/lib/cmake/Trilinos")
-
 set(CMAKE_PREFIX_PATH ${TRILINOS_PATH} ${CMAKE_PREFIX_PATH})
 find_package(Trilinos REQUIRED)
 

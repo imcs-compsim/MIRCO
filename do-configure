@@ -1,0 +1,15 @@
+#!/bin/bash
+
+SOURCE_DIRECTORY="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+BUILD_DIRECTORY=`pwd`
+
+Trilinos_DIR="/imcs/public/compsim/lib/Q4_2019_ubuntu20/TPL/trilinos-build-release/lib/cmake/Trilinos"
+
+echo "Source and build directory:"
+echo "-- Path to source code:    " $SOURCE_DIRECTORY
+echo "-- Path to build directory:" $BUILD_DIRECTORY
+
+cmake \
+  -D TRILINOS_PATH:PATH="${Trilinos_DIR}" \
+  "${SOURCE_DIRECTORY}"
+
