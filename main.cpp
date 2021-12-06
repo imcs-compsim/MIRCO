@@ -13,6 +13,7 @@
 #include <jsoncpp/json/json.h> // reading json file
 using namespace std;
 
+#include "topology.h"
 
 // Declaration for std::vector<int> reduction in parallel loops.
 #pragma omp declare reduction(mergeI:std::vector<int>:omp_out.insert(omp_out.end(), omp_in.begin(), omp_in.end()))
@@ -56,36 +57,36 @@ void SetParameters(double& E1, double& E2,
 }
 
 /*------------------------------------------*/
-void CreateTopology(int systemsize, Epetra_SerialDenseMatrix& topology,
-                    string filePath) {
-  // Readin for amount of lines -> dimension of matrix
-  ifstream reader(filePath);
-  string blaLine;
-  int dimension = 0;
-  while (getline(reader, blaLine)) {
-    dimension += 1;
-  }
-  reader.close();
-  topology.Shape(dimension, dimension);
-  float elements[264];
-  int position = 0, separatorPosition, lineCounter = 0;
-  ifstream stream(filePath);
-  string line, container;
-  double value;
-  while (getline(stream, line)) {
-    separatorPosition = 0;
-    lineCounter += 1;
-    for (int i = 0; i < dimension; i++) {    // Parallel not possible, since no synchronization points possible
-    	separatorPosition = line.find_first_of(';');
-    	container = line.substr(0, separatorPosition);
-    	position += 1;
-    	line = line.substr(separatorPosition + 1, line.length());
-    	value = stod(container);
-    	topology(lineCounter - 1, i) = value;
-    }
-  }
-  stream.close();
-}
+// void CreateTopology(int systemsize, Epetra_SerialDenseMatrix& topology,
+//                     string filePath) {
+//   // Readin for amount of lines -> dimension of matrix
+//   ifstream reader(filePath);
+//   string blaLine;
+//   int dimension = 0;
+//   while (getline(reader, blaLine)) {
+//     dimension += 1;
+//   }
+//   reader.close();
+//   topology.Shape(dimension, dimension);
+//   float elements[264];
+//   int position = 0, separatorPosition, lineCounter = 0;
+//   ifstream stream(filePath);
+//   string line, container;
+//   double value;
+//   while (getline(stream, line)) {
+//     separatorPosition = 0;
+//     lineCounter += 1;
+//     for (int i = 0; i < dimension; i++) {    // Parallel not possible, since no synchronization points possible
+//     	separatorPosition = line.find_first_of(';');
+//     	container = line.substr(0, separatorPosition);
+//     	position += 1;
+//     	line = line.substr(separatorPosition + 1, line.length());
+//     	value = stod(container);
+//     	topology(lineCounter - 1, i) = value;
+//     }
+//   }
+//   stream.close();
+// }
 
 /*------------------------------------------*/
 void SetUpMatrix(Epetra_SerialDenseMatrix& A, std::vector<double> xv0,
@@ -461,7 +462,23 @@ int main(int argc, char* argv[]) {
   
 	// Setup Topology
 	Epetra_SerialDenseMatrix topology, y;
-	CreateTopology(topology.N(), topology, zfilePath);
+  int N = pow(2,n);
+  topology.Shape(N+1,N+1);
+  bool rmgflag = false; // switch between rmg and readfile
+  if (rmgflag)
+  {
+    double H = 0.1; // Hurst Component
+    Rmg rmgsurf = Rmg(n,H);
+    rmgsurf.GetSurface(topology);
+  }
+  else
+  {
+    ReadFile rfsurf = ReadFile(n, zfilePath);
+    rfsurf.GetSurface(topology);
+  }
+  cout << topology << endl;
+
+	//CreateTopology(topology.N(), topology, zfilePath);
 
 	double zmax = 0;
 	double zmean = 0;
