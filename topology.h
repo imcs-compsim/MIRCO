@@ -3,11 +3,11 @@
 class TopologyGeneration
 {
 public:
-int n;
+int resolution; // resolution parameter
     virtual void GetSurface(Epetra_SerialDenseMatrix &z) = 0;
     TopologyGeneration(int nn)
     {
-        n = nn;
+        resolution = nn;
     }
 };
 
@@ -25,10 +25,12 @@ string filepath;
 class Rmg : public TopologyGeneration
 {
 public:
-double H;
+double Hurst; // Hurst component
+bool rand_seed_flag;
     void GetSurface(Epetra_SerialDenseMatrix &z) override;
-    Rmg(int nn, double HH) : TopologyGeneration(nn)
+    Rmg(int nn, double HH, bool rsf) : TopologyGeneration(nn)
     {
-        H = HH;
+        Hurst = HH;
+        rand_seed_flag = rsf;
     }
 };
