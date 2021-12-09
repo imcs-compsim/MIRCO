@@ -1,4 +1,5 @@
 #include <Epetra_SerialDenseMatrix.h> // Seems obvious
+#include <string>
 
 class TopologyGeneration
 {
@@ -14,9 +15,9 @@ int resolution; // resolution parameter
 class ReadFile : public TopologyGeneration
 {
 public:
-string filepath;
+std::string filepath;
     void GetSurface(Epetra_SerialDenseMatrix &z) override;
-    ReadFile(int nn, string ffilepath) : TopologyGeneration(nn)
+    ReadFile(int nn, std::string ffilepath) : TopologyGeneration(nn)
     {
         filepath = ffilepath;
     }

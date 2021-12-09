@@ -15,6 +15,7 @@
 using namespace std;
 
 #include "topology.h"
+#include "topologyfactory.h"
 
 // Declaration for std::vector<int> reduction in parallel loops.
 #pragma omp declare reduction(mergeI:std::vector<int>:omp_out.insert(omp_out.end(), omp_in.begin(), omp_in.end()))
@@ -441,14 +442,7 @@ int main(int argc, char* argv[]) {
 
   std::shared_ptr<TopologyGeneration> surfacegenerator;
 
-  if (rmg_flag)
-  {
-    surfacegenerator = std::shared_ptr<Rmg>(new Rmg(n,Hurst,rand_seed_flag));
-  }
-  else
-  {
-    surfacegenerator = std::shared_ptr<ReadFile>(new ReadFile(n, zfilePath));
-  }
+  SortSurf(n,Hurst,rand_seed_flag,zfilePath,rmg_flag,surfacegenerator); // creating the correct surface object
 
   surfacegenerator->GetSurface(topology);
 
