@@ -10,6 +10,7 @@
 #include <Epetra_SerialSymDenseMatrix.h>
 #include <chrono> 
 #include <ctime>
+#include <memory>
 #include <jsoncpp/json/json.h>
 using namespace std;
 
@@ -437,16 +438,19 @@ int main(int argc, char* argv[]) {
 	Epetra_SerialDenseMatrix topology, y;
   int N = pow(2,n);
   topology.Shape(N+1,N+1);
+
+  std::shared_ptr<TopologyGeneration> surfacegenerator;
+
   if (rmg_flag)
   {
-    Rmg rmgsurf = Rmg(n,Hurst,rand_seed_flag);
-    rmgsurf.GetSurface(topology);
+    surfacegenerator = std::shared_ptr<Rmg>(new Rmg(n,Hurst,rand_seed_flag));
   }
   else
   {
-    ReadFile rfsurf = ReadFile(n, zfilePath);
-    rfsurf.GetSurface(topology);
+    surfacegenerator = std::shared_ptr<ReadFile>(new ReadFile(n, zfilePath));
   }
+
+  surfacegenerator->GetSurface(topology);
 
 	double zmax = 0;
 	double zmean = 0;
