@@ -1,18 +1,21 @@
-#include <omp.h>	// Seems obvious
-#include <unistd.h>		// Linux stuff
-#include <cmath>  //pow
-#include <cstdio>	// IO stuff
-#include <fstream>   //ifstream
-#include <iostream>  //ifstream
-#include <string>    //std::to_string, std::stod
-#include <vector>	// Seems obvious
-#include <Epetra_SerialSpdDenseSolver.h>	// Seems obvious
-#include <Epetra_SerialSymDenseMatrix.h>	// Seems obvious
-#include <chrono> // time stuff
+#include <omp.h>
+#include <unistd.h>
+#include <cmath>
+#include <cstdio>	
+#include <fstream> 
+#include <iostream> 
+#include <string>
+#include <vector>
+#include <Epetra_SerialSpdDenseSolver.h>
+#include <Epetra_SerialSymDenseMatrix.h>
+#include <chrono> 
 #include <ctime>
-#include <jsoncpp/json/json.h> // reading json file
+#include <memory>
+#include <jsoncpp/json/json.h>
 using namespace std;
 
+#include "topology.h"
+#include "topologyfactory.h"
 
 // Declaration for std::vector<int> reduction in parallel loops.
 #pragma omp declare reduction(mergeI:std::vector<int>:omp_out.insert(omp_out.end(), omp_in.begin(), omp_in.end()))
@@ -25,13 +28,15 @@ void SetParameters(double& E1, double& E2,
                    double& nu2, double& G1, double& G2, double& E,
                    double& alpha,
                    double& k_el, double& delta, double& nnodi, double& errf,
-                   double& to1, double& Delta, string& zfilePath, int& n, string& jsonFileName) {
+                   double& to1, double& Delta, string& zfilePath, int& n, string& jsonFileName, bool& rmg_flag, double& Hurst, bool& rand_seed_flag) {
   
   
   Json::Value parameterlist;   // will contain the root value after parsing.
   ifstream stream(jsonFileName, std::ifstream::binary);
   stream >> parameterlist; 
 
+  rmg_flag = parameterlist["rmg_flag"].asBool();
+  rand_seed_flag = parameterlist["rand_seed_flag"].asBool();
   zfilePath = parameterlist["z_file_path"].asString();
   E1 = parameterlist["parameters"]["material_parameters"]["E1"].asDouble();
   E2 = parameterlist["parameters"]["material_parameters"]["E2"].asDouble();
@@ -45,6 +50,7 @@ void SetParameters(double& E1, double& E2,
                            0.851733020725652, 0.858342234203154,
                            0.862368243479785, 0.864741597831785};
   n = parameterlist["parameters"]["geometrical_parameters"]["n"].asInt();
+  Hurst = parameterlist["parameters"]["geometrical_parameters"]["H"].asDouble(); // Hurst component
   alpha = alpha_con[n - 1];
   lato = parameterlist["parameters"]["geometrical_parameters"]["lato"].asDouble();  // Lateral side of the surface [micrometers]
   k_el = lato * E / alpha; 
@@ -55,39 +61,7 @@ void SetParameters(double& E1, double& E2,
   Delta = parameterlist["parameters"]["geometrical_parameters"]["Delta"].asDouble();
 }
 
-/*------------------------------------------*/
-void CreateTopology(int systemsize, Epetra_SerialDenseMatrix& topology,
-                    string filePath) {
-  // Readin for amount of lines -> dimension of matrix
-  ifstream reader(filePath);
-  string blaLine;
-  int dimension = 0;
-  while (getline(reader, blaLine)) {
-    dimension += 1;
-  }
-  reader.close();
-  topology.Shape(dimension, dimension);
-  float elements[264];
-  int position = 0, separatorPosition, lineCounter = 0;
-  ifstream stream(filePath);
-  string line, container;
-  double value;
-  while (getline(stream, line)) {
-    separatorPosition = 0;
-    lineCounter += 1;
-    for (int i = 0; i < dimension; i++) {    // Parallel not possible, since no synchronization points possible
-    	separatorPosition = line.find_first_of(';');
-    	container = line.substr(0, separatorPosition);
-    	position += 1;
-    	line = line.substr(separatorPosition + 1, line.length());
-    	value = stod(container);
-    	topology(lineCounter - 1, i) = value;
-    }
-  }
-  stream.close();
-}
 
-/*------------------------------------------*/
 void SetUpMatrix(Epetra_SerialDenseMatrix& A, std::vector<double> xv0,
                  std::vector<double> yv0, double delta, double E,
                  int systemsize, int k) {
@@ -435,14 +409,16 @@ int main(int argc, char* argv[]) {
 	int csteps, flagwarm, n;
 	double nu1, nu2, G1, G2, E, alpha, k_el, delta, nnodi, to1, E1,
 		E2, lato, errf, sum = 0, Delta;
+  bool rmg_flag;
+  bool rand_seed_flag;
+  double Hurst;
 	string zfilePath;
 
   string jsonFileName = argv[1]; // reading the json file name from the command line
 
 	SetParameters(E1, E2, lato, nu1, nu2, G1, G2,
-                E, alpha, k_el, delta, nnodi, errf, to1, Delta, zfilePath, n, jsonFileName);
+                E, alpha, k_el, delta, nnodi, errf, to1, Delta, zfilePath, n, jsonFileName, rmg_flag, Hurst, rand_seed_flag);
 
-	std::cout << "File is " + zfilePath << endl;
   
 	time_t now = time(0);
 	tm *ltm = localtime(&now);
@@ -461,7 +437,14 @@ int main(int argc, char* argv[]) {
   
 	// Setup Topology
 	Epetra_SerialDenseMatrix topology, y;
-	CreateTopology(topology.N(), topology, zfilePath);
+  int N = pow(2,n);
+  topology.Shape(N+1,N+1);
+
+  std::shared_ptr<TopologyGeneration> surfacegenerator;
+
+  CreateSurfaceObject(n,Hurst,rand_seed_flag,zfilePath,rmg_flag,surfacegenerator); // creating the correct surface object
+
+  surfacegenerator->GetSurface(topology);
 
 	double zmax = 0;
 	double zmean = 0;
