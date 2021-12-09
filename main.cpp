@@ -442,7 +442,7 @@ int main(int argc, char* argv[]) {
 
   std::shared_ptr<TopologyGeneration> surfacegenerator;
 
-  SortSurf(n,Hurst,rand_seed_flag,zfilePath,rmg_flag,surfacegenerator); // creating the correct surface object
+  CreateSurfaceObject(n,Hurst,rand_seed_flag,zfilePath,rmg_flag,surfacegenerator); // creating the correct surface object
 
   surfacegenerator->GetSurface(topology);
 
