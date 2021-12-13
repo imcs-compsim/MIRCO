@@ -3,9 +3,10 @@
 
 #include "linearsolver.h"
 
-void LinearSolver::LinearSolve(Epetra_SerialSymDenseMatrix& matrix,
+void LinearSolver::Solve(Epetra_SerialSymDenseMatrix& matrix,
                  Epetra_SerialDenseMatrix& vector_x,
-                 Epetra_SerialDenseMatrix& vector_b) { 
+                 Epetra_SerialDenseMatrix& vector_b) 
+{ 
 	Epetra_SerialSpdDenseSolver solver; 
 	int err = solver.SetMatrix(matrix);
 	if (err != 0) {

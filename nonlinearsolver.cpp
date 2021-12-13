@@ -119,7 +119,7 @@ void NonLinearSolver::NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
         }
       }
       LinearSolver solution;
-      solution.LinearSolve(solverMatrix, vector_x, vector_b);
+      solution.Solve(solverMatrix, vector_x, vector_b);
 
 #pragma omp parallel for schedule (static, 16) // Always same workload -> Static!
       for (int x = 0; x < counter; x++) {
