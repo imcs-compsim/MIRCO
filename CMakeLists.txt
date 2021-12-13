@@ -71,9 +71,21 @@ include_directories(${Trilinos_INCLUDE_DIRS})
 link_directories(${Trilinos_LIBRARY_DIRS})
 link_directories(${Trilinos_TPL_LIBRARY_DIRS})
 
-# Compile bem code itself
-include_directories(src)
+# Compile bem code
 add_executable(bem main.cpp)
+
+# Compile bem library
+add_library(bem_library
+	           topology.cpp
+		   linearsolver.cpp
+		   nonlinearsolver.cpp
+		   matrixsetup.cpp
+		   warmstart.cpp
+		   setparameters.cpp
+		   evaluate.cpp
+		   writetofile.cpp
+		   topologyfactory.cpp
+	)
 
 #find OpenMP
 find_package(OpenMP)
@@ -85,6 +97,7 @@ include_directories(${MPI_INCLUDE_PATH})
 
 target_link_libraries(bem
   PUBLIC OpenMP::OpenMP_CXX
+  bem_library
   ${Trilinos_LIBRARIES}
   ${Trilinos_TPL_LIBRARIES}
   ${MPI_LIBRARIES}
