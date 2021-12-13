@@ -1,19 +1,21 @@
-#include <omp.h>                         // Seems obvious
-#include <unistd.h>                      // Linux stuff
-#include <cmath>                         //pow
-#include <cstdio>                        // IO stuff
-#include <fstream>                       //ifstream
-#include <iostream>                      //ifstream
-#include <string>                        //std::to_string, std::stod
-#include <vector>                        // Seems obvious
-#include <Epetra_SerialSpdDenseSolver.h> // Seems obvious
-#include <Epetra_SerialSymDenseMatrix.h> // Seems obvious
-#include <chrono>                        // time stuff
+#include <omp.h>
+#include <unistd.h>
+#include <cmath>
+#include <cstdio>
+#include <fstream>
+#include <iostream>
+#include <string>
+#include <vector>
+#include <Epetra_SerialSpdDenseSolver.h>
+#include <Epetra_SerialSymDenseMatrix.h>
+#include <chrono>
 #include <ctime>
-#include <jsoncpp/json/json.h> // reading json file
+#include <jsoncpp/json/json.h>
+#include <memory>
 using namespace std;
 
 #include "topology.h"
+#include "topologyfactory.h"
 #include "linearsolver.h"
 #include "nonlinearsolver.h"
 #include "matrixsetup.h"
@@ -26,19 +28,19 @@ using namespace std;
 
 void Evaluate(std::string jsonFileName, double &force)
 {
-    
     omp_set_num_threads(6); // 6 seems to be optimal
 
     auto start = std::chrono::high_resolution_clock::now();
     int csteps, flagwarm, n;
     double nu1, nu2, G1, G2, E, alpha, k_el, delta, nnodi, to1, E1,
         E2, lato, errf, sum = 0, Delta;
+    bool rmg_flag;
+    bool rand_seed_flag;
+    double Hurst;
     string zfilePath;
 
     SetParameters(E1, E2, lato, nu1, nu2, G1, G2,
-                  E, alpha, k_el, delta, nnodi, errf, to1, Delta, zfilePath, n, jsonFileName);
-
-    std::cout << "File is " + zfilePath << endl;
+                  E, alpha, k_el, delta, nnodi, errf, to1, Delta, zfilePath, n, jsonFileName, rmg_flag, Hurst, rand_seed_flag);
 
     time_t now = time(0);
     tm *ltm = localtime(&now);
@@ -60,23 +62,12 @@ void Evaluate(std::string jsonFileName, double &force)
     Epetra_SerialDenseMatrix topology, y;
     int N = pow(2, n);
     topology.Shape(N + 1, N + 1);
-    bool rmgflag = false; // switch between rmg and readfile
 
-    if (rmgflag)
-    {
-        double H = 0.1; // Hurst Component
-        Rmg surfe = Rmg(n, H);
-        surfe.GetSurface(topology);
-    }
-    else
-    {
-        ReadFile surfe = ReadFile(n, zfilePath);
-        surfe.GetSurface(topology);
-    }
+    std::shared_ptr<TopologyGeneration> surfacegenerator;
 
-    cout << topology << endl;
+    CreateSurfaceObject(n, Hurst, rand_seed_flag, zfilePath, rmg_flag, surfacegenerator); // creating the correct surface object
 
-    //CreateTopology(topology.N(), topology, zfilePath);
+    surfacegenerator->GetSurface(topology);
 
     double zmax = 0;
     double zmean = 0;
@@ -123,9 +114,6 @@ void Evaluate(std::string jsonFileName, double &force)
         row.clear();
         col.clear();
 
-//#pragma omp parallel for schedule(guided, 16) reduction(mergeI                  \
-                                                        : row) reduction(mergeI \
-                                                                         : col)
         // Data is even, guided makes more sense
         for (int i = 0; i < topology.N(); i++)
         {

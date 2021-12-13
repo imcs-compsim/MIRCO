@@ -1,5 +1,5 @@
-#include <vector>	// Seems obvious
-#include <Epetra_SerialSymDenseMatrix.h>	// Seems obvious
+#include <vector>
+#include <Epetra_SerialSymDenseMatrix.h>
 
 class MatrixGeneration
 {

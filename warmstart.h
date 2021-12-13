@@ -1,4 +1,4 @@
-#include <Epetra_SerialSymDenseMatrix.h>	// Seems obvious
+#include <Epetra_SerialSymDenseMatrix.h>
 
 class Warmstarter
 {

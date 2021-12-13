@@ -1,22 +1,23 @@
 #include <Epetra_SerialDenseMatrix.h> // Seems obvious
+#include <string>
 
 class TopologyGeneration
 {
 public:
-int n;
+int resolution; // resolution parameter
     virtual void GetSurface(Epetra_SerialDenseMatrix &z) = 0;
     TopologyGeneration(int nn)
     {
-        n = nn;
+        resolution = nn;
     }
 };
 
 class ReadFile : public TopologyGeneration
 {
 public:
-string filepath;
+std::string filepath;
     void GetSurface(Epetra_SerialDenseMatrix &z) override;
-    ReadFile(int nn, string ffilepath) : TopologyGeneration(nn)
+    ReadFile(int nn, std::string ffilepath) : TopologyGeneration(nn)
     {
         filepath = ffilepath;
     }
@@ -25,10 +26,12 @@ string filepath;
 class Rmg : public TopologyGeneration
 {
 public:
-double H;
+double Hurst; // Hurst component
+bool rand_seed_flag;
     void GetSurface(Epetra_SerialDenseMatrix &z) override;
-    Rmg(int nn, double HH) : TopologyGeneration(nn)
+    Rmg(int nn, double HH, bool rsf) : TopologyGeneration(nn)
     {
-        H = HH;
+        Hurst = HH;
+        rand_seed_flag = rsf;
     }
 };

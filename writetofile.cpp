@@ -1,9 +1,8 @@
-#include <fstream>                       //ifstream
-#include <iostream>                      //ifstream
-#include <string>                        //std::to_string, std::stod
-#include <vector>                        // Seems obvious
-#include <Epetra_SerialSpdDenseSolver.h> // Seems obvious
-#include <Epetra_SerialSymDenseMatrix.h> // Seems obvious
+#include <fstream>
+#include <iostream>
+#include <string>
+#include <vector>
+#include <Epetra_SerialSymDenseMatrix.h>
 using namespace std;
 #include "writetofile.h"
 

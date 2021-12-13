@@ -1,5 +1,5 @@
-#include <vector>	// Seems obvious
-#include <Epetra_SerialSpdDenseSolver.h>	// Seems obvious
+#include <vector>
+#include <Epetra_SerialSpdDenseSolver.h>
 #include <Epetra_SerialSymDenseMatrix.h>
 #include "nonlinearsolver.h"
 #include "linearsolver.h"
@@ -27,7 +27,6 @@ void NonLinearSolver::NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
 
   // Initialize active set
   vector<int> positions; 
-//#pragma omp parallel for schedule(guided, 16) reduction(mergeI:positions)
   for (int i = 0; i < y0.size(); i++){
 	  if (y0[i] >= nnlstol) {
 		  positions.push_back(i);
@@ -66,14 +65,12 @@ void NonLinearSolver::NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
 	  // [wi,i]=min(w);
 	  // This is slightly slower than the optimal one. So far at least. Should have a bit better scaling.
 	  // @{
-//#pragma omp parallel for schedule(static, 16) reduction(mergeI:poss) reduction(mergeD:values)
 	  for(int i = 0; i < w.M(); i++){
 		  values.push_back(w(i, 0)); poss.push_back(i);
 	  }
 	  
 	  // Get all values bigger than initial one
 	  while(values.size() > 1){
-//#pragma omp parallel for schedule(dynamic, 16) reduction(mergeI:newPositions) reduction(mergeD:newValues)
 		  for (int i = 1; i < values.size(); i++){
 			  if (values[i] < values[0]){
 				  newValues.push_back(values[i]); newPositions.push_back(poss[i]);

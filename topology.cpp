@@ -1,12 +1,11 @@
 #include <random>
 #include <ctime>
 #include <cmath>
-#include <fstream>  //ifstream
-#include <iostream> //ifstream
-#include <string>   //std::to_string, std::stod
-#include <vector>   // Seems obvious
-//#include <Epetra_SerialSpdDenseSolver.h> // Seems obvious
-#include <Epetra_SerialDenseMatrix.h> // Seems obvious
+#include <fstream>
+#include <iostream>
+#include <string>
+#include <vector>
+#include <Epetra_SerialDenseMatrix.h>
 using namespace std;
 
 #include "topology.h"
@@ -47,26 +46,29 @@ void ReadFile::GetSurface(Epetra_SerialDenseMatrix &z)
 void Rmg::GetSurface(Epetra_SerialDenseMatrix &z)
 {
     srand(time(NULL));
-    int seed = rand();
-    // float seed = 95.05; // seed can be fixed to reproduce result
+
+    int seed;
+
+    if (rand_seed_flag)
+    {
+        seed = rand();
+    }
+    else
+    {
+        seed = 95; // seed can be fixed to reproduce result
+    }
     std::default_random_engine generate(seed);
     std::normal_distribution<double> distribution(0.0, 1.0); // normal distribution: mean = 0.0, standard deviation = 1.0
 
-    int N = pow(2, n);
-
-    // z[0][0] = 0;
-    // z[0][N] = 0;
-    // z[N][0] = 0;
-    // z[N][N] = 0;
-
+    int N = pow(2, resolution);
     double alpha = 1 / sqrt(0.09);
 
     int D = N;
     int d = N / 2;
 
-    for (int i = 0; i < n; i++)
+    for (int i = 0; i < resolution; i++)
     {
-        alpha = alpha / (pow(sqrt(2), H));
+        alpha = alpha / (pow(sqrt(2), Hurst));
 
         for (int j = d; j < N - d + 1; j = j + D)
         {
@@ -76,7 +78,7 @@ void Rmg::GetSurface(Epetra_SerialDenseMatrix &z)
             }
         }
 
-        alpha = alpha / (pow(sqrt(2), H));
+        alpha = alpha / (pow(sqrt(2), Hurst));
 
         for (int j = d; j < N - d + 1; j = j + D)
         {

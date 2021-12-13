@@ -1,5 +1,5 @@
-#include <Epetra_SerialSpdDenseSolver.h>	// Seems obvious
-#include <Epetra_SerialSymDenseMatrix.h>	// Seems obvious
+#include <Epetra_SerialSpdDenseSolver.h>
+#include <Epetra_SerialSymDenseMatrix.h>
 
 #include "linearsolver.h"
 

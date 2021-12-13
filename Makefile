@@ -8,8 +8,8 @@ CFLAGS=-std=c++11 -I$(IDIR) -L$(LDIR) -L$(MPI) -fopenmp -ljsoncpp
 %.o: %.cpp
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-bem: main.o topology.o linearsolver.o nonlinearsolver.o matrixsetup.o warmstart.o setparameters.o evaluate.o writetofile.o
-	$(CC) -o bem main.o topology.o linearsolver.o nonlinearsolver.o matrixsetup.o warmstart.o setparameters.o evaluate.o writetofile.o $(CFLAGS) $(LIBS)
+bem: main.o topology.o linearsolver.o nonlinearsolver.o matrixsetup.o warmstart.o setparameters.o evaluate.o writetofile.o topologyfactory.o
+	$(CC) -o bem main.o topology.o linearsolver.o nonlinearsolver.o matrixsetup.o warmstart.o setparameters.o evaluate.o writetofile.o topologyfactory.o $(CFLAGS) $(LIBS)
 
 .PHONY:clean
 
