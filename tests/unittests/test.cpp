@@ -3,6 +3,7 @@
 #include <gtest/gtest.h>
 #include <stdlib.h>
 #include <vector>
+#include "../../src/filesystem_utils.h"
 #include "../../src/linearsolver.h"
 #include "../../src/nonlinearsolver.h"
 #include "nonlinear_solver_test.h"
@@ -70,6 +71,20 @@ TEST_F(NonlinearSolverTest, dualvariable) {
   EXPECT_NEAR(w_(6, 0), 0, 1e-06);
   EXPECT_NEAR(w_(7, 0), 0, 1e-06);
   EXPECT_NEAR(w_(8, 0), 0, 1e-06);
+}
+
+TEST(FilesystemUtils, createrelativepath) {
+  std::string targetfilename = "input.dat";
+  std::string sourcefilename = "../inputfiles/sourceinput.json";
+  ChangeRelativePath(targetfilename, sourcefilename);
+  EXPECT_EQ(targetfilename, "../inputfiles/input.dat");
+}
+
+TEST(FilesystemUtils, keepabsolutpath) {
+  std::string targetfilename = "/root_dir/home/user/Input/input.dat";
+  std::string sourcefilename = "../inputfiles/sourceinput.json";
+  ChangeRelativePath(targetfilename, sourcefilename);
+  EXPECT_EQ(targetfilename, "/root_dir/home/user/Input/input.dat");
 }
 
 int main(int argc, char **argv) {
