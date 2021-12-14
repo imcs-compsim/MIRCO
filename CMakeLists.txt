@@ -44,8 +44,8 @@ include_directories(${Trilinos_INCLUDE_DIRS})
 # Add to the library path Trilinos' library path, and the library
 # paths of the third-party libraries (TPLs) with which Trilinos was
 # built.
-link_directories(${Trilinos_LIBRARY_DIRS})
 link_directories(${Trilinos_TPL_LIBRARY_DIRS})
+link_directories(${Trilinos_LIBRARY_DIRS})
 
 # Compile bem code
 add_executable(bem main.cpp)
@@ -57,16 +57,16 @@ link_libraries(${JSONCPP_LIBRARIES})
 
 # Compile bem library
 add_library(bem_library
-	           topology.cpp
-		   linearsolver.cpp
-		   nonlinearsolver.cpp
-		   matrixsetup.cpp
-		   warmstart.cpp
-		   setparameters.cpp
-		   evaluate.cpp
-		   writetofile.cpp
-		   topologyfactory.cpp
-	)
+  topology.cpp
+  linearsolver.cpp
+  nonlinearsolver.cpp
+  matrixsetup.cpp
+  warmstart.cpp
+  setparameters.cpp
+  evaluate.cpp
+  writetofile.cpp
+  topologyfactory.cpp
+)
 
 #find OpenMP
 find_package(OpenMP)
