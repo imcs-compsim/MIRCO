@@ -48,7 +48,7 @@ link_directories(${Trilinos_TPL_LIBRARY_DIRS})
 link_directories(${Trilinos_LIBRARY_DIRS})
 
 # Compile bem code
-add_executable(bem main.cpp)
+add_executable(bem src/main.cpp)
 
 #find JsonCpp package
 find_package(PkgConfig REQUIRED)
@@ -57,15 +57,15 @@ link_libraries(${JSONCPP_LIBRARIES})
 
 # Compile bem library
 add_library(bem_library
-  topology.cpp
-  linearsolver.cpp
-  nonlinearsolver.cpp
-  matrixsetup.cpp
-  warmstart.cpp
-  setparameters.cpp
-  evaluate.cpp
-  writetofile.cpp
-  topologyfactory.cpp
+  src/topology.cpp
+  src/linearsolver.cpp
+  src/nonlinearsolver.cpp
+  src/matrixsetup.cpp
+  src/warmstart.cpp
+  src/setparameters.cpp
+  src/evaluate.cpp
+  src/writetofile.cpp
+  src/topologyfactory.cpp
 )
 
 #find OpenMP
