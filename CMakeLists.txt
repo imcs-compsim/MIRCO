@@ -70,6 +70,10 @@ add_library(bem_io
   src/writetofile.cpp
 )
 
+add_library(bem_utils
+  src/filesystem_utils.cpp
+)
+
 #find OpenMP
 find_package(OpenMP REQUIRED)
 
@@ -85,6 +89,7 @@ target_link_libraries(bem
   PUBLIC OpenMP::OpenMP_CXX
   bem_library
   bem_io
+  bem_utils
   ${JSONCPP_LIBRARIES}
   ${Trilinos_LIBRARIES}
   ${Trilinos_TPL_LIBRARIES}
@@ -104,6 +109,7 @@ target_link_libraries(tests
   PUBLIC OpenMP::OpenMP_CXX
   bem_library
   bem_io
+  bem_utils
   gtest
   ${JSONCPP_LIBRARIES}
   ${Trilinos_LIBRARIES}

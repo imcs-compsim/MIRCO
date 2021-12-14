@@ -7,6 +7,7 @@
 #include <jsoncpp/json/json.h>
 using namespace std;
 
+#include "filesystem_utils.h"
 #include "setparameters.h"
 
 void SetParameters(double& E1, double& E2,
@@ -24,6 +25,9 @@ void SetParameters(double& E1, double& E2,
   rmg_flag = parameterlist["rmg_flag"].asBool();
   rand_seed_flag = parameterlist["rand_seed_flag"].asBool();
   zfilePath = parameterlist["z_file_path"].asString();
+
+  ChangeRelativePath(zfilePath, jsonFileName);
+
   E1 = parameterlist["parameters"]["material_parameters"]["E1"].asDouble();
   E2 = parameterlist["parameters"]["material_parameters"]["E2"].asDouble();
   nu1 = parameterlist["parameters"]["material_parameters"]["nu1"].asDouble();
