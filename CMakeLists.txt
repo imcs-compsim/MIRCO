@@ -69,7 +69,7 @@ add_library(bem_library
 )
 
 #find OpenMP
-find_package(OpenMP)
+find_package(OpenMP REQUIRED)
 
 #find OpenMPI
 find_package(MPI REQUIRED)
