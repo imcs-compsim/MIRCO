@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.14)
 project(bem)
 
 # Compiler flags
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -O3 -std=c++11 -ljsoncpp")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -O3 -std=c++17")
 
 # Add libraries
 set(CMAKE_PREFIX_PATH ${TRILINOS_PATH} ${CMAKE_PREFIX_PATH})
@@ -50,6 +50,11 @@ link_directories(${Trilinos_TPL_LIBRARY_DIRS})
 # Compile bem code
 add_executable(bem main.cpp)
 
+#find JsonCpp package
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(JSONCPP jsoncpp)
+link_libraries(${JSONCPP_LIBRARIES})
+
 # Compile bem library
 add_library(bem_library
 	           topology.cpp
@@ -74,6 +79,7 @@ include_directories(${MPI_INCLUDE_PATH})
 target_link_libraries(bem
   PUBLIC OpenMP::OpenMP_CXX
   bem_library
+  ${JSONCPP_LIBRARIES}
   ${Trilinos_LIBRARIES}
   ${Trilinos_TPL_LIBRARIES}
   ${MPI_LIBRARIES}
