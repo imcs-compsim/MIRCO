@@ -49,9 +49,6 @@ include_directories(${Trilinos_INCLUDE_DIRS})
 link_directories(${Trilinos_TPL_LIBRARY_DIRS})
 link_directories(${Trilinos_LIBRARY_DIRS})
 
-# Compile bem code
-add_executable(bem src/main.cpp)
-
 #find JsonCpp package
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(JSONCPP jsoncpp)
@@ -64,10 +61,13 @@ add_library(bem_library
   src/nonlinearsolver.cpp
   src/matrixsetup.cpp
   src/warmstart.cpp
-  src/setparameters.cpp
   src/evaluate.cpp
-  src/writetofile.cpp
   src/topologyfactory.cpp
+)
+
+add_library(bem_io
+  src/setparameters.cpp
+  src/writetofile.cpp
 )
 
 #find OpenMP
@@ -78,11 +78,38 @@ find_package(MPI REQUIRED)
 
 include_directories(${MPI_INCLUDE_PATH})
 
+# Compile bem code itself
+add_executable(bem src/main.cpp)
+
 target_link_libraries(bem
   PUBLIC OpenMP::OpenMP_CXX
   bem_library
+  bem_io
   ${JSONCPP_LIBRARIES}
   ${Trilinos_LIBRARIES}
   ${Trilinos_TPL_LIBRARIES}
   ${MPI_LIBRARIES}
   )
+
+enable_testing()
+include(GoogleTest)
+
+#Compile unittest executable
+add_executable(tests
+  tests/unittests/test.cpp
+  tests/unittests/nonlinear_solver_test.cpp
+)
+
+target_link_libraries(tests
+  PUBLIC OpenMP::OpenMP_CXX
+  bem_library
+  bem_io
+  gtest
+  ${JSONCPP_LIBRARIES}
+  ${Trilinos_LIBRARIES}
+  ${Trilinos_TPL_LIBRARIES}
+  ${MPI_LIBRARIES}
+  )
+
+include(GoogleTest)
+gtest_discover_tests(tests)
