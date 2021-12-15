@@ -34,7 +34,7 @@ To create an out-of-source build, first create a build directory using:
 cd <someBaseDir>
 mkdir <buildDir>
 ```
-where <buildDir> is the build directory.
+where `<buildDir>` is the build directory.
 
 Now, you have to navigate to the build directory and call `do-configure` using:
 ```bash
@@ -45,7 +45,7 @@ Build the `bem` executable in the build directory using:
 ```bash
 <buildDir>/make
 ```
-The ´bem´ executable will be created in the build directory.
+The ´<bem>´ executable will be created in the build directory.
 
 ## Run unit tests
 
