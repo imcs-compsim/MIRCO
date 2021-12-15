@@ -1,8 +1,8 @@
 #include "filesystem_utils.h"
 #include <filesystem>
 
-void ChangeRelativePath(std::string& targetfilename,
-                        std::string& sourcefilename) {
+void UTILS::ChangeRelativePath(std::string& targetfilename,
+                               std::string& sourcefilename) {
   std::filesystem::path targetfilepath = targetfilename;
 
   if (targetfilepath.is_relative()) {

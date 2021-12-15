@@ -26,7 +26,7 @@ void SetParameters(double& E1, double& E2,
   rand_seed_flag = parameterlist["rand_seed_flag"].asBool();
   zfilePath = parameterlist["z_file_path"].asString();
 
-  ChangeRelativePath(zfilePath, jsonFileName);
+  UTILS::ChangeRelativePath(zfilePath, jsonFileName);
 
   E1 = parameterlist["parameters"]["material_parameters"]["E1"].asDouble();
   E2 = parameterlist["parameters"]["material_parameters"]["E2"].asDouble();

@@ -3,6 +3,7 @@
 
 #include <string>
 
+namespace UTILS {
 /*
  * \brief Creates a file path relative to the current directory by concatenating
  * 2 relative paths
@@ -14,5 +15,6 @@
  */
 void ChangeRelativePath(std::string& targetfilename,
                         std::string& sourcefilename);
+}  // namespace UTILS
 
 #endif /* SRC_FILESYSTEM_UTILS_H_ */
