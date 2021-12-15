@@ -1,0 +1,16 @@
+# Style configuration to be used with clang-format
+#
+# The code style is based on the Google code style. However, below you can find some slight changes to the code style.
+
+## Define the base style. We use Google's style here.
+BasedOnStyle: Google                # Use Google style as baseline configuration and specify deviations explicitly as given below
+
+## Define our deviations from the base style. Let's limit ourselves to very few exceptions.
+AlignAfterOpenBracket: DontAlign    # Align function arguments after line break at custom indentation rather than at the opening (
+BreakBeforeBraces: Allman           # Always move the opening { to the next line
+ColumnLimit: 100                    # Break lines after 100 columns/characters
+MaxEmptyLinesToKeep: 3              # Max. number of emtpy lines
+NamespaceIndentation: All           # Add one level of indentation per namespace nesting
+SpacesInContainerLiterals: false    # Do not insert spaces after and before square brackets, here []
+Standard: Cpp17                     # Use the Cpp17 code style
+TabWidth: 2                         # Make sure we use our desired tab width
