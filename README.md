@@ -45,13 +45,13 @@ Build the `bem` executable in the build directory using:
 ```bash
 <buildDir>/make
 ```
-The ´<bem>´ executable will be created in the build directory.
+The `bem` executable will be created in the build directory.
 
 ## Run unit tests
 
 You can run the unit tests from the the build directory using:
 ```bash
-<buildDir>/ctest
+ctest
 ```
 
 ## Run code
