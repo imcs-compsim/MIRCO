@@ -31,7 +31,7 @@ void Evaluate(std::string jsonFileName, double &force)
     omp_set_num_threads(6); // 6 seems to be optimal
 
     auto start = std::chrono::high_resolution_clock::now();
-    int csteps, flagwarm, n;
+    int flagwarm = 1, n;
     double nu1, nu2, G1, G2, E, alpha, k_el, delta, nnodi, to1, E1,
         E2, lato, errf, sum = 0, Delta;
     bool rmg_flag;
@@ -98,7 +98,7 @@ void Evaluate(std::string jsonFileName, double &force)
     std::vector<double> xv0, yv0, b0, x0, xvf,
         yvf, pf;
     vector<int> col, row;
-    double nf, xvfaux, yvfaux, pfaux;
+    double nf=0;
     Epetra_SerialDenseMatrix A;
     int nf2 = floor(nf);
 
@@ -108,7 +108,7 @@ void Evaluate(std::string jsonFileName, double &force)
         // All points, for which gap is bigger than the displacement of the rigid
         // indenter, cannot be in contact and thus are not checked in nonlinear solve
         // @{
-
+            
         // [ind1,ind2]=find(z>=(zmax-(Delta(s)+w_el(k))));
         double value = zmax - Delta - w_el;
         row.clear();
@@ -175,10 +175,11 @@ void Evaluate(std::string jsonFileName, double &force)
         }
 
         int err = A.Shape(xv0.size(), xv0.size());
+        cout << "err = " << err << endl;
 
         // Construction of the Matrix H = A
         MatrixGeneration matrix1;
-        matrix1.SetUpMatrix(A, xv0, yv0, delta, E, n0, k);
+        matrix1.SetUpMatrix(A, xv0, yv0, delta, E, n0);
 
         // Second predictor for contact set
         // @{
@@ -235,7 +236,7 @@ void Evaluate(std::string jsonFileName, double &force)
         // } Parallel region makes around this makes program slower
 
 #pragma omp parallel for schedule(static, 16) // Always same workload -> Static!
-        for (int i = 0; i < b0.size(); i++)
+        for (long unsigned int i = 0; i < b0.size(); i++)
         {
             b0new(i, 0) = b0[i];
         }

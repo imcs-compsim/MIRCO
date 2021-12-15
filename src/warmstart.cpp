@@ -39,7 +39,7 @@ Epetra_SerialDenseMatrix Warmstarter::Warmstart2(Epetra_SerialDenseMatrix xv0, E
 
     // x0(ind,1)=pf(i);
 #pragma omp parallel for schedule(static, 16) // Always same workload -> Static
-    for (int y = 0; y < index.size(); y++)
+    for (long unsigned int y = 0; y < index.size(); y++)
     {
       x0(y, 0) = pf(y, 0);
     }
