@@ -31,7 +31,8 @@ void Evaluate(std::string jsonFileName, double &force)
     omp_set_num_threads(6); // 6 seems to be optimal
 
     auto start = std::chrono::high_resolution_clock::now();
-    int flagwarm = 1, n;
+    bool flagwarm;
+    int n;
     double nu1, nu2, G1, G2, E, alpha, k_el, delta, nnodi, to1, E1,
         E2, lato, errf, sum = 0, Delta;
     bool rmg_flag;
@@ -40,7 +41,7 @@ void Evaluate(std::string jsonFileName, double &force)
     string zfilePath;
 
     SetParameters(E1, E2, lato, nu1, nu2, G1, G2,
-                  E, alpha, k_el, delta, nnodi, errf, to1, Delta, zfilePath, n, jsonFileName, rmg_flag, Hurst, rand_seed_flag);
+                  E, alpha, k_el, delta, nnodi, errf, to1, Delta, zfilePath, n, jsonFileName, rmg_flag, Hurst, rand_seed_flag, flagwarm);
 
     time_t now = time(0);
     tm *ltm = localtime(&now);
