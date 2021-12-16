@@ -174,8 +174,7 @@ void Evaluate(std::string jsonFileName, double &force)
             }
         }
 
-        int err = A.Shape(xv0.size(), xv0.size());
-        cout << "err = " << err << endl;
+        A.Shape(xv0.size(), xv0.size());
 
         // Construction of the Matrix H = A
         MatrixGeneration matrix1;
