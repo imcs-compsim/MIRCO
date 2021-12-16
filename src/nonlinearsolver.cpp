@@ -27,7 +27,7 @@ void NonLinearSolver::NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
 
   // Initialize active set
   vector<int> positions; 
-  for (int i = 0; i < y0.size(); i++){
+  for (unsigned long int i = 0; i < y0.size(); i++){
 	  if (y0[i] >= nnlstol) {
 		  positions.push_back(i);
 	  }
@@ -71,7 +71,7 @@ void NonLinearSolver::NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
 	  
 	  // Get all values bigger than initial one
 	  while(values.size() > 1){
-		  for (int i = 1; i < values.size(); i++){
+		  for (unsigned long int i = 1; i < values.size(); i++){
 			  if (values[i] < values[0]){
 				  newValues.push_back(values[i]); newPositions.push_back(poss[i]);
 			  }

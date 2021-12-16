@@ -15,13 +15,14 @@ void SetParameters(double& E1, double& E2,
                    double& nu2, double& G1, double& G2, double& E,
                    double& alpha,
                    double& k_el, double& delta, double& nnodi, double& errf,
-                   double& to1, double& Delta, string& zfilePath, int& n, string& jsonFileName, bool& rmg_flag, double& Hurst, bool& rand_seed_flag) {
+                   double& to1, double& Delta, string& zfilePath, int& n, string& jsonFileName, bool& rmg_flag, double& Hurst, bool& rand_seed_flag, bool& flagwarm) {
   
   
   Json::Value parameterlist;   // will contain the root value after parsing.
   ifstream stream(jsonFileName, std::ifstream::binary);
   stream >> parameterlist; 
 
+  flagwarm = parameterlist["flagwarm"].asBool();
   rmg_flag = parameterlist["rmg_flag"].asBool();
   rand_seed_flag = parameterlist["rand_seed_flag"].asBool();
   zfilePath = parameterlist["z_file_path"].asString();
