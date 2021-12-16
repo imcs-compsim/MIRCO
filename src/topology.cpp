@@ -21,7 +21,6 @@ void ReadFile::GetSurface(Epetra_SerialDenseMatrix &z)
     }
     reader.close();
     z.Shape(dimension, dimension);
-    float elements[264];
     int position = 0, separatorPosition, lineCounter = 0;
     ifstream stream(filepath);
     string line, container;

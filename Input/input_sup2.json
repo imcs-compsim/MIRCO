@@ -1,4 +1,5 @@
 {
+    "flagwarm" : true,
     "rmg_flag" : false,
     "rand_seed_flag" : false,
     "z_file_path" : "sup2.dat",
