@@ -132,6 +132,44 @@ TEST(readtopology, readfile)
   EXPECT_NEAR(outsurf(4, 4), 5.7299175e+01, 1e-06);
 }
 
+TEST(readtopology, RMG)
+{
+  int resolution = 2;
+  float Hurst = 0.1;
+  bool rand_seed_flag = false;
+  Epetra_SerialDenseMatrix outsurf;
+  int N = pow(2, resolution);
+  outsurf.Shape(N + 1, N + 1);
+  
+  Rmg surface(resolution, Hurst, rand_seed_flag);
+  surface.GetSurface(outsurf);
+
+  EXPECT_NEAR(outsurf(0, 0), 28.2215338276376, 1e-03);
+  EXPECT_NEAR(outsurf(0, 1), 36.2753295855912, 1e-03);
+  EXPECT_NEAR(outsurf(0, 2), 83.406827899629, 1e-03);
+  EXPECT_NEAR(outsurf(0, 3), 52.1463954928658, 1e-03);
+  EXPECT_NEAR(outsurf(0, 4), 28.2215338276376, 1e-03);
+  EXPECT_NEAR(outsurf(1, 0), 82.5311192966684, 1e-03);
+  EXPECT_NEAR(outsurf(1, 1), 88.5057522645388, 1e-03);
+  EXPECT_NEAR(outsurf(1, 2), 93.4896404218242, 1e-03);
+  EXPECT_NEAR(outsurf(1, 3), 42.3052621232221, 1e-03);
+  EXPECT_NEAR(outsurf(1, 4), 27.1648479422294, 1e-03);
+  EXPECT_NEAR(outsurf(2, 0), 46.9389540667996, 1e-03);
+  EXPECT_NEAR(outsurf(2, 1), 23.0445730666838, 1e-03);
+  EXPECT_NEAR(outsurf(2, 2), 94.9021951336941, 1e-03);
+  EXPECT_NEAR(outsurf(2, 3), 6.79338672128661, 1e-03);
+  EXPECT_NEAR(outsurf(2, 4), 49.5890138641246, 1e-03);
+  EXPECT_NEAR(outsurf(3, 0), 70.9402900749234, 1e-03);
+  EXPECT_NEAR(outsurf(3, 1), 25.4602528043112, 1e-03);
+  EXPECT_NEAR(outsurf(3, 2), 65.527428831836, 1e-03);
+  EXPECT_NEAR(outsurf(3, 3), 33.5930588570828, 1e-03);
+  EXPECT_NEAR(outsurf(3, 4), 8.064026613556, 1e-03);
+  EXPECT_NEAR(outsurf(4, 0), 28.2215338276376, 1e-03);
+  EXPECT_NEAR(outsurf(4, 1), 0, 1e-03);
+  EXPECT_NEAR(outsurf(4, 2), 36.7733127073012, 1e-03);
+  EXPECT_NEAR(outsurf(4, 3), 42.2170752636335, 1e-03);
+  EXPECT_NEAR(outsurf(4, 4), 28.2215338276376, 1e-03);
+}
 
 int main(int argc, char **argv)
 {
