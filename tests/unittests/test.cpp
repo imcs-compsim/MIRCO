@@ -3,12 +3,14 @@
 #include <gtest/gtest.h>
 #include <stdlib.h>
 #include <vector>
+#include <string>
 #include "../../src/filesystem_utils.h"
 #include "../../src/linearsolver.h"
 #include "../../src/nonlinearsolver.h"
 #include "nonlinear_solver_test.h"
 #include "../../src/topology.h"
 #include <memory>
+#include "../../src/setparameters.h"
 
 TEST(linearsolver, solves)
 {
@@ -101,7 +103,7 @@ TEST(readtopology, readfile)
 {
   int resolution = 2;
   Epetra_SerialDenseMatrix outsurf;
-  std::string filepath = "../bem/Input/sup2.dat";
+  std::string filepath = "../bem/tests/unittests/testfiles/sup2.dat";
   ReadFile surface(resolution, filepath);
   surface.GetSurface(outsurf);
 
@@ -140,7 +142,7 @@ TEST(readtopology, RMG)
   Epetra_SerialDenseMatrix outsurf;
   int N = pow(2, resolution);
   outsurf.Shape(N + 1, N + 1);
-  
+
   Rmg surface(resolution, Hurst, rand_seed_flag);
   surface.GetSurface(outsurf);
 
@@ -169,6 +171,44 @@ TEST(readtopology, RMG)
   EXPECT_NEAR(outsurf(4, 2), 36.7733127073012, 1e-03);
   EXPECT_NEAR(outsurf(4, 3), 42.2170752636335, 1e-03);
   EXPECT_NEAR(outsurf(4, 4), 28.2215338276376, 1e-03);
+}
+
+TEST(setparameters, setting)
+{
+  bool flagwarm;
+  int n;
+  double nu1, nu2, G1, G2, E, alpha, k_el, delta, nnodi, to1, E1,
+      E2, lato, errf, Delta;
+  bool rmg_flag;
+  bool rand_seed_flag;
+  double Hurst;
+  std::string zfilePath = "sup2.dat";
+  std::string jsonFileName = "../bem/tests/unittests/testfiles/input_sup2.json";
+
+  SetParameters(E1, E2, lato, nu1, nu2, G1, G2,
+                E, alpha, k_el, delta, nnodi, errf, to1, Delta, zfilePath, n, jsonFileName, rmg_flag, Hurst, rand_seed_flag, flagwarm);
+
+  EXPECT_EQ(E1, 1);
+  EXPECT_EQ(E2, 1);
+  EXPECT_EQ(lato, 1000);
+  EXPECT_EQ(nu1, 0.3);
+  EXPECT_EQ(nu2, 0.3);
+  EXPECT_NEAR(G1, E1 / (2 * (1 + nu1)), 1e-06);
+  EXPECT_NEAR(G2, E2 / (2 * (1 + nu2)), 1e-06);
+  EXPECT_NEAR(E, 1 / ((1 - pow(nu1, 2)) / E1 + (1 - pow(nu2, 2) / E2)), 1e-06);
+  EXPECT_NEAR(alpha, 0.805513388666376, 1e-06);
+  EXPECT_NEAR(k_el, lato * E / alpha, 1e-06);
+  EXPECT_NEAR(delta, lato / (pow(2, n) + 1), 1e-06);
+  EXPECT_NEAR(nnodi, pow(pow(2, n + 1), 2), 1e-06);
+  EXPECT_EQ(errf, 100000000);
+  EXPECT_EQ(to1, 0.01);
+  EXPECT_EQ(Delta, 15);
+  EXPECT_EQ(zfilePath,"../bem/tests/unittests/testfiles/sup2.dat");
+  EXPECT_EQ(n, 2);
+  EXPECT_EQ(rmg_flag, false);
+  EXPECT_EQ(Hurst, 0.1);
+  EXPECT_EQ(rand_seed_flag, false);
+  EXPECT_EQ(flagwarm, true);
 }
 
 int main(int argc, char **argv)
