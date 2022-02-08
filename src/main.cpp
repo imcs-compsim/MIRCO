@@ -10,6 +10,13 @@ int main(int argc, char *argv[])
 
   double force = 0;
 
-  Evaluate(jsonFileName, force);
+  if (argc==2)
+  {
+    Evaluate(jsonFileName, force);
+  }
+  else
+  {
+    cout << "Invalid input arguments" << endl;
+  }
   
 }
