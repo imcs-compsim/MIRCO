@@ -2,25 +2,24 @@
 #include <cmath>
 #include <fstream>
 #include <iostream>
+#include <jsoncpp/json/json.h>
 #include <string>
 #include <vector>
-#include <jsoncpp/json/json.h>
 using namespace std;
 
 #include "filesystem_utils.h"
 #include "setparameters.h"
 
-void SetParameters(double& E1, double& E2,
-                   double& lato, double& nu1,
-                   double& nu2, double& G1, double& G2, double& E,
-                   double& alpha,
-                   double& k_el, double& delta, double& nnodi, double& errf,
-                   double& to1, double& Delta, string& zfilePath, int& n, string& jsonFileName, bool& rmg_flag, double& Hurst, bool& rand_seed_flag, bool& flagwarm) {
-  
-  
-  Json::Value parameterlist;   // will contain the root value after parsing.
+void SetParameters(double &E1, double &E2, double &lato, double &nu1,
+                   double &nu2, double &G1, double &G2, double &E,
+                   double &alpha, double &k_el, double &delta, double &nnodi,
+                   double &errf, double &to1, double &Delta, string &zfilePath,
+                   int &n, string &jsonFileName, bool &rmg_flag, double &Hurst,
+                   bool &rand_seed_flag, bool &flagwarm) {
+
+  Json::Value parameterlist; // will contain the root value after parsing.
   ifstream stream(jsonFileName, std::ifstream::binary);
-  stream >> parameterlist; 
+  stream >> parameterlist;
 
   flagwarm = parameterlist["flagwarm"].asBool();
   rmg_flag = parameterlist["rmg_flag"].asBool();
@@ -41,13 +40,17 @@ void SetParameters(double& E1, double& E2,
                            0.851733020725652, 0.858342234203154,
                            0.862368243479785, 0.864741597831785};
   n = parameterlist["parameters"]["geometrical_parameters"]["n"].asInt();
-  Hurst = parameterlist["parameters"]["geometrical_parameters"]["H"].asDouble(); // Hurst component
+  Hurst = parameterlist["parameters"]["geometrical_parameters"]["H"]
+              .asDouble(); // Hurst component
   alpha = alpha_con[n - 1];
-  lato = parameterlist["parameters"]["geometrical_parameters"]["lato"].asDouble();  // Lateral side of the surface [micrometers]
-  k_el = lato * E / alpha; 
+  lato = parameterlist["parameters"]["geometrical_parameters"]["lato"]
+             .asDouble(); // Lateral side of the surface [micrometers]
+  k_el = lato * E / alpha;
   delta = lato / (pow(2, n) + 1);
   nnodi = pow(pow(2, n + 1), 2);
-  errf = parameterlist["parameters"]["geometrical_parameters"]["errf"].asDouble();
+  errf =
+      parameterlist["parameters"]["geometrical_parameters"]["errf"].asDouble();
   to1 = parameterlist["parameters"]["geometrical_parameters"]["tol"].asDouble();
-  Delta = parameterlist["parameters"]["geometrical_parameters"]["Delta"].asDouble();
+  Delta =
+      parameterlist["parameters"]["geometrical_parameters"]["Delta"].asDouble();
 }

@@ -13,8 +13,8 @@ namespace UTILS {
  * concatenates them. If the targetfilename is already an absolute path, it will
  * do nothing.
  */
-void ChangeRelativePath(std::string& targetfilename,
-                        std::string& sourcefilename);
-}  // namespace UTILS
+void ChangeRelativePath(std::string &targetfilename,
+                        std::string &sourcefilename);
+} // namespace UTILS
 
 #endif /* SRC_FILESYSTEM_UTILS_H_ */

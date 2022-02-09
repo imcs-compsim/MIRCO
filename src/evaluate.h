@@ -1,4 +1,4 @@
-#include <vector>
 #include <string>
+#include <vector>
 
-void Evaluate (std::string jsonFileName, double &force);
+void Evaluate(std::string jsonFileName, double &force);

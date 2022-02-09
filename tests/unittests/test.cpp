@@ -1,29 +1,26 @@
-#include <Epetra_SerialDenseMatrix.h>
-#include <Epetra_SerialSymDenseMatrix.h>
-#include <gtest/gtest.h>
-#include <stdlib.h>
-#include <vector>
-#include <string>
 #include "../../src/filesystem_utils.h"
 #include "../../src/linearsolver.h"
 #include "../../src/nonlinearsolver.h"
-#include "nonlinear_solver_test.h"
-#include "../../src/topology.h"
-#include <memory>
 #include "../../src/setparameters.h"
+#include "../../src/topology.h"
+#include "nonlinear_solver_test.h"
+#include <Epetra_SerialDenseMatrix.h>
+#include <Epetra_SerialSymDenseMatrix.h>
+#include <gtest/gtest.h>
+#include <memory>
+#include <stdlib.h>
+#include <string>
+#include <vector>
 
-TEST(linearsolver, solves)
-{
+TEST(linearsolver, solves) {
   int systemsize = 2;
 
   // Build the matrix
   Epetra_SerialSymDenseMatrix topology;
   topology.Shape(systemsize);
-  for (int i = 0; i < systemsize; i++)
-  {
+  for (int i = 0; i < systemsize; i++) {
     topology(i, i) = 2;
-    for (int j = 0; j < i; j++)
-    {
+    for (int j = 0; j < i; j++) {
       topology(i, j) = 1;
       topology(j, i) = 1;
     }
@@ -38,8 +35,7 @@ TEST(linearsolver, solves)
   vector_b.Shape(systemsize, 1);
 
   // Build right hand side
-  for (int i = 0; i < systemsize; i++)
-  {
+  for (int i = 0; i < systemsize; i++) {
     vector_b(i, 0) = 1;
   }
 
@@ -51,8 +47,7 @@ TEST(linearsolver, solves)
   EXPECT_NEAR(vector_x(1, 0), 0.333333333333333, 1e-06);
 }
 
-TEST_F(NonlinearSolverTest, primalvariable)
-{
+TEST_F(NonlinearSolverTest, primalvariable) {
   NonLinearSolver nonlinearsolver;
   nonlinearsolver.NonlinearSolve(matrix_, b_vector_, x_vector_, w_, y_);
 
@@ -67,8 +62,7 @@ TEST_F(NonlinearSolverTest, primalvariable)
   EXPECT_NEAR(y_(8, 0), 149262.960807186, 1e-06);
 }
 
-TEST_F(NonlinearSolverTest, dualvariable)
-{
+TEST_F(NonlinearSolverTest, dualvariable) {
   NonLinearSolver nonlinearsolver;
   nonlinearsolver.NonlinearSolve(matrix_, b_vector_, x_vector_, w_, y_);
 
@@ -83,24 +77,21 @@ TEST_F(NonlinearSolverTest, dualvariable)
   EXPECT_NEAR(w_(8, 0), 0, 1e-06);
 }
 
-TEST(FilesystemUtils, createrelativepath)
-{
+TEST(FilesystemUtils, createrelativepath) {
   std::string targetfilename = "input.dat";
   std::string sourcefilename = "../inputfiles/sourceinput.json";
   UTILS::ChangeRelativePath(targetfilename, sourcefilename);
   EXPECT_EQ(targetfilename, "../inputfiles/input.dat");
 }
 
-TEST(FilesystemUtils, keepabsolutpath)
-{
+TEST(FilesystemUtils, keepabsolutpath) {
   std::string targetfilename = "/root_dir/home/user/Input/input.dat";
   std::string sourcefilename = "../inputfiles/sourceinput.json";
   UTILS::ChangeRelativePath(targetfilename, sourcefilename);
   EXPECT_EQ(targetfilename, "/root_dir/home/user/Input/input.dat");
 }
 
-TEST(readtopology, readfile)
-{
+TEST(readtopology, readfile) {
   int resolution = 2;
   Epetra_SerialDenseMatrix outsurf;
   std::string filepath = "../bem/tests/unittests/testfiles/sup2.dat";
@@ -134,8 +125,7 @@ TEST(readtopology, readfile)
   EXPECT_NEAR(outsurf(4, 4), 5.7299175e+01, 1e-06);
 }
 
-TEST(readtopology, RMG)
-{
+TEST(readtopology, RMG) {
   int resolution = 2;
   float Hurst = 0.1;
   bool rand_seed_flag = false;
@@ -173,20 +163,20 @@ TEST(readtopology, RMG)
   EXPECT_NEAR(outsurf(4, 4), 28.2215338276376, 1e-03);
 }
 
-TEST(setparameters, setting)
-{
+TEST(setparameters, setting) {
   bool flagwarm;
   int n;
-  double nu1, nu2, G1, G2, E, alpha, k_el, delta, nnodi, to1, E1,
-      E2, lato, errf, Delta;
+  double nu1, nu2, G1, G2, E, alpha, k_el, delta, nnodi, to1, E1, E2, lato,
+      errf, Delta;
   bool rmg_flag;
   bool rand_seed_flag;
   double Hurst;
   std::string zfilePath = "sup2.dat";
   std::string jsonFileName = "../bem/tests/unittests/testfiles/input_sup2.json";
 
-  SetParameters(E1, E2, lato, nu1, nu2, G1, G2,
-                E, alpha, k_el, delta, nnodi, errf, to1, Delta, zfilePath, n, jsonFileName, rmg_flag, Hurst, rand_seed_flag, flagwarm);
+  SetParameters(E1, E2, lato, nu1, nu2, G1, G2, E, alpha, k_el, delta, nnodi,
+                errf, to1, Delta, zfilePath, n, jsonFileName, rmg_flag, Hurst,
+                rand_seed_flag, flagwarm);
 
   EXPECT_EQ(E1, 1);
   EXPECT_EQ(E2, 1);
@@ -203,7 +193,7 @@ TEST(setparameters, setting)
   EXPECT_EQ(errf, 100000000);
   EXPECT_EQ(to1, 0.01);
   EXPECT_EQ(Delta, 15);
-  EXPECT_EQ(zfilePath,"../bem/tests/unittests/testfiles/sup2.dat");
+  EXPECT_EQ(zfilePath, "../bem/tests/unittests/testfiles/sup2.dat");
   EXPECT_EQ(n, 2);
   EXPECT_EQ(rmg_flag, false);
   EXPECT_EQ(Hurst, 0.1);
@@ -211,8 +201,7 @@ TEST(setparameters, setting)
   EXPECT_EQ(flagwarm, true);
 }
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

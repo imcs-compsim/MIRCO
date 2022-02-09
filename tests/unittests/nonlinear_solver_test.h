@@ -7,7 +7,7 @@
 #include <vector>
 
 class NonlinearSolverTest : public ::testing::Test {
- protected:
+protected:
   void SetUp() override;
 
   void TearDown() override {}
