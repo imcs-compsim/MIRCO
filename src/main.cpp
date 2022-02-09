@@ -8,7 +8,7 @@ using namespace std;
 int main(int argc, char *argv[]) {
   TEUCHOS_TEST_FOR_EXCEPTION(
       argc != 2, std::invalid_argument,
-      "Number of command line arguments does not equal 2.");
+      "The code expects (only) an input file as argument");
 
   string jsonFileName =
       argv[1]; // reading the json file name from the command line
