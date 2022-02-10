@@ -1,0 +1,25 @@
+<ParameterList>
+  <Parameter name="flagwarm" type="bool" value="true"/>
+  <Parameter name="rmg_flag" type="bool" value="false"/>
+  <Parameter name="rand_seed_flag" type="bool" value="false"/>
+  <Parameter name="z_file_path" type="string" value="sup2.dat"/>
+
+  <ParameterList name="parameters">
+    <ParameterList name="material_parameters">
+      <Parameter name="E1" type="double" value="1"/>
+      <Parameter name="nu1" type="double" value="0.3"/>
+      <Parameter name="E2" type="double" value="1"/>
+      <Parameter name="nu2" type="double" value="0.3"/>
+    </ParameterList>
+
+    <ParameterList name="geometrical_parameters">
+      <Parameter name="lato" type="double" value="1000.0"/>
+      <Parameter name="n" type="int" value="2"/>
+      <Parameter name="H" type="double" value="0.1"/>
+      <Parameter name="Delta" type="double" value="15.0"/>
+      <Parameter name="errf" type="double" value="100000000.0"/>
+      <Parameter name="tol" type="double" value="0.0"/>
+    </ParameterList>
+
+  </ParameterList>
+</ParameterList>

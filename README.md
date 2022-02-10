@@ -17,7 +17,7 @@ If you have already cloned the repository using:
 ```bash
 git clone https://github.com/imcs-compsim/MIRCO.git <sourceDir>
 ```
-you can pull the submodules using: 
+you can pull the submodules using:
 ```bash
 cd <sourceDir>
 git submodule update --init --recursive
@@ -62,6 +62,6 @@ ctest
 
 To run the code with an input file, use the following command in your build directory:
 ```bash
-./mirco <sourceDir>/Input/<someInputFile.json>
+./mirco <sourceDir>/Input/<someInputFile.xml>
 ```
-where `<someInputFile.json>` is any input file in the prescribed format.
+where `<someInputFile.xml>` is any input file in the prescribed format.
