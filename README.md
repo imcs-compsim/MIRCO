@@ -1,6 +1,6 @@
 # MIRCO (MUSAM-IMCS Rough Contact cOde)
 
-It is a Boundary element algorithm for simulating linear elastic frictionless normal contact between rigid rough indentor and a half-space. The research code is implemented throughout in object-oriented programming (C++) using modern software design and is parallelized with OpenMP for shared memory hardware architectures.
+`MIRCO` is a Boundary element algorithm for simulating linear elastic frictionless normal contact between a rigid rough indentor and an elastic half-space. The research code is implemented throughout in object-oriented programming (C++) using modern software design and is parallelized with OpenMP for shared memory hardware architectures.
 
 ## Clone the Repository
 
@@ -11,13 +11,13 @@ cd <someBaseDir>
 mkdir <sourceDir>
 git clone --recursive https://github.com/imcs-compsim/MIRCO.git <sourceDir>
 ```
-where `<someBaseDir>` is some directory in your machine and `<sourceDir>` will contain the BEM source code.
+where `<someBaseDir>` is some directory in your machine and `<sourceDir>` will contain the `MIRCO` source code.
 
 If you have already cloned the repository using:
 ```bash
 git clone https://github.com/imcs-compsim/MIRCO.git <sourceDir>
 ```
-, you can pull the submodules using: 
+you can pull the submodules using: 
 ```bash
 cd <sourceDir>
 git submodule update --init --recursive
@@ -36,16 +36,20 @@ mkdir <buildDir>
 ```
 where `<buildDir>` is the build directory.
 
-Now, you have to navigate to the build directory and call `do-configure` using:
+> Note: The exact location of `<buildDir>` is arbitrary, as long as it is _not_ a subdirectory of `<sourceDir>`.
+
+Now, you have to navigate to the build directory and call the `do-configure` script in order to invoke `cmake`:
 ```bash
 cd <buildDir>
 <sourceDir>/do-configure
 ```
-Build the `bem` executable in the build directory using:
+Build the `mirco` executable in the build directory using:
 ```bash
-<buildDir>/make
+cd <buildDir>
+make -j <numProc>
 ```
-The `bem` executable will be created in the build directory.
+with `<numProc>` specifying the number of processes used for compilation.
+The `mirco` executable will be created in the build directory.
 
 ## Run unit tests
 
@@ -58,6 +62,6 @@ ctest
 
 To run the code with an input file, use the following command in your build directory:
 ```bash
-./bem <sourceDir>/Input/<someInputFile.json>
+./mirco <sourceDir>/Input/<someInputFile.json>
 ```
-where <someInputFile.json> is any input file in the prescribed format.
+where `<someInputFile.json>` is any input file in the prescribed format.
