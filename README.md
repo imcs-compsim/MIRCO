@@ -1,4 +1,4 @@
-# BEM
+# MIRCO (MUSAM-IMCS Rough Contact cOde)
 
 It is a Boundary element algorithm for simulating linear elastic frictionless normal contact between rigid rough indentor and a half-space. The research code is implemented throughout in object-oriented programming (C++) using modern software design and is parallelized with OpenMP for shared memory hardware architectures.
 
@@ -9,13 +9,13 @@ You can clone the repository along with its submodules using:
 ```bash
 cd <someBaseDir>
 mkdir <sourceDir>
-git clone --recursive git@gitlab.com:compsim/codes/bem.git <sourceDir>
+git clone --recursive https://github.com/imcs-compsim/MIRCO.git <sourceDir>
 ```
 where `<someBaseDir>` is some directory in your machine and `<sourceDir>` will contain the BEM source code.
 
 If you have already cloned the repository using:
 ```bash
-git clone git@gitlab.com:compsim/codes/bem.git <sourceDir>
+git clone https://github.com/imcs-compsim/MIRCO.git <sourceDir>
 ```
 , you can pull the submodules using: 
 ```bash
