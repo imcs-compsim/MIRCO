@@ -10,7 +10,6 @@
 #include <Epetra_SerialSymDenseMatrix.h>
 #include <chrono>
 #include <ctime>
-#include <jsoncpp/json/json.h>
 #include <memory>
 using namespace std;
 
@@ -26,7 +25,7 @@ using namespace std;
 #include "evaluate.h"
 #include "writetofile.h"
 
-void Evaluate(std::string jsonFileName, double &force)
+void Evaluate(const std::string& inputFileName, double &force)
 {
     omp_set_num_threads(6); // 6 seems to be optimal
 
@@ -41,7 +40,7 @@ void Evaluate(std::string jsonFileName, double &force)
     string zfilePath;
 
     SetParameters(E1, E2, lato, nu1, nu2, G1, G2,
-                  E, alpha, k_el, delta, nnodi, errf, to1, Delta, zfilePath, n, jsonFileName, rmg_flag, Hurst, rand_seed_flag, flagwarm);
+                  E, alpha, k_el, delta, nnodi, errf, to1, Delta, zfilePath, n, inputFileName, rmg_flag, Hurst, rand_seed_flag, flagwarm);
 
     time_t now = time(0);
     tm *ltm = localtime(&now);
@@ -109,7 +108,7 @@ void Evaluate(std::string jsonFileName, double &force)
         // All points, for which gap is bigger than the displacement of the rigid
         // indenter, cannot be in contact and thus are not checked in nonlinear solve
         // @{
-            
+
         // [ind1,ind2]=find(z>=(zmax-(Delta(s)+w_el(k))));
         double value = zmax - Delta - w_el;
         row.clear();

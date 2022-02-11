@@ -14,7 +14,7 @@ namespace UTILS {
  * do nothing.
  */
 void ChangeRelativePath(std::string& targetfilename,
-                        std::string& sourcefilename);
+                        const std::string& sourcefilename);
 }  // namespace UTILS
 
 #endif /* SRC_FILESYSTEM_UTILS_H_ */
