@@ -1,5 +1,3 @@
-// #include <fstream>
-// #include <iostream>
 #include <string>
 #include "evaluate.h"
 
