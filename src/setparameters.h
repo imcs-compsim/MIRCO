@@ -1,3 +1,6 @@
+#ifndef SRC_SETPARAMETERS_H_
+#define SRC_SETPARAMETERS_H_
+
 #include <string>
 
 void SetParameters(double& E1, double& E2,
@@ -7,3 +10,6 @@ void SetParameters(double& E1, double& E2,
                    double& k_el, double& delta, double& nnodi, double& errf,
                    double& tol, double& Delta, std::string& zfilePath, int& n, const std::string& inputFileName,
                    bool& rmg_flag, double& Hurst, bool& rand_seed_flag, bool& flagwarm);
+
+
+#endif //SRC_SETPARAMETERS_H_

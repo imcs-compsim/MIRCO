@@ -1,3 +1,6 @@
+#ifndef SRC_MATRIXSETUP_H_
+#define SRC_MATRIXSETUP_H_
+
 #include <vector>
 #include <Epetra_SerialSymDenseMatrix.h>
 
@@ -9,3 +12,5 @@ public:
                  int systemsize);
     MatrixGeneration() = default;
 };
+
+#endif //SRC_MATRIXSETUP_H_
