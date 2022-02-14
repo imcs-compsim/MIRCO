@@ -1,3 +1,6 @@
+#ifndef SRC_NONLINEARSOLVER_H_
+#define SRC_NONLINEARSOLVER_H_
+
 #include <vector>
 #include <Epetra_SerialSpdDenseSolver.h>
 #include <Epetra_SerialSymDenseMatrix.h>
@@ -10,3 +13,5 @@ public:
                     Epetra_SerialDenseMatrix& w, Epetra_SerialDenseMatrix& y);
     NonLinearSolver() = default;
 };
+
+#endif //SRC_NONLINEARSOLVER_H_

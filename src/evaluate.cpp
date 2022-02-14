@@ -12,7 +12,6 @@
 #include <ctime>
 #include <memory>
 using namespace std;
-
 #include "topology.h"
 #include "topologyfactory.h"
 #include "linearsolver.h"
@@ -20,8 +19,6 @@ using namespace std;
 #include "matrixsetup.h"
 #include "warmstart.h"
 #include "setparameters.h"
-#include "evaluate.h"
-
 #include "evaluate.h"
 #include "writetofile.h"
 

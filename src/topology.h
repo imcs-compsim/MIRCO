@@ -1,3 +1,6 @@
+#ifndef SRC_TOPOLOGY_H_
+#define SRC_TOPOLOGY_H_
+
 #include <Epetra_SerialDenseMatrix.h> // Seems obvious
 #include <string>
 
@@ -35,3 +38,5 @@ bool rand_seed_flag;
         rand_seed_flag = rsf;
     }
 };
+
+#endif //SRC_TOPOLOGY_H_
