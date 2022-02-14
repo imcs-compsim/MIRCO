@@ -12,5 +12,4 @@ ColumnLimit: 100                    # Break lines after 100 columns/characters
 MaxEmptyLinesToKeep: 3              # Max. number of emtpy lines
 NamespaceIndentation: All           # Add one level of indentation per namespace nesting
 SpacesInContainerLiterals: false    # Do not insert spaces after and before square brackets, here []
-Standard: Cpp17                     # Use the Cpp17 code style
 TabWidth: 2                         # Make sure we use our desired tab width
