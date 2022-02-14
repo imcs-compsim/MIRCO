@@ -40,8 +40,8 @@ endif()
 
 # Specify include directories in this repository and for Trilinos
 include_directories(".")
-include_directories(${Trilinos_TPL_INCLUDE_DIRS})
-include_directories(${Trilinos_INCLUDE_DIRS})
+include_directories(SYSTEM ${Trilinos_TPL_INCLUDE_DIRS})
+include_directories(SYSTEM ${Trilinos_INCLUDE_DIRS})
 
 # Add to the library path Trilinos' library path, and the library
 # paths of the third-party libraries (TPLs) with which Trilinos was
