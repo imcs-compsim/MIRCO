@@ -1,14 +1,13 @@
+#include <Epetra_SerialSymDenseMatrix.h>
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
-#include <Epetra_SerialSymDenseMatrix.h>
 using namespace std;
 #include "writetofile.h"
 
 void writeForceToFile(Epetra_SerialDenseMatrix &y, string pathName)
 {
-
   std::size_t botDirPos = pathName.find_last_of("/") + 1;
   // get directory
   std::string dir = pathName.substr(0, botDirPos);

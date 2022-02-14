@@ -8,15 +8,18 @@
 #include "../../src/nonlinearsolver.h"
 #include "nonlinear_solver_test.h"
 
-TEST(linearsolver, solves) {
+TEST(linearsolver, solves)
+{
   int systemsize = 2;
 
   // Build the matrix
   Epetra_SerialSymDenseMatrix topology;
   topology.Shape(systemsize);
-  for (int i = 0; i < systemsize; i++) {
+  for (int i = 0; i < systemsize; i++)
+  {
     topology(i, i) = 2;
-    for (int j = 0; j < i; j++) {
+    for (int j = 0; j < i; j++)
+    {
       topology(i, j) = 1;
       topology(j, i) = 1;
     }
@@ -31,7 +34,8 @@ TEST(linearsolver, solves) {
   vector_b.Shape(systemsize, 1);
 
   // Build right hand side
-  for (int i = 0; i < systemsize; i++) {
+  for (int i = 0; i < systemsize; i++)
+  {
     vector_b(i, 0) = 1;
   }
 
@@ -43,7 +47,8 @@ TEST(linearsolver, solves) {
   EXPECT_NEAR(vector_x(1, 0), 0.333333333333333, 1e-06);
 }
 
-TEST_F(NonlinearSolverTest, primalvariable) {
+TEST_F(NonlinearSolverTest, primalvariable)
+{
   NonLinearSolver nonlinearsolver;
   nonlinearsolver.NonlinearSolve(matrix_, b_vector_, x_vector_, w_, y_);
 
@@ -58,7 +63,8 @@ TEST_F(NonlinearSolverTest, primalvariable) {
   EXPECT_NEAR(y_(8, 0), 149262.960807186, 1e-06);
 }
 
-TEST_F(NonlinearSolverTest, dualvariable) {
+TEST_F(NonlinearSolverTest, dualvariable)
+{
   NonLinearSolver nonlinearsolver;
   nonlinearsolver.NonlinearSolve(matrix_, b_vector_, x_vector_, w_, y_);
 
@@ -73,21 +79,24 @@ TEST_F(NonlinearSolverTest, dualvariable) {
   EXPECT_NEAR(w_(8, 0), 0, 1e-06);
 }
 
-TEST(FilesystemUtils, createrelativepath) {
+TEST(FilesystemUtils, createrelativepath)
+{
   std::string targetfilename = "input.dat";
   std::string sourcefilename = "../inputfiles/sourceinput.json";
   UTILS::ChangeRelativePath(targetfilename, sourcefilename);
   EXPECT_EQ(targetfilename, "../inputfiles/input.dat");
 }
 
-TEST(FilesystemUtils, keepabsolutpath) {
+TEST(FilesystemUtils, keepabsolutpath)
+{
   std::string targetfilename = "/root_dir/home/user/Input/input.dat";
   std::string sourcefilename = "../inputfiles/sourceinput.json";
   UTILS::ChangeRelativePath(targetfilename, sourcefilename);
   EXPECT_EQ(targetfilename, "/root_dir/home/user/Input/input.dat");
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
