@@ -9,15 +9,11 @@
 #include "filesystem_utils.h"
 #include "setparameters.h"
 
-void SetParameters(double& E1, double& E2,
-                   double& lato, double& nu1,
-                   double& nu2, double& G1, double& G2, double& E,
-                   double& alpha,
-                   double& k_el, double& delta, double& nnodi, double& errf,
-                   double& tol, double& Delta, std::string& zfilePath, int& n, const std::string& inputFileName,
-                   bool& rmg_flag, double& Hurst, bool& rand_seed_flag, bool& flagwarm) {
-
-
+void SetParameters(double& E1, double& E2, double& lato, double& nu1, double& nu2, double& G1,
+    double& G2, double& E, double& alpha, double& k_el, double& delta, double& nnodi, double& errf,
+    double& tol, double& Delta, std::string& zfilePath, int& n, const std::string& inputFileName,
+    bool& rmg_flag, double& Hurst, bool& rand_seed_flag, bool& flagwarm)
+{
   Teuchos::RCP<Teuchos::ParameterList> parameterList = Teuchos::rcp(new Teuchos::ParameterList());
   Teuchos::updateParametersFromXmlFile(inputFileName, parameterList.ptr());
 
@@ -28,7 +24,8 @@ void SetParameters(double& E1, double& E2,
 
   UTILS::ChangeRelativePath(zfilePath, inputFileName);
 
-  Teuchos::ParameterList& matParams = parameterList->sublist("parameters").sublist("material_parameters");
+  Teuchos::ParameterList& matParams =
+      parameterList->sublist("parameters").sublist("material_parameters");
   E1 = matParams.get<double>("E1");
   E2 = matParams.get<double>("E2");
   nu1 = matParams.get<double>("nu1");
@@ -36,14 +33,14 @@ void SetParameters(double& E1, double& E2,
   G1 = E1 / (2 * (1 + nu1));
   G2 = E2 / (2 * (1 + nu2));
   E = 1 / ((1 - pow(nu1, 2)) / E1 + (1 - pow(nu2, 2) / E2));
-  std::vector<double> alpha_con{0.778958541513360, 0.805513388666376,
-                           0.826126871395416, 0.841369158110513,
-                           0.851733020725652, 0.858342234203154,
-                           0.862368243479785, 0.864741597831785};
+  std::vector<double> alpha_con{0.778958541513360, 0.805513388666376, 0.826126871395416,
+      0.841369158110513, 0.851733020725652, 0.858342234203154, 0.862368243479785,
+      0.864741597831785};
 
-  Teuchos::ParameterList& geoParams = parameterList->sublist("parameters").sublist("geometrical_parameters");
+  Teuchos::ParameterList& geoParams =
+      parameterList->sublist("parameters").sublist("geometrical_parameters");
   n = geoParams.get<int>("n");
-  Hurst = geoParams.get<double>("H"); // Hurst exponent
+  Hurst = geoParams.get<double>("H");    // Hurst exponent
   lato = geoParams.get<double>("lato");  // Lateral side of the surface [micrometers]
   errf = geoParams.get<double>("errf");
   tol = geoParams.get<double>("tol");

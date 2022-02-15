@@ -3,6 +3,6 @@
 
 #include <string>
 
-void Evaluate (const std::string& inputFileName, double &force);
+void Evaluate(const std::string& inputFileName, double& force);
 
-#endif //SRC_EVALUATE_H_
+#endif  // SRC_EVALUATE_H_

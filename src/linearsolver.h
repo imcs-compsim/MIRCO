@@ -6,11 +6,10 @@
 
 class LinearSolver
 {
-public:
-    void Solve(Epetra_SerialSymDenseMatrix& matrix,
-                 Epetra_SerialDenseMatrix& vector_x,
-                 Epetra_SerialDenseMatrix& vector_b);
-    LinearSolver() = default;
+ public:
+  void Solve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatrix& vector_x,
+      Epetra_SerialDenseMatrix& vector_b);
+  LinearSolver() = default;
 };
 
-#endif //SRC_LINEARSOLVER_H_
+#endif  // SRC_LINEARSOLVER_H_

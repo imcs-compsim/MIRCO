@@ -1,18 +1,19 @@
-#include <vector>
-#include <Epetra_SerialSymDenseMatrix.h>
 #include "warmstart.h"
+#include <Epetra_SerialSymDenseMatrix.h>
+#include <vector>
 
 using namespace std;
 
-Epetra_SerialDenseMatrix Warmstarter::Warmstart2(Epetra_SerialDenseMatrix xv0, Epetra_SerialDenseMatrix yv0, Epetra_SerialDenseMatrix &xvf,
-                                    Epetra_SerialDenseMatrix &yvf, Epetra_SerialDenseMatrix &pf)
+Epetra_SerialDenseMatrix Warmstarter::Warmstart2(Epetra_SerialDenseMatrix xv0,
+    Epetra_SerialDenseMatrix yv0, Epetra_SerialDenseMatrix &xvf, Epetra_SerialDenseMatrix &yvf,
+    Epetra_SerialDenseMatrix &pf)
 {
   Epetra_SerialDenseMatrix x0;
   x0.Shape(xv0.N(), 1);
   Epetra_SerialDenseMatrix combinedMatrix;
   combinedMatrix.Shape(2, xv0.N());
   // matfin = [xv0, yv0]
-#pragma omp parallel for schedule(static, 16) // Always same workload -> Static
+#pragma omp parallel for schedule(static, 16)  // Always same workload -> Static
   for (int i = 0; i < xv0.N(); i++)
   {
     combinedMatrix(0, i) = xv0(0, i);
@@ -25,7 +26,7 @@ Epetra_SerialDenseMatrix Warmstarter::Warmstart2(Epetra_SerialDenseMatrix xv0, E
   }
 
   vector<int> index;
-#pragma omp parallel for schedule(dynamic, 16) // Workload can differ vastly -> Dynamic
+#pragma omp parallel for schedule(dynamic, 16)  // Workload can differ vastly -> Dynamic
   for (int i = 0; i < pf.N(); i++)
   {
     // ind=find(matfin(:,1)==xvf(i) & matfin(:,2)==yvf(i));
@@ -38,7 +39,7 @@ Epetra_SerialDenseMatrix Warmstarter::Warmstart2(Epetra_SerialDenseMatrix xv0, E
     }
 
     // x0(ind,1)=pf(i);
-#pragma omp parallel for schedule(static, 16) // Always same workload -> Static
+#pragma omp parallel for schedule(static, 16)  // Always same workload -> Static
     for (long unsigned int y = 0; y < index.size(); y++)
     {
       x0(y, 0) = pf(y, 0);
