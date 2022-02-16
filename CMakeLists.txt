@@ -64,6 +64,7 @@ add_library(mirco_library
   src/evaluate.cpp
   src/topologyfactory.cpp
   src/surfmaxandmean.cpp
+  src/secondpredictor.cpp
 )
 
 add_library(mirco_io
