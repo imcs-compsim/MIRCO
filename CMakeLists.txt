@@ -63,6 +63,7 @@ add_library(mirco_library
   src/warmstart.cpp
   src/evaluate.cpp
   src/topologyfactory.cpp
+  src/surfmaxandmean.cpp
 )
 
 add_library(mirco_io

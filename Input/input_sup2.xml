@@ -18,7 +18,7 @@
       <Parameter name="H" type="double" value="0.1"/>
       <Parameter name="Delta" type="double" value="15.0"/>
       <Parameter name="errf" type="double" value="100000000.0"/>
-      <Parameter name="tol" type="double" value="0.0"/>
+      <Parameter name="tol" type="double" value="0.01"/>
     </ParameterList>
 
   </ParameterList>
