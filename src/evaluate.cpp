@@ -13,6 +13,7 @@
 #include <vector>
 using namespace std;
 #include "computeresidual.h"
+#include "createmeshgrid.h"
 #include "evaluate.h"
 #include "firstpredictor.h"
 #include "linearsolver.h"
@@ -49,16 +50,10 @@ void Evaluate(const std::string &inputFileName, double &force)
 
   // Meshgrid-Command
   // Identical Vectors/Matricies, therefore only created one here.
-  int iter =
-      int(ceil((lato - (delta / 2)) /
-               delta));  // Replacement for "for (double i = delta / 2; i < lato; i = i + delta)"
-  vector<double> x(iter);
-
-#pragma omp parallel for schedule(static, 16)  // Same amount of work -> static
-  for (int i = 0; i < iter; i++)
-  {
-    x[i] = (delta / 2) + i * delta;
-  }
+  // Replacement for "for (double i = delta / 2; i < lato; i = i + delta)"
+  int iter = int(ceil((lato - (delta / 2)) / delta));
+  std::vector<double> x(iter);
+  CreateMeshgrid(x, iter, delta);
 
   // Setup Topology
   Epetra_SerialDenseMatrix topology, y;
@@ -66,9 +61,8 @@ void Evaluate(const std::string &inputFileName, double &force)
   topology.Shape(N + 1, N + 1);
 
   std::shared_ptr<TopologyGeneration> surfacegenerator;
-
-  CreateSurfaceObject(n, Hurst, rand_seed_flag, zfilePath, rmg_flag,
-      surfacegenerator);  // creating the correct surface object
+  // creating the correct surface object
+  CreateSurfaceObject(n, Hurst, rand_seed_flag, zfilePath, rmg_flag, surfacegenerator);
 
   surfacegenerator->GetSurface(topology);
 

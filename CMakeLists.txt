@@ -67,6 +67,7 @@ add_library(mirco_library
   src/secondpredictor.cpp
   src/computeresidual.cpp
   src/firstpredictor.cpp
+  src/createmeshgrid.cpp
 )
 
 add_library(mirco_io
