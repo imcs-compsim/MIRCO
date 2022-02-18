@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 using namespace std;
+#include "computecontactnodes.h"
 #include "computeresidual.h"
 #include "createmeshgrid.h"
 #include "evaluate.h"
@@ -126,32 +127,7 @@ void Evaluate(const std::string &inputFileName, double &force)
 
     // Compute number of contact node
     // @{
-
-    // @{
-    xvf.clear();
-    xvf.resize(y.M());
-    yvf.clear();
-    yvf.resize(y.M());
-    pf.resize(y.M());
-    cont = 0;
-    // @} Parallelizing this slows down program, so removed it.
-
-#pragma omp for schedule(guided, 16)
-    for (int i = 0; i < y.M(); i++)
-    {
-      if (y(i, 0) != 0)
-      {
-#pragma omp critical
-        {
-          xvf[cont] = xv0[i];
-          yvf[cont] = yv0[i];
-          pf[cont] = y(i, 0);
-          cont += 1;
-        }
-      }
-    }
-
-    nf = cont;
+    ComputeContactNodes(xvf, yvf, pf, cont, nf, y, xv0, yv0);
     // }
 
     // Compute contact force and contact area

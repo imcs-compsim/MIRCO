@@ -68,6 +68,7 @@ add_library(mirco_library
   src/computeresidual.cpp
   src/firstpredictor.cpp
   src/createmeshgrid.cpp
+  src/computecontactnodes.cpp
 )
 
 add_library(mirco_io
