@@ -69,6 +69,7 @@ add_library(mirco_library
   src/firstpredictor.cpp
   src/createmeshgrid.cpp
   src/computecontactnodes.cpp
+  src/contactforceandarea.cpp
 )
 
 add_library(mirco_io

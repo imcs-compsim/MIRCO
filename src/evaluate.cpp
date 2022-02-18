@@ -14,6 +14,7 @@
 using namespace std;
 #include "computecontactnodes.h"
 #include "computeresidual.h"
+#include "contactforceandarea.h"
 #include "createmeshgrid.h"
 #include "evaluate.h"
 #include "firstpredictor.h"
@@ -35,7 +36,7 @@ void Evaluate(const std::string &inputFileName, double &force)
   auto start = std::chrono::high_resolution_clock::now();
   bool flagwarm;
   int n;
-  double nu1, nu2, G1, G2, E, alpha, k_el, delta, nnodi, to1, E1, E2, lato, errf, sum = 0, Delta;
+  double nu1, nu2, G1, G2, E, alpha, k_el, delta, nnodi, to1, E1, E2, lato, errf, Delta;
   bool rmg_flag;
   bool rand_seed_flag;
   double Hurst;
@@ -132,19 +133,7 @@ void Evaluate(const std::string &inputFileName, double &force)
 
     // Compute contact force and contact area
     // @{
-    force0.push_back(0);
-
-    sum = 0;
-    iter = ceil(nf);
-#pragma omp parallel for schedule(static, 16) reduction(+ : sum)  // Always same workload -> Static!
-    for (int i = 0; i < iter; i++)
-    {
-      sum += pf[i];
-    }
-    force0[k] += sum;
-    area0.push_back(nf * (pow(delta, 2) / pow(lato, 2)) * 100);
-    w_el = force0[k] / k_el;
-
+    ContactForceAndArea(force0, area0, iter, w_el, nf, pf, k, delta, lato, k_el);
     // }
 
     // Compute error due to nonlinear correction
