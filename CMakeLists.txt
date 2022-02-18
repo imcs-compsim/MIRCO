@@ -66,6 +66,7 @@ add_library(mirco_library
   src/surfmaxandmean.cpp
   src/secondpredictor.cpp
   src/computeresidual.cpp
+  src/firstpredictor.cpp
 )
 
 add_library(mirco_io
