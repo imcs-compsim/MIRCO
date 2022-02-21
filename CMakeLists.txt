@@ -63,13 +63,13 @@ add_library(mirco_library
   src/warmstart.cpp
   src/evaluate.cpp
   src/topologyfactory.cpp
-  src/surfmaxandmean.cpp
+  src/computemaxandmean.cpp
   src/secondpredictor.cpp
   src/computeresidual.cpp
   src/firstpredictor.cpp
   src/createmeshgrid.cpp
   src/computecontactnodes.cpp
-  src/contactforceandarea.cpp
+  src/computecontactforceandarea.cpp
 )
 
 add_library(mirco_io

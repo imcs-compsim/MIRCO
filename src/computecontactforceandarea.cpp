@@ -1,9 +1,9 @@
-#include "contactforceandarea.h"
+#include "computecontactforceandarea.h"
 #include <cmath>
 #include <iostream>
 #include <vector>
 
-void ContactForceAndArea(std::vector<double> &force0, std::vector<double> &area0, int &iter,
+void ComputeContactForceAndArea(std::vector<double> &force0, std::vector<double> &area0, int &iter,
     double &w_el, double nf, std::vector<double> pf, int k, double delta, double lato, double k_el)
 {
   force0.push_back(0);

@@ -12,9 +12,10 @@
 #include <string>
 #include <vector>
 using namespace std;
+#include "computecontactforceandarea.h"
 #include "computecontactnodes.h"
+#include "computemaxandmean.h"
 #include "computeresidual.h"
-#include "contactforceandarea.h"
 #include "createmeshgrid.h"
 #include "evaluate.h"
 #include "firstpredictor.h"
@@ -23,7 +24,6 @@ using namespace std;
 #include "nonlinearsolver.h"
 #include "secondpredictor.h"
 #include "setparameters.h"
-#include "surfmaxandmean.h"
 #include "topology.h"
 #include "topologyfactory.h"
 #include "warmstart.h"
@@ -72,7 +72,7 @@ void Evaluate(const std::string &inputFileName, double &force)
   double zmean = 0;
   int cont = 0;
 
-  SurfMaxAndMean(topology, zmax, zmean);
+  ComputeMaxAndMean(topology, zmax, zmean);
 
   vector<double> area0;
   vector<double> force0;
@@ -133,7 +133,7 @@ void Evaluate(const std::string &inputFileName, double &force)
 
     // Compute contact force and contact area
     // @{
-    ContactForceAndArea(force0, area0, iter, w_el, nf, pf, k, delta, lato, k_el);
+    ComputeContactForceAndArea(force0, area0, iter, w_el, nf, pf, k, delta, lato, k_el);
     // }
 
     // Compute error due to nonlinear correction

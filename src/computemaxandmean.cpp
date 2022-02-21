@@ -1,7 +1,7 @@
-#include "surfmaxandmean.h"
+#include "computemaxandmean.h"
 #include <Epetra_SerialSymDenseMatrix.h>
 
-void SurfMaxAndMean(Epetra_SerialDenseMatrix topology, double &zmax, double &zmean)
+void ComputeMaxAndMean(Epetra_SerialDenseMatrix topology, double &zmax, double &zmean)
 {
 #pragma omp parallel for schedule(guided, 16) reduction(+ : zmean) reduction(max : zmax)
   // Static and Guided seem even but Guided makes more sense
