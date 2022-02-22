@@ -63,10 +63,9 @@ add_library(mirco_library
   src/warmstart.cpp
   src/evaluate.cpp
   src/computeresidual.cpp
-  src/computecontactnodes.cpp
-  src/computecontactforceandarea.cpp
   src/topologyutilities.cpp
   src/contactpredictors.cpp
+  src/contactstatus.cpp
 )
 
 add_library(mirco_io

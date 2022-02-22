@@ -12,10 +12,9 @@
 #include <string>
 #include <vector>
 using namespace std;
-#include "computecontactforceandarea.h"
-#include "computecontactnodes.h"
 #include "computeresidual.h"
 #include "contactpredictors.h"
+#include "contactstatus.h"
 #include "evaluate.h"
 #include "linearsolver.h"
 #include "matrixsetup.h"
