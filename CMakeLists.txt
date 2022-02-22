@@ -62,7 +62,10 @@ add_library(mirco_library
   src/matrixsetup.cpp
   src/warmstart.cpp
   src/evaluate.cpp
-  src/topologyfactory.cpp
+  src/computeresidual.cpp
+  src/topologyutilities.cpp
+  src/contactpredictors.cpp
+  src/contactstatus.cpp
 )
 
 add_library(mirco_io
