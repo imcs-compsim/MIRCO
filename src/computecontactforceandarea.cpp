@@ -1,6 +1,5 @@
 #include "computecontactforceandarea.h"
 #include <cmath>
-#include <iostream>
 #include <vector>
 
 void ComputeContactForceAndArea(std::vector<double> &force0, std::vector<double> &area0, int &iter,

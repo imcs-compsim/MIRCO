@@ -1,9 +1,9 @@
-#include "secondpredictor.h"
+#include "initialguesspredictor.h"
 #include <Epetra_SerialSymDenseMatrix.h>
 #include <vector>
 #include "warmstart.h"
 
-void SecondPredictor(bool flagwarm, int k, int n0, int nf2, std::vector<double> xv0,
+void InitialGuessPredictor(bool flagwarm, int k, int n0, int nf2, std::vector<double> xv0,
     std::vector<double> yv0, std::vector<double> pf, std::vector<double> &x0,
     std::vector<double> &b0, std::vector<double> xvf, std::vector<double> yvf)
 {

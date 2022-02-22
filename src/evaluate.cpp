@@ -16,13 +16,13 @@ using namespace std;
 #include "computecontactnodes.h"
 #include "computemaxandmean.h"
 #include "computeresidual.h"
+#include "contactsetpredictor.h"
 #include "createmeshgrid.h"
 #include "evaluate.h"
-#include "firstpredictor.h"
+#include "initialguesspredictor.h"
 #include "linearsolver.h"
 #include "matrixsetup.h"
 #include "nonlinearsolver.h"
-#include "secondpredictor.h"
 #include "setparameters.h"
 #include "topology.h"
 #include "topologyfactory.h"
@@ -89,7 +89,7 @@ void Evaluate(const std::string &inputFileName, double &force)
     // All points, for which gap is bigger than the displacement of the rigid
     // indenter, cannot be in contact and thus are not checked in nonlinear solve
     // @{
-    FirstPredictor(n0, xv0, yv0, b0, zmax, Delta, w_el, x, topology);
+    ContactSetPredictor(n0, xv0, yv0, b0, zmax, Delta, w_el, x, topology);
 
     A.Shape(xv0.size(), xv0.size());
 
@@ -99,12 +99,10 @@ void Evaluate(const std::string &inputFileName, double &force)
 
     // Second predictor for contact set
     // @{
-    SecondPredictor(flagwarm, k, n0, nf2, xv0, yv0, pf, x0, b0, xvf, yvf);
+    InitialGuessPredictor(flagwarm, k, n0, nf2, xv0, yv0, pf, x0, b0, xvf, yvf);
     // }
 
     // {
-    x0.clear();
-    x0.resize(b0.size());
     Epetra_SerialDenseMatrix b0new;
     b0new.Shape(b0.size(), 1);
     // } Parallel region makes around this makes program slower

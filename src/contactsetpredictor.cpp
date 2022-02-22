@@ -1,8 +1,8 @@
-#include "firstpredictor.h"
+#include "contactsetpredictor.h"
 #include <Epetra_SerialSymDenseMatrix.h>
 #include <vector>
 
-void FirstPredictor(int &n0, std::vector<double> &xv0, std::vector<double> &yv0,
+void ContactSetPredictor(int &n0, std::vector<double> &xv0, std::vector<double> &yv0,
     std::vector<double> &b0, double zmax, double Delta, double w_el, std::vector<double> x,
     Epetra_SerialDenseMatrix topology)
 {
