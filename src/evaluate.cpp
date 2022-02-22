@@ -14,10 +14,8 @@
 using namespace std;
 #include "computecontactforceandarea.h"
 #include "computecontactnodes.h"
-#include "computemaxandmean.h"
 #include "computeresidual.h"
 #include "contactsetpredictor.h"
-#include "createmeshgrid.h"
 #include "evaluate.h"
 #include "initialguesspredictor.h"
 #include "linearsolver.h"
@@ -25,7 +23,7 @@ using namespace std;
 #include "nonlinearsolver.h"
 #include "setparameters.h"
 #include "topology.h"
-#include "topologyfactory.h"
+#include "topologyutilities.h"
 #include "warmstart.h"
 #include "writetofile.h"
 

@@ -62,14 +62,12 @@ add_library(mirco_library
   src/matrixsetup.cpp
   src/warmstart.cpp
   src/evaluate.cpp
-  src/topologyfactory.cpp
-  src/computemaxandmean.cpp
   src/initialguesspredictor.cpp
   src/computeresidual.cpp
   src/contactsetpredictor.cpp
-  src/createmeshgrid.cpp
   src/computecontactnodes.cpp
   src/computecontactforceandarea.cpp
+  src/topologyutilities.cpp
 )
 
 add_library(mirco_io
