@@ -1,7 +1,8 @@
 
 #include "nonlinear_solver_test.h"
 
-void NonlinearSolverTest::SetUp() {
+void NonlinearSolverTest::SetUp()
+{
   matrix_.Shape(9, 9);
   matrix_(0, 0) = 0.00381971863420549;
   matrix_(1, 0) = 0.0020;

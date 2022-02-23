@@ -6,7 +6,8 @@
 #include <gtest/gtest.h>
 #include <vector>
 
-class NonlinearSolverTest : public ::testing::Test {
+class NonlinearSolverTest : public ::testing::Test
+{
  protected:
   void SetUp() override;
 

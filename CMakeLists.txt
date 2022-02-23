@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.14)
 
 # Project name
-project(bem)
+project(mirco)
 
 # Compiler flags
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -Wall -Wextra -O3 -std=c++17")
@@ -40,8 +40,8 @@ endif()
 
 # Specify include directories in this repository and for Trilinos
 include_directories(".")
-include_directories(${Trilinos_TPL_INCLUDE_DIRS})
-include_directories(${Trilinos_INCLUDE_DIRS})
+include_directories(SYSTEM ${Trilinos_TPL_INCLUDE_DIRS})
+include_directories(SYSTEM ${Trilinos_INCLUDE_DIRS})
 
 # Add to the library path Trilinos' library path, and the library
 # paths of the third-party libraries (TPLs) with which Trilinos was
@@ -54,23 +54,26 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(JSONCPP jsoncpp)
 link_libraries(${JSONCPP_LIBRARIES})
 
-# Compile bem library
-add_library(bem_library
+# Compile mirco library
+add_library(mirco_library
   src/topology.cpp
   src/linearsolver.cpp
   src/nonlinearsolver.cpp
   src/matrixsetup.cpp
   src/warmstart.cpp
   src/evaluate.cpp
-  src/topologyfactory.cpp
+  src/computeresidual.cpp
+  src/topologyutilities.cpp
+  src/contactpredictors.cpp
+  src/contactstatus.cpp
 )
 
-add_library(bem_io
+add_library(mirco_io
   src/setparameters.cpp
   src/writetofile.cpp
 )
 
-add_library(bem_utils
+add_library(mirco_utils
   src/filesystem_utils.cpp
 )
 
@@ -82,14 +85,14 @@ find_package(MPI REQUIRED)
 
 include_directories(${MPI_INCLUDE_PATH})
 
-# Compile bem code itself
-add_executable(bem src/main.cpp)
+# Compile mirco itself
+add_executable(mirco src/main.cpp)
 
-target_link_libraries(bem
+target_link_libraries(mirco
   PUBLIC OpenMP::OpenMP_CXX
-  bem_library
-  bem_io
-  bem_utils
+  mirco_library
+  mirco_io
+  mirco_utils
   ${JSONCPP_LIBRARIES}
   ${Trilinos_LIBRARIES}
   ${Trilinos_TPL_LIBRARIES}
@@ -107,9 +110,9 @@ add_executable(tests
 
 target_link_libraries(tests
   PUBLIC OpenMP::OpenMP_CXX
-  bem_library
-  bem_io
-  bem_utils
+  mirco_library
+  mirco_io
+  mirco_utils
   gtest
   ${JSONCPP_LIBRARIES}
   ${Trilinos_LIBRARIES}

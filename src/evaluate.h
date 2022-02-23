@@ -1,4 +1,8 @@
-#include <vector>
+#ifndef SRC_EVALUATE_H_
+#define SRC_EVALUATE_H_
+
 #include <string>
 
-void Evaluate (std::string jsonFileName, double &force);
+void Evaluate(const std::string& inputFileName, double& force);
+
+#endif  // SRC_EVALUATE_H_

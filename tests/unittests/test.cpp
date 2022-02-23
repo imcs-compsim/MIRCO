@@ -2,15 +2,15 @@
 #include <Epetra_SerialSymDenseMatrix.h>
 #include <gtest/gtest.h>
 #include <stdlib.h>
-#include <vector>
+#include <memory>
 #include <string>
+#include <vector>
 #include "../../src/filesystem_utils.h"
 #include "../../src/linearsolver.h"
 #include "../../src/nonlinearsolver.h"
-#include "nonlinear_solver_test.h"
-#include "../../src/topology.h"
-#include <memory>
 #include "../../src/setparameters.h"
+#include "../../src/topology.h"
+#include "nonlinear_solver_test.h"
 
 TEST(linearsolver, solves)
 {
@@ -103,7 +103,7 @@ TEST(readtopology, readfile)
 {
   int resolution = 2;
   Epetra_SerialDenseMatrix outsurf;
-  std::string filepath = "../bem/tests/unittests/testfiles/sup2.dat";
+  std::string filepath = "../MIRCO/tests/unittests/testfiles/sup2.dat";
   ReadFile surface(resolution, filepath);
   surface.GetSurface(outsurf);
 
@@ -177,16 +177,15 @@ TEST(setparameters, setting)
 {
   bool flagwarm;
   int n;
-  double nu1, nu2, G1, G2, E, alpha, k_el, delta, nnodi, to1, E1,
-      E2, lato, errf, Delta;
+  double nu1, nu2, G1, G2, E, alpha, k_el, delta, nnodi, to1, E1, E2, lato, errf, Delta;
   bool rmg_flag;
   bool rand_seed_flag;
   double Hurst;
   std::string zfilePath = "sup2.dat";
-  std::string jsonFileName = "../bem/tests/unittests/testfiles/input_sup2.json";
+  std::string jsonFileName = "../MIRCO/tests/unittests/testfiles/input_sup2.xml";
 
-  SetParameters(E1, E2, lato, nu1, nu2, G1, G2,
-                E, alpha, k_el, delta, nnodi, errf, to1, Delta, zfilePath, n, jsonFileName, rmg_flag, Hurst, rand_seed_flag, flagwarm);
+  SetParameters(E1, E2, lato, nu1, nu2, G1, G2, E, alpha, k_el, delta, nnodi, errf, to1, Delta,
+      zfilePath, n, jsonFileName, rmg_flag, Hurst, rand_seed_flag, flagwarm);
 
   EXPECT_EQ(E1, 1);
   EXPECT_EQ(E2, 1);
@@ -203,7 +202,7 @@ TEST(setparameters, setting)
   EXPECT_EQ(errf, 100000000);
   EXPECT_EQ(to1, 0.01);
   EXPECT_EQ(Delta, 15);
-  EXPECT_EQ(zfilePath,"../bem/tests/unittests/testfiles/sup2.dat");
+  EXPECT_EQ(zfilePath, "../MIRCO/tests/unittests/testfiles/sup2.dat");
   EXPECT_EQ(n, 2);
   EXPECT_EQ(rmg_flag, false);
   EXPECT_EQ(Hurst, 0.1);
