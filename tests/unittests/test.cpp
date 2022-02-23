@@ -2,13 +2,10 @@
 #include <Epetra_SerialSymDenseMatrix.h>
 #include <gtest/gtest.h>
 #include <stdlib.h>
-#include <memory>
-#include <string>
 #include <vector>
 #include "../../src/filesystem_utils.h"
 #include "../../src/linearsolver.h"
 #include "../../src/nonlinearsolver.h"
-#include "../../src/setparameters.h"
 #include "../../src/topology.h"
 #include "nonlinear_solver_test.h"
 
