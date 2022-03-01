@@ -12,7 +12,6 @@
 #include <string>
 #include <vector>
 using namespace std;
-#include "computeresidual.h"
 #include "contactpredictors.h"
 #include "contactstatus.h"
 #include "evaluate.h"
@@ -112,12 +111,6 @@ void Evaluate(const std::string &inputFileName, double &force)
 
     NonLinearSolver solution2;
     solution2.NonlinearSolve(A, b0new, x0, w, y);  // y -> sol, w -> wsol; x0 -> y0
-
-    // Compute residial
-    // @{
-    Epetra_SerialDenseMatrix res1;
-    ComputeResidual(A, y, b0new, w, res1);
-    // }
 
     // Compute number of contact node
     // @{
