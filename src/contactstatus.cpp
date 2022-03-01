@@ -4,15 +4,15 @@
 #include <vector>
 
 void ComputeContactNodes(std::vector<double> &xvf, std::vector<double> &yvf,
-    std::vector<double> &pf, int &cont, int &nf, Epetra_SerialDenseMatrix y,
-    std::vector<double> xv0, std::vector<double> yv0)
+    std::vector<double> &pf, int &nf, Epetra_SerialDenseMatrix y, std::vector<double> xv0,
+    std::vector<double> yv0)
 {
   xvf.clear();
   xvf.resize(y.M());
   yvf.clear();
   yvf.resize(y.M());
   pf.resize(y.M());
-  cont = 0;
+  int cont = 0;
   // @} Parallelizing this slows down program, so removed it.
 
 #pragma omp for schedule(guided, 16)

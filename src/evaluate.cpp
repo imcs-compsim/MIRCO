@@ -65,7 +65,6 @@ void Evaluate(const std::string &inputFileName, double &force)
 
   double zmax = 0;
   double zmean = 0;
-  int cont = 0;
 
   ComputeMaxAndMean(topology, zmax, zmean);
 
@@ -114,7 +113,7 @@ void Evaluate(const std::string &inputFileName, double &force)
 
     // Compute number of contact node
     // @{
-    ComputeContactNodes(xvf, yvf, pf, cont, nf, y, xv0, yv0);
+    ComputeContactNodes(xvf, yvf, pf, nf, y, xv0, yv0);
     // }
 
     // Compute contact force and contact area
