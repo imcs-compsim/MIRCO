@@ -13,7 +13,7 @@ void CreateMeshgrid(std::vector<double>& x, int iter, double delta);
 class TopologyGeneration;
 
 void CreateSurfaceObject(int n, double Hurst, bool rand_seed_flag, std::string zfilePath,
-    bool rmg_flag, std::shared_ptr<TopologyGeneration>& surfacegenerator);
+    bool rmg_flag, int rmg_seed, std::shared_ptr<TopologyGeneration>& surfacegenerator);
 
 void ComputeMaxAndMean(Epetra_SerialDenseMatrix topology, double& zmax, double& zmean);
 

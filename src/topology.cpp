@@ -54,7 +54,7 @@ void Rmg::GetSurface(Epetra_SerialDenseMatrix &z)
   }
   else
   {
-    seed = 95;  // seed can be fixed to reproduce result
+    seed = rmg_seed;  // seed can be fixed to reproduce result
   }
   std::default_random_engine generate(seed);
   std::normal_distribution<double> distribution(

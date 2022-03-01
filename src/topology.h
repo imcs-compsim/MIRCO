@@ -25,11 +25,13 @@ class Rmg : public TopologyGeneration
  public:
   double Hurst;  // Hurst component
   bool rand_seed_flag;
+  int rmg_seed;
   void GetSurface(Epetra_SerialDenseMatrix &z) override;
-  Rmg(int nn, double HH, bool rsf) : TopologyGeneration(nn)
+  Rmg(int nn, double HH, bool rsf, int rmgs) : TopologyGeneration(nn)
   {
     Hurst = HH;
     rand_seed_flag = rsf;
+    rmg_seed = rmgs;
   }
 };
 

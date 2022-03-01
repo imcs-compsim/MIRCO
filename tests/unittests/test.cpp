@@ -102,11 +102,12 @@ TEST(readtopology, RMG)
   int resolution = 2;
   float Hurst = 0.1;
   bool rand_seed_flag = false;
+  int rmg_seed = 95;
   Epetra_SerialDenseMatrix outsurf;
   int N = pow(2, resolution);
   outsurf.Shape(N + 1, N + 1);
 
-  Rmg surface(resolution, Hurst, rand_seed_flag);
+  Rmg surface(resolution, Hurst, rand_seed_flag, rmg_seed);
   surface.GetSurface(outsurf);
 
   EXPECT_NEAR(outsurf(0, 0), 28.2215338276376, 1e-03);

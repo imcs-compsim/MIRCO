@@ -16,11 +16,11 @@ void CreateMeshgrid(std::vector<double>& x, int iter, double delta)
 }
 
 void CreateSurfaceObject(int n, double Hurst, bool rand_seed_flag, std::string zfilePath,
-    bool rmg_flag, std::shared_ptr<TopologyGeneration>& surfacegenerator)
+    bool rmg_flag, int rmg_seed, std::shared_ptr<TopologyGeneration>& surfacegenerator)
 {
   if (rmg_flag)
   {
-    surfacegenerator = std::shared_ptr<Rmg>(new Rmg(n, Hurst, rand_seed_flag));
+    surfacegenerator = std::shared_ptr<Rmg>(new Rmg(n, Hurst, rand_seed_flag, rmg_seed));
   }
   else
   {

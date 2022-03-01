@@ -36,9 +36,10 @@ void Evaluate(const std::string &inputFileName, double &force)
   bool rand_seed_flag;
   double Hurst;
   string zfilePath;
+  int rmg_seed;
 
   SetParameters(E1, E2, lato, nu1, nu2, G1, G2, E, alpha, k_el, delta, nnodi, errf, to1, Delta,
-      zfilePath, n, inputFileName, rmg_flag, Hurst, rand_seed_flag, flagwarm);
+      zfilePath, n, inputFileName, rmg_flag, Hurst, rand_seed_flag, rmg_seed, flagwarm);
 
   time_t now = time(0);
   tm *ltm = localtime(&now);
@@ -59,7 +60,7 @@ void Evaluate(const std::string &inputFileName, double &force)
 
   std::shared_ptr<TopologyGeneration> surfacegenerator;
   // creating the correct surface object
-  CreateSurfaceObject(n, Hurst, rand_seed_flag, zfilePath, rmg_flag, surfacegenerator);
+  CreateSurfaceObject(n, Hurst, rand_seed_flag, zfilePath, rmg_flag, rmg_seed, surfacegenerator);
 
   surfacegenerator->GetSurface(topology);
 

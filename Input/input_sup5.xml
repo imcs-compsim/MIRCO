@@ -2,6 +2,7 @@
   <Parameter name="flagwarm" type="bool" value="true"/>
   <Parameter name="rmg_flag" type="bool" value="false"/>
   <Parameter name="rand_seed_flag" type="bool" value="false"/>
+  <Parameter name="rmg_seed" type="int" value="95"/>
   <Parameter name="z_file_path" type="string" value="sup5.dat"/>
 
   <ParameterList name="parameters">
