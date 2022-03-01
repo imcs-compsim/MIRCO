@@ -75,9 +75,8 @@ void Evaluate(const std::string &inputFileName, double &force)
   double w_el = 0, area = 0;
   int k = 0, n0 = 0;
   std::vector<double> xv0, yv0, b0, x0, xvf, yvf, pf;
-  double nf = 0;
+  int nf = 0;
   Epetra_SerialDenseMatrix A;
-  int nf2 = floor(nf);
 
   while (errf > to1 && k < 100)
   {
@@ -95,7 +94,7 @@ void Evaluate(const std::string &inputFileName, double &force)
 
     // Second predictor for contact set
     // @{
-    InitialGuessPredictor(flagwarm, k, n0, nf2, xv0, yv0, pf, x0, b0, xvf, yvf);
+    InitialGuessPredictor(flagwarm, k, n0, nf, xv0, yv0, pf, x0, b0, xvf, yvf);
     // }
 
     // {
