@@ -137,7 +137,7 @@ TEST(readtopology, RMG)
   EXPECT_NEAR(outsurf(4, 4), 28.2215338276376, 1e-03);
 }
 
-TEST(warmstarting, warmstart3)
+TEST(warmstarting, warmstart)
 {
   Epetra_SerialDenseMatrix xv0, yv0, xvf, yvf, pf, x0;
 
@@ -166,7 +166,7 @@ TEST(warmstarting, warmstart3)
   pf(0, 1) = 30;
 
   Warmstarter warm1;
-  x0 = warm1.Warmstart3(xv0, yv0, xvf, yvf, pf);
+  x0 = warm1.Warmstart(xv0, yv0, xvf, yvf, pf);
 
   EXPECT_EQ(x0(0, 0), 10);
   EXPECT_EQ(x0(1, 0), 0);

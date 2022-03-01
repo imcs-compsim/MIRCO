@@ -6,7 +6,7 @@
 class Warmstarter
 {
  public:
-  Epetra_SerialDenseMatrix Warmstart3(Epetra_SerialDenseMatrix xv0, Epetra_SerialDenseMatrix yv0,
+  Epetra_SerialDenseMatrix Warmstart(Epetra_SerialDenseMatrix xv0, Epetra_SerialDenseMatrix yv0,
       Epetra_SerialDenseMatrix& xvf, Epetra_SerialDenseMatrix& yvf, Epetra_SerialDenseMatrix& pf);
 
   Warmstarter() = default;

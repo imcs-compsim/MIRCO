@@ -104,7 +104,7 @@ void InitialGuessPredictor(bool flagwarm, int k, int n0, int nf, std::vector<dou
     }
 
     Warmstarter warm1;
-    x0temp = warm1.Warmstart3(xv0t, yv0t, xvft, yvft, pft);
+    x0temp = warm1.Warmstart(xv0t, yv0t, xvft, yvft, pft);
 
 #pragma omp parallel for schedule(static, 16)  // Always same workload -> Static
     for (int i = 0; i < x0temp.M(); i++)
