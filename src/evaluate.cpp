@@ -12,7 +12,6 @@
 #include <string>
 #include <vector>
 using namespace std;
-#include "computeresidual.h"
 #include "contactpredictors.h"
 #include "contactstatus.h"
 #include "evaluate.h"
@@ -37,9 +36,10 @@ void Evaluate(const std::string &inputFileName, double &force)
   bool rand_seed_flag;
   double Hurst;
   string zfilePath;
+  int rmg_seed;
 
   SetParameters(E1, E2, lato, nu1, nu2, G1, G2, E, alpha, k_el, delta, nnodi, errf, to1, Delta,
-      zfilePath, n, inputFileName, rmg_flag, Hurst, rand_seed_flag, flagwarm);
+      zfilePath, n, inputFileName, rmg_flag, Hurst, rand_seed_flag, rmg_seed, flagwarm);
 
   time_t now = time(0);
   tm *ltm = localtime(&now);
@@ -60,13 +60,12 @@ void Evaluate(const std::string &inputFileName, double &force)
 
   std::shared_ptr<TopologyGeneration> surfacegenerator;
   // creating the correct surface object
-  CreateSurfaceObject(n, Hurst, rand_seed_flag, zfilePath, rmg_flag, surfacegenerator);
+  CreateSurfaceObject(n, Hurst, rand_seed_flag, zfilePath, rmg_flag, rmg_seed, surfacegenerator);
 
   surfacegenerator->GetSurface(topology);
 
   double zmax = 0;
   double zmean = 0;
-  int cont = 0;
 
   ComputeMaxAndMean(topology, zmax, zmean);
 
@@ -75,9 +74,8 @@ void Evaluate(const std::string &inputFileName, double &force)
   double w_el = 0, area = 0;
   int k = 0, n0 = 0;
   std::vector<double> xv0, yv0, b0, x0, xvf, yvf, pf;
-  double nf = 0;
+  int nf = 0;
   Epetra_SerialDenseMatrix A;
-  int nf2 = floor(nf);
 
   while (errf > to1 && k < 100)
   {
@@ -95,7 +93,7 @@ void Evaluate(const std::string &inputFileName, double &force)
 
     // Second predictor for contact set
     // @{
-    InitialGuessPredictor(flagwarm, k, n0, nf2, xv0, yv0, pf, x0, b0, xvf, yvf);
+    InitialGuessPredictor(flagwarm, k, n0, nf, xv0, yv0, pf, x0, b0, xvf, yvf);
     // }
 
     // {
@@ -114,20 +112,14 @@ void Evaluate(const std::string &inputFileName, double &force)
     NonLinearSolver solution2;
     solution2.NonlinearSolve(A, b0new, x0, w, y);  // y -> sol, w -> wsol; x0 -> y0
 
-    // Compute residial
-    // @{
-    Epetra_SerialDenseMatrix res1;
-    ComputeResidual(A, y, b0new, w, res1);
-    // }
-
     // Compute number of contact node
     // @{
-    ComputeContactNodes(xvf, yvf, pf, cont, nf, y, xv0, yv0);
+    ComputeContactNodes(xvf, yvf, pf, nf, y, xv0, yv0);
     // }
 
     // Compute contact force and contact area
     // @{
-    ComputeContactForceAndArea(force0, area0, iter, w_el, nf, pf, k, delta, lato, k_el);
+    ComputeContactForceAndArea(force0, area0, w_el, nf, pf, k, delta, lato, k_el);
     // }
 
     // Compute error due to nonlinear correction

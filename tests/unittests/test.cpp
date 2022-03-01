@@ -6,6 +6,8 @@
 #include "../../src/filesystem_utils.h"
 #include "../../src/linearsolver.h"
 #include "../../src/nonlinearsolver.h"
+#include "../../src/topology.h"
+#include "../../src/warmstart.h"
 #include "nonlinear_solver_test.h"
 
 TEST(linearsolver, solves)
@@ -93,6 +95,81 @@ TEST(FilesystemUtils, keepabsolutpath)
   std::string sourcefilename = "../inputfiles/sourceinput.json";
   UTILS::ChangeRelativePath(targetfilename, sourcefilename);
   EXPECT_EQ(targetfilename, "/root_dir/home/user/Input/input.dat");
+}
+
+TEST(readtopology, RMG)
+{
+  int resolution = 2;
+  float Hurst = 0.1;
+  bool rand_seed_flag = false;
+  int rmg_seed = 95;
+  Epetra_SerialDenseMatrix outsurf;
+  int N = pow(2, resolution);
+  outsurf.Shape(N + 1, N + 1);
+
+  Rmg surface(resolution, Hurst, rand_seed_flag, rmg_seed);
+  surface.GetSurface(outsurf);
+
+  EXPECT_NEAR(outsurf(0, 0), 28.2215338276376, 1e-03);
+  EXPECT_NEAR(outsurf(0, 1), 36.2753295855912, 1e-03);
+  EXPECT_NEAR(outsurf(0, 2), 83.406827899629, 1e-03);
+  EXPECT_NEAR(outsurf(0, 3), 52.1463954928658, 1e-03);
+  EXPECT_NEAR(outsurf(0, 4), 28.2215338276376, 1e-03);
+  EXPECT_NEAR(outsurf(1, 0), 82.5311192966684, 1e-03);
+  EXPECT_NEAR(outsurf(1, 1), 88.5057522645388, 1e-03);
+  EXPECT_NEAR(outsurf(1, 2), 93.4896404218242, 1e-03);
+  EXPECT_NEAR(outsurf(1, 3), 42.3052621232221, 1e-03);
+  EXPECT_NEAR(outsurf(1, 4), 27.1648479422294, 1e-03);
+  EXPECT_NEAR(outsurf(2, 0), 46.9389540667996, 1e-03);
+  EXPECT_NEAR(outsurf(2, 1), 23.0445730666838, 1e-03);
+  EXPECT_NEAR(outsurf(2, 2), 94.9021951336941, 1e-03);
+  EXPECT_NEAR(outsurf(2, 3), 6.79338672128661, 1e-03);
+  EXPECT_NEAR(outsurf(2, 4), 49.5890138641246, 1e-03);
+  EXPECT_NEAR(outsurf(3, 0), 70.9402900749234, 1e-03);
+  EXPECT_NEAR(outsurf(3, 1), 25.4602528043112, 1e-03);
+  EXPECT_NEAR(outsurf(3, 2), 65.527428831836, 1e-03);
+  EXPECT_NEAR(outsurf(3, 3), 33.5930588570828, 1e-03);
+  EXPECT_NEAR(outsurf(3, 4), 8.064026613556, 1e-03);
+  EXPECT_NEAR(outsurf(4, 0), 28.2215338276376, 1e-03);
+  EXPECT_NEAR(outsurf(4, 1), 0, 1e-03);
+  EXPECT_NEAR(outsurf(4, 2), 36.7733127073012, 1e-03);
+  EXPECT_NEAR(outsurf(4, 3), 42.2170752636335, 1e-03);
+  EXPECT_NEAR(outsurf(4, 4), 28.2215338276376, 1e-03);
+}
+
+TEST(warmstarting, warmstart)
+{
+  Epetra_SerialDenseMatrix xv0, yv0, xvf, yvf, pf, x0;
+
+  xv0.Shape(1, 3);
+  yv0.Shape(1, 3);
+  x0.Shape(3, 1);
+  xvf.Shape(1, 2);
+  yvf.Shape(1, 2);
+  pf.Shape(1, 2);
+
+  xv0(0, 0) = 1;
+  xv0(0, 1) = 3;
+  xv0(0, 2) = 5;
+
+  yv0(0, 0) = 2;
+  yv0(0, 1) = 4;
+  yv0(0, 2) = 6;
+
+  xvf(0, 0) = 1;
+  xvf(0, 1) = 5;
+
+  yvf(0, 0) = 2;
+  yvf(0, 1) = 6;
+
+  pf(0, 0) = 10;
+  pf(0, 1) = 30;
+
+  x0 = Warmstart(xv0, yv0, xvf, yvf, pf);
+
+  EXPECT_EQ(x0(0, 0), 10);
+  EXPECT_EQ(x0(1, 0), 0);
+  EXPECT_EQ(x0(2, 0), 30);
 }
 
 int main(int argc, char **argv)
