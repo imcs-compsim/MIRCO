@@ -126,7 +126,7 @@ void Evaluate(const std::string &inputFileName, double &force)
 
     // Compute contact force and contact area
     // @{
-    ComputeContactForceAndArea(force0, area0, iter, w_el, nf, pf, k, delta, lato, k_el);
+    ComputeContactForceAndArea(force0, area0, w_el, nf, pf, k, delta, lato, k_el);
     // }
 
     // Compute error due to nonlinear correction
