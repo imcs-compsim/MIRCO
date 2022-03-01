@@ -4,9 +4,8 @@
 
 using namespace std;
 
-Epetra_SerialDenseMatrix Warmstarter::Warmstart(Epetra_SerialDenseMatrix xv0,
-    Epetra_SerialDenseMatrix yv0, Epetra_SerialDenseMatrix& xvf, Epetra_SerialDenseMatrix& yvf,
-    Epetra_SerialDenseMatrix& pf)
+Epetra_SerialDenseMatrix Warmstart(Epetra_SerialDenseMatrix xv0, Epetra_SerialDenseMatrix yv0,
+    Epetra_SerialDenseMatrix& xvf, Epetra_SerialDenseMatrix& yvf, Epetra_SerialDenseMatrix& pf)
 {
   Epetra_SerialDenseMatrix x0;
   x0.Shape(xv0.N(), 1);
