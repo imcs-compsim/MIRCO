@@ -14,7 +14,7 @@ class NonlinearSolverTest : public ::testing::Test
   void TearDown() override {}
 
   Epetra_SerialDenseMatrix matrix_, b_vector_, w_, y_;
-  std::vector<double> x_vector_;
+  Epetra_SerialDenseMatrix x_vector_;
 };
 
 #endif /* NONLINEAR_SOLVER_TEST_H_ */

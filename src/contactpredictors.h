@@ -9,7 +9,7 @@ void ContactSetPredictor(int &n0, std::vector<double> &xv0, std::vector<double> 
     Epetra_SerialDenseMatrix topology);
 
 void InitialGuessPredictor(bool flagwarm, int k, int n0, int nf2, std::vector<double> xv0,
-    std::vector<double> yv0, std::vector<double> pf, std::vector<double> &x0,
+    std::vector<double> yv0, std::vector<double> pf, Epetra_SerialDenseMatrix &x0,
     std::vector<double> &b0, std::vector<double> xvf, std::vector<double> yvf);
 
 #endif  // SRC_CONTACTPREDICTORS_H_

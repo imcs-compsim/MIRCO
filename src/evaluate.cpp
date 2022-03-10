@@ -73,11 +73,12 @@ void Evaluate(const std::string &inputFileName, double &force)
   vector<double> force0;
   double w_el = 0, area = 0;
   int k = 0, n0 = 0;
-  std::vector<double> xv0, yv0, b0, x0, xvf, yvf, pf;
+  std::vector<double> xv0, yv0, b0, xvf, yvf, pf;
+  Epetra_SerialDenseMatrix x0;
   int nf = 0;
   Epetra_SerialDenseMatrix A;
 
-  while (errf > to1 && k < 100)
+  while (errf > to1 && k < 10000)
   {
     // First predictor for contact set
     // All points, for which gap is bigger than the displacement of the rigid
