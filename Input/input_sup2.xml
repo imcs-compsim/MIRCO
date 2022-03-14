@@ -4,6 +4,7 @@
   <Parameter name="rand_seed_flag" type="bool" value="false"/>
   <Parameter name="rmg_seed" type="int" value="95"/>
   <Parameter name="z_file_path" type="string" value="sup2.dat"/>
+  <Parameter name="max_iter" type="int" value="100"/>
 
   <ParameterList name="parameters">
     <ParameterList name="material_parameters">

@@ -165,7 +165,7 @@ TEST(warmstarting, warmstart)
   pf(0, 0) = 10;
   pf(0, 1) = 30;
 
-  x0 = Warmstart(xv0, yv0, xvf, yvf, pf);
+  Warmstart(x0, xv0, yv0, xvf, yvf, pf);
 
   EXPECT_EQ(x0(0, 0), 10);
   EXPECT_EQ(x0(1, 0), 0);

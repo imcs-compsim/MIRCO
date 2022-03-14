@@ -4,10 +4,10 @@
 
 using namespace std;
 
-Epetra_SerialDenseMatrix Warmstart(Epetra_SerialDenseMatrix xv0, Epetra_SerialDenseMatrix yv0,
-    Epetra_SerialDenseMatrix& xvf, Epetra_SerialDenseMatrix& yvf, Epetra_SerialDenseMatrix& pf)
+void Warmstart(Epetra_SerialDenseMatrix& x0, Epetra_SerialDenseMatrix xv0,
+    Epetra_SerialDenseMatrix yv0, Epetra_SerialDenseMatrix& xvf, Epetra_SerialDenseMatrix& yvf,
+    Epetra_SerialDenseMatrix& pf)
 {
-  Epetra_SerialDenseMatrix x0;
   x0.Shape(xv0.N(), 1);
 
   for (int i = 0; i < xv0.N(); i++)
@@ -20,6 +20,4 @@ Epetra_SerialDenseMatrix Warmstart(Epetra_SerialDenseMatrix xv0, Epetra_SerialDe
       }
     }
   }
-
-  return x0;
 }

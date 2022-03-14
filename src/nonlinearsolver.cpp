@@ -7,7 +7,7 @@
 using namespace std;
 
 void NonLinearSolver::NonlinearSolve(Epetra_SerialDenseMatrix& matrix, Epetra_SerialDenseMatrix& b0,
-    std::vector<double>& y0, Epetra_SerialDenseMatrix& w, Epetra_SerialDenseMatrix& y)
+    Epetra_SerialDenseMatrix& y0, Epetra_SerialDenseMatrix& w, Epetra_SerialDenseMatrix& y)
 {
   // matrix -> A, b0 -> b, y0 -> y0 , y -> y, w-> w; nnstol, iter, maxiter ->
   // unused
@@ -27,9 +27,9 @@ void NonLinearSolver::NonlinearSolve(Epetra_SerialDenseMatrix& matrix, Epetra_Se
 
   // Initialize active set
   vector<int> positions;
-  for (unsigned long int i = 0; i < y0.size(); i++)
+  for (int i = 0; i < y0.M(); i++)
   {
-    if (y0[i] >= nnlstol)
+    if (y0(i, 0) >= nnlstol)
     {
       positions.push_back(i);
     }
