@@ -12,7 +12,8 @@
 void SetParameters(double& E1, double& E2, double& lato, double& nu1, double& nu2, double& G1,
     double& G2, double& E, double& alpha, double& k_el, double& delta, double& nnodi, double& errf,
     double& tol, double& Delta, std::string& zfilePath, int& n, const std::string& inputFileName,
-    bool& rmg_flag, double& Hurst, bool& rand_seed_flag, int& rmg_seed, bool& flagwarm)
+    bool& rmg_flag, double& Hurst, bool& rand_seed_flag, int& rmg_seed, bool& flagwarm,
+    int& max_iter)
 {
   Teuchos::RCP<Teuchos::ParameterList> parameterList = Teuchos::rcp(new Teuchos::ParameterList());
   Teuchos::updateParametersFromXmlFile(inputFileName, parameterList.ptr());
@@ -22,6 +23,7 @@ void SetParameters(double& E1, double& E2, double& lato, double& nu1, double& nu
   rand_seed_flag = parameterList->get<bool>("rand_seed_flag");
   rmg_seed = parameterList->get<int>("rmg_seed");
   zfilePath = parameterList->get<std::string>("z_file_path");
+  max_iter = parameterList->get<int>("max_iter");
 
   UTILS::ChangeRelativePath(zfilePath, inputFileName);
 

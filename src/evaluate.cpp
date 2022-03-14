@@ -37,9 +37,10 @@ void Evaluate(const std::string &inputFileName, double &force)
   double Hurst;
   string zfilePath;
   int rmg_seed;
+  int max_iter;
 
   SetParameters(E1, E2, lato, nu1, nu2, G1, G2, E, alpha, k_el, delta, nnodi, errf, to1, Delta,
-      zfilePath, n, inputFileName, rmg_flag, Hurst, rand_seed_flag, rmg_seed, flagwarm);
+      zfilePath, n, inputFileName, rmg_flag, Hurst, rand_seed_flag, rmg_seed, flagwarm, max_iter);
 
   time_t now = time(0);
   tm *ltm = localtime(&now);
@@ -78,7 +79,7 @@ void Evaluate(const std::string &inputFileName, double &force)
   int nf = 0;
   Epetra_SerialDenseMatrix A;
 
-  while (errf > to1 && k < 10000)
+  while (errf > to1 && k < max_iter)
   {
     // First predictor for contact set
     // All points, for which gap is bigger than the displacement of the rigid
