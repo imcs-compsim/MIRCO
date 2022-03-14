@@ -2,6 +2,7 @@
 #include <Epetra_SerialSymDenseMatrix.h>
 #include <omp.h>
 #include <unistd.h>
+#include <Teuchos_Assert.hpp>
 #include <chrono>
 #include <cmath>
 #include <cstdio>
@@ -138,6 +139,8 @@ void Evaluate(const std::string &inputFileName, double &force)
     // }
   }
 
+  TEUCHOS_TEST_FOR_EXCEPTION(errf > to1, std::out_of_range,
+      "The solution did not converge in the maximum number of iternations defined");
   // @{
 
   force = force0[k - 1];
