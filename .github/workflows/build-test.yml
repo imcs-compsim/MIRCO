@@ -3,7 +3,7 @@ on:
     types:
       - opened
       - reopened
-      - edited
+      - synchronize
   schedule:
     - cron: '00 6 * * *'
   workflow_dispatch:
