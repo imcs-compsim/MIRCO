@@ -7,7 +7,6 @@ on:
   schedule:
     - cron: '00 6 * * *'
   workflow_dispatch:
-    type: choice
 
 jobs:
   mirco-test:
