@@ -35,7 +35,7 @@ void SetParameters(double& E1, double& E2, double& lato, double& nu1, double& nu
   nu2 = matParams.get<double>("nu2");
   G1 = E1 / (2 * (1 + nu1));
   G2 = E2 / (2 * (1 + nu2));
-  E = 1 / ((1 - pow(nu1, 2)) / E1 + (1 - pow(nu2, 2) / E2));
+  E = pow(((1 - pow(nu1, 2)) / E1 + (1 - pow(nu2, 2)) / E2), -1);
   std::vector<double> alpha_con{0.778958541513360, 0.805513388666376, 0.826126871395416,
       0.841369158110513, 0.851733020725652, 0.858342234203154, 0.862368243479785,
       0.864741597831785};
