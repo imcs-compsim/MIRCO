@@ -4,12 +4,15 @@
 #include <Epetra_SerialSymDenseMatrix.h>
 #include <vector>
 
-class MatrixGeneration
+namespace MIRCO
 {
- public:
-  void SetUpMatrix(Epetra_SerialDenseMatrix& A, std::vector<double> xv0, std::vector<double> yv0,
-      double delta, double E, int systemsize);
-  MatrixGeneration() = default;
-};
+  class MatrixGeneration
+  {
+   public:
+    void SetUpMatrix(Epetra_SerialDenseMatrix& A, std::vector<double> xv0, std::vector<double> yv0,
+        double delta, double E, int systemsize);
+    MatrixGeneration() = default;
+  };
+}  // namespace MIRCO
 
 #endif  // SRC_MATRIXSETUP_H_

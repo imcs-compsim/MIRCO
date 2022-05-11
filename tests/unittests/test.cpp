@@ -42,7 +42,7 @@ TEST(linearsolver, solves)
   }
 
   // Call linear solver
-  LinearSolver linearsolver;
+  MIRCO::LinearSolver linearsolver;
   linearsolver.Solve(topology, vector_x, vector_b);
 
   EXPECT_NEAR(vector_x(0, 0), 0.333333333333333, 1e-06);
@@ -51,7 +51,7 @@ TEST(linearsolver, solves)
 
 TEST_F(NonlinearSolverTest, primalvariable)
 {
-  NonLinearSolver nonlinearsolver;
+  MIRCO::NonLinearSolver nonlinearsolver;
   nonlinearsolver.NonlinearSolve(matrix_, b_vector_, x_vector_, w_, y_);
 
   EXPECT_NEAR(y_(0, 0), 163213.374921086, 1e-06);
@@ -67,7 +67,7 @@ TEST_F(NonlinearSolverTest, primalvariable)
 
 TEST_F(NonlinearSolverTest, dualvariable)
 {
-  NonLinearSolver nonlinearsolver;
+  MIRCO::NonLinearSolver nonlinearsolver;
   nonlinearsolver.NonlinearSolve(matrix_, b_vector_, x_vector_, w_, y_);
 
   EXPECT_NEAR(w_(0, 0), 0, 1e-06);
@@ -107,7 +107,7 @@ TEST(readtopology, RMG)
   int N = pow(2, resolution);
   outsurf.Shape(N + 1, N + 1);
 
-  Rmg surface(resolution, Hurst, rand_seed_flag, rmg_seed);
+  MIRCO::Rmg surface(resolution, Hurst, rand_seed_flag, rmg_seed);
   surface.GetSurface(outsurf);
 
   EXPECT_NEAR(outsurf(0, 0), 28.2215338276376, 1e-03);
@@ -165,7 +165,7 @@ TEST(warmstarting, warmstart)
   pf(0, 0) = 10;
   pf(0, 1) = 30;
 
-  Warmstart(x0, xv0, yv0, xvf, yvf, pf);
+  MIRCO::Warmstart(x0, xv0, yv0, xvf, yvf, pf);
 
   EXPECT_EQ(x0(0, 0), 10);
   EXPECT_EQ(x0(1, 0), 0);

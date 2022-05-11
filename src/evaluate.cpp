@@ -40,8 +40,9 @@ void Evaluate(const std::string &inputFileName, double &force)
   int rmg_seed;
   int max_iter;
 
-  SetParameters(E1, E2, lato, nu1, nu2, G1, G2, E, alpha, k_el, delta, nnodi, errf, to1, Delta,
-      zfilePath, n, inputFileName, rmg_flag, Hurst, rand_seed_flag, rmg_seed, flagwarm, max_iter);
+  MIRCO::SetParameters(E1, E2, lato, nu1, nu2, G1, G2, E, alpha, k_el, delta, nnodi, errf, to1,
+      Delta, zfilePath, n, inputFileName, rmg_flag, Hurst, rand_seed_flag, rmg_seed, flagwarm,
+      max_iter);
 
   time_t now = time(0);
   tm *ltm = localtime(&now);
@@ -53,23 +54,24 @@ void Evaluate(const std::string &inputFileName, double &force)
   // Replacement for "for (double i = delta / 2; i < lato; i = i + delta)"
   int iter = int(ceil((lato - (delta / 2)) / delta));
   std::vector<double> x(iter);
-  CreateMeshgrid(x, iter, delta);
+  MIRCO::CreateMeshgrid(x, iter, delta);
 
   // Setup Topology
   Epetra_SerialDenseMatrix topology, y;
   int N = pow(2, n);
   topology.Shape(N + 1, N + 1);
 
-  std::shared_ptr<TopologyGeneration> surfacegenerator;
+  std::shared_ptr<MIRCO::TopologyGeneration> surfacegenerator;
   // creating the correct surface object
-  CreateSurfaceObject(n, Hurst, rand_seed_flag, zfilePath, rmg_flag, rmg_seed, surfacegenerator);
+  MIRCO::CreateSurfaceObject(
+      n, Hurst, rand_seed_flag, zfilePath, rmg_flag, rmg_seed, surfacegenerator);
 
   surfacegenerator->GetSurface(topology);
 
   double zmax = 0;
   double zmean = 0;
 
-  ComputeMaxAndMean(topology, zmax, zmean);
+  MIRCO::ComputeMaxAndMean(topology, zmax, zmean);
 
   vector<double> area0;
   vector<double> force0;
@@ -86,17 +88,17 @@ void Evaluate(const std::string &inputFileName, double &force)
     // All points, for which gap is bigger than the displacement of the rigid
     // indenter, cannot be in contact and thus are not checked in nonlinear solve
     // @{
-    ContactSetPredictor(n0, xv0, yv0, b0, zmax, Delta, w_el, x, topology);
+    MIRCO::ContactSetPredictor(n0, xv0, yv0, b0, zmax, Delta, w_el, x, topology);
 
     A.Shape(xv0.size(), xv0.size());
 
     // Construction of the Matrix H = A
-    MatrixGeneration matrix1;
+    MIRCO::MatrixGeneration matrix1;
     matrix1.SetUpMatrix(A, xv0, yv0, delta, E, n0);
 
     // Second predictor for contact set
     // @{
-    InitialGuessPredictor(flagwarm, k, n0, nf, xv0, yv0, pf, x0, b0, xvf, yvf);
+    MIRCO::InitialGuessPredictor(flagwarm, k, n0, nf, xv0, yv0, pf, x0, b0, xvf, yvf);
     // }
 
     // {
@@ -112,17 +114,17 @@ void Evaluate(const std::string &inputFileName, double &force)
 
     Epetra_SerialDenseMatrix w;
 
-    NonLinearSolver solution2;
+    MIRCO::NonLinearSolver solution2;
     solution2.NonlinearSolve(A, b0new, x0, w, y);  // y -> sol, w -> wsol; x0 -> y0
 
     // Compute number of contact node
     // @{
-    ComputeContactNodes(xvf, yvf, pf, nf, y, xv0, yv0);
+    MIRCO::ComputeContactNodes(xvf, yvf, pf, nf, y, xv0, yv0);
     // }
 
     // Compute contact force and contact area
     // @{
-    ComputeContactForceAndArea(force0, area0, w_el, nf, pf, k, delta, lato, k_el);
+    MIRCO::ComputeContactForceAndArea(force0, area0, w_el, nf, pf, k, delta, lato, k_el);
     // }
 
     // Compute error due to nonlinear correction

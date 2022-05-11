@@ -3,7 +3,7 @@
 
 #include "matrixsetup.h"
 
-void MatrixGeneration::SetUpMatrix(Epetra_SerialDenseMatrix& A, std::vector<double> xv0,
+void MIRCO::MatrixGeneration::SetUpMatrix(Epetra_SerialDenseMatrix& A, std::vector<double> xv0,
     std::vector<double> yv0, double delta, double E, int systemsize)
 {
   double r, pi = atan(1) * 4, raggio = delta / 2;

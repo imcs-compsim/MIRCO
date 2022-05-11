@@ -4,12 +4,15 @@
 #include <Epetra_SerialSpdDenseSolver.h>
 #include <Epetra_SerialSymDenseMatrix.h>
 
-class LinearSolver
+namespace MIRCO
 {
- public:
-  void Solve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatrix& vector_x,
-      Epetra_SerialDenseMatrix& vector_b);
-  LinearSolver() = default;
-};
+  class LinearSolver
+  {
+   public:
+    void Solve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatrix& vector_x,
+        Epetra_SerialDenseMatrix& vector_b);
+    LinearSolver() = default;
+  };
+}  // namespace MIRCO
 
 #endif  // SRC_LINEARSOLVER_H_

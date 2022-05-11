@@ -10,7 +10,7 @@ using namespace std;
 
 #include "topology.h"
 
-void ReadFile::GetSurface(Epetra_SerialDenseMatrix &z)
+void MIRCO::ReadFile::GetSurface(Epetra_SerialDenseMatrix &z)
 {
   ifstream reader(filepath);
   string blaLine;
@@ -42,7 +42,7 @@ void ReadFile::GetSurface(Epetra_SerialDenseMatrix &z)
   stream.close();
 }
 
-void Rmg::GetSurface(Epetra_SerialDenseMatrix &z)
+void MIRCO::Rmg::GetSurface(Epetra_SerialDenseMatrix &z)
 {
   srand(time(NULL));
 
