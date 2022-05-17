@@ -40,6 +40,8 @@ void Evaluate(const std::string &inputFileName, double &force)
   int rmg_seed;
   int max_iter;
 
+  // SetParameters is used to set all the simulation specific, material, and
+  // geometrical parameters.
   SetParameters(E1, E2, lato, nu1, nu2, G1, G2, E, alpha, k_el, delta, nnodi, errf, to1, Delta,
       zfilePath, n, inputFileName, rmg_flag, Hurst, rand_seed_flag, rmg_seed, flagwarm, max_iter);
 
@@ -55,7 +57,7 @@ void Evaluate(const std::string &inputFileName, double &force)
   std::vector<double> x(iter);
   CreateMeshgrid(x, iter, delta);
 
-  // Setup Topology
+  // Initialise Topology matrix and solution for contact force matrix y.
   Epetra_SerialDenseMatrix topology, y;
   int N = pow(2, n);
   topology.Shape(N + 1, N + 1);
@@ -66,36 +68,65 @@ void Evaluate(const std::string &inputFileName, double &force)
 
   surfacegenerator->GetSurface(topology);
 
+  // Initialise the maximum and mean value of topology.
   double zmax = 0;
   double zmean = 0;
 
+  // Calculate the maximum and mean value of topology.
   ComputeMaxAndMean(topology, zmax, zmean);
 
+  // Initialise the area vector and force vector. Each element containing the
+  // area and force calculated at every iteration.
   vector<double> area0;
   vector<double> force0;
+
+  // Initialise elastic correction w_el (I think this is not necessary. It could
+  // be useful if we also calculate the derivative of force as it will help to
+  // converge to solution faster; for that we have to add a line to calcualte
+  // the elastic correction. Currently it remains zero.) Initialise final value
+  // of contact area
   double w_el = 0, area = 0;
+
+  // Initialise number of iteration, k, and initial number of predicted contact
+  // nodes, n0.
   int k = 0, n0 = 0;
+
+  // xv0,yv0 --> coordinates of the points predicted to be in contact in
+  // function ContactSetPredictor for a particular iteration. xvf,yvf -->
+  // coordinates of the points in contact in the previous iteration. pf -->
+  // contact force at (xvf,yvf) predicted in the previous iteration. b0 -->
+  // indentation value of the half space at the point of contact.
   std::vector<double> xv0, yv0, b0, xvf, yvf, pf;
+
+  // x0 --> contact forces at (xvf,yvf) predicted in the previous iteration but
+  // are a part of currect predicted contact set. x0 is calculated in the
+  // Warmstart function to be used in the NNLS to accelerate the simulation.
   Epetra_SerialDenseMatrix x0;
+
+  // nf --> the number of nodes in contact in the previous iteration.
   int nf = 0;
+
+  // A --> the influence coefficient matrix (Discreet version of Green Function)
   Epetra_SerialDenseMatrix A;
 
   while (errf > to1 && k < max_iter)
   {
     // First predictor for contact set
     // All points, for which gap is bigger than the displacement of the rigid
-    // indenter, cannot be in contact and thus are not checked in nonlinear solve
+    // indenter, cannot be in contact and thus are not checked in nonlinear
+    // solve
     // @{
     ContactSetPredictor(n0, xv0, yv0, b0, zmax, Delta, w_el, x, topology);
 
     A.Shape(xv0.size(), xv0.size());
-
-    // Construction of the Matrix H = A
+    // Construction of the Matrix A
     MatrixGeneration matrix1;
     matrix1.SetUpMatrix(A, xv0, yv0, delta, E, n0);
 
     // Second predictor for contact set
     // @{
+    // Uses Warmstart to make an initial guess of the nodes in contact in this
+    // iteration based on the previous iteration.
     InitialGuessPredictor(flagwarm, k, n0, nf, xv0, yv0, pf, x0, b0, xvf, yvf);
     // }
 
@@ -103,17 +134,23 @@ void Evaluate(const std::string &inputFileName, double &force)
     Epetra_SerialDenseMatrix b0new;
     b0new.Shape(b0.size(), 1);
     // } Parallel region makes around this makes program slower
-
+    // b0new is same as b0 (This unnecessary copying step could be avoided for
+    // optimization)
 #pragma omp parallel for schedule(static, 16)  // Always same workload -> Static!
     for (long unsigned int i = 0; i < b0.size(); i++)
     {
       b0new(i, 0) = b0[i];
     }
 
+    // w --> Defined as (u - u(bar)) in (Bemporad & Paggi, 2015)
+    // http://dx.doi.org/10.1016/j.ijsolstr.2015.06.005
     Epetra_SerialDenseMatrix w;
 
+    // use Nonlinear solver --> Non-Negative Least Squares (NNLS) as in
+    // (Bemporad & Paggi, 2015)
     NonLinearSolver solution2;
-    solution2.NonlinearSolve(A, b0new, x0, w, y);  // y -> sol, w -> wsol; x0 -> y0
+    solution2.NonlinearSolve(A, b0new, x0, w,
+        y);  // y -> sol, w -> wsol; x0 -> y0
 
     // Compute number of contact node
     // @{
@@ -140,9 +177,11 @@ void Evaluate(const std::string &inputFileName, double &force)
   }
 
   TEUCHOS_TEST_FOR_EXCEPTION(errf > to1, std::out_of_range,
-      "The solution did not converge in the maximum number of iternations defined");
+      "The solution did not converge in the maximum "
+      "number of iternations defined");
   // @{
 
+  // Calculate the final force and area value at the end of iteration.
   force = force0[k - 1];
   area = area0[k - 1];
 
