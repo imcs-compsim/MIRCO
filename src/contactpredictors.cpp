@@ -7,6 +7,8 @@ void ContactSetPredictor(int &n0, std::vector<double> &xv0, std::vector<double> 
     std::vector<double> &b0, double zmax, double Delta, double w_el, std::vector<double> x,
     Epetra_SerialDenseMatrix topology)
 {
+  // The aim of this function is to determine all the points, for which gap is bigger than the
+  // displacement of the rigid indenter, cannot be in contact and thus are not checked in nonlinear
   std::vector<int> col, row;
   // [ind1,ind2]=find(z>=(zmax-(Delta(s)+w_el(k))));
   double value = zmax - Delta - w_el;
@@ -78,6 +80,9 @@ void InitialGuessPredictor(bool flagwarm, int k, int n0, int nf, std::vector<dou
     std::vector<double> yv0, std::vector<double> pf, Epetra_SerialDenseMatrix &x0,
     std::vector<double> &b0, std::vector<double> xvf, std::vector<double> yvf)
 {
+  // The aim of this function is to guess the set of nodes in contact among the nodes predicted in
+  // the ContactSetPredictor function. It uses Warmstart to make an initial guess of the nodes in
+  // contact in this iteration based on the previous iteration.
   Epetra_SerialDenseMatrix xv0t, yv0t, xvft, yvft, pft;  // Temporary variables for warmup
   if (flagwarm == 1 && k > 0)
   {

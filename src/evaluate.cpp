@@ -125,8 +125,9 @@ void Evaluate(const std::string &inputFileName, double &force)
 
     // Second predictor for contact set
     // @{
-    // Uses Warmstart to make an initial guess of the nodes in contact in this
-    // iteration based on the previous iteration.
+    // The aim of this function is to guess the set of nodes in contact among the nodes predicted in
+    // the ContactSetPredictor function. It uses Warmstart to make an initial guess of the nodes in
+    // contact in this iteration based on the previous iteration.
     InitialGuessPredictor(flagwarm, k, n0, nf, xv0, yv0, pf, x0, b0, xvf, yvf);
     // }
 
