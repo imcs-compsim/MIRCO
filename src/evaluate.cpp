@@ -30,14 +30,38 @@ void Evaluate(const std::string &inputFileName, double &force)
   omp_set_num_threads(6);  // 6 seems to be optimal
 
   auto start = std::chrono::high_resolution_clock::now();
+
+  // set flagwarm --> true for using the warm starter. It predicts the nodes coming into contact in
+  // the next iteration and hence speeds up the computation.
   bool flagwarm;
+  // n --> resolution parameter
   int n;
+  // E1 and E2 are the Young's moduli of bodies 1 and 2 respectively.
+  // nu1 and nu2 are the Poisson's ratios.
+  // G1 and G2 are respective Shear moduli.
+  // E is the composite Young's modulus.
+  // alpha --> shape factor for this problem
+  // k_el --> Elastic compliance correction
+  // delta --> grid size
+  // nnodi --> total number of nodes
+  // tol --> tolerance for the convergence of force.
+  // lato --> Lateral side of the surface [micrometers]
+  // errf --> initialing the error in the force vector.
+  // Delta --> far-field displacement.
   double nu1, nu2, G1, G2, E, alpha, k_el, delta, nnodi, to1, E1, E2, lato, errf, Delta;
+  // set rmg_flag --> true to use the random mid-point generator to generate a topology.
+  // set rmg_flag --> flase to read the topology from an input file.
   bool rmg_flag;
+  // set rand_sed_flag --> true to fix the seed to generate psuedo random topology to reproduce
+  // results.
   bool rand_seed_flag;
+  // Hurst --> Hurst Exponent (Used in random mid-point generator)
   double Hurst;
+  // the actual path of the topology file.
   string zfilePath;
+  // rmg_seed --> set the value of seed for the random mid-point generator
   int rmg_seed;
+  // max_iter --> maximum number of iterations for the force to converge.
   int max_iter;
 
   // SetParameters is used to set all the simulation specific, material, and
