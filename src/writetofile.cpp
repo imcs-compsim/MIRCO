@@ -8,6 +8,7 @@ using namespace std;
 
 void writeForceToFile(Epetra_SerialDenseMatrix &y, string pathName)
 {
+  // The aim of this function is to write the output force on all the contact nodes to a file.
   std::size_t botDirPos = pathName.find_last_of("/") + 1;
   // get directory
   std::string dir = pathName.substr(0, botDirPos);

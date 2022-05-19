@@ -192,10 +192,6 @@ void Evaluate(const std::string &inputFileName, double &force)
     if (k > 0)
     {
       errf = abs(force0[k] - force0[k - 1]) / force0[k];
-
-      // errw(k) = abs((w_el0(k+1)-w_el0(k))/w_el0(k+1));
-      // It appears that this is only a debugging variable without any uses,
-      // therefore im not gonna implement this here.
     }
     k += 1;
     // }
@@ -219,9 +215,7 @@ void Evaluate(const std::string &inputFileName, double &force)
   cout << "area= " << area << endl;
   cout << "Mean pressure is:" + std::to_string(sigmaz) +
               " ; pressure unit per depth is:" + std::to_string(pressz) + " . \n";
-  // if (abs(sigmaz - 0.130720) > to1)
-  //   std::runtime_error("Differenz ist zu groß!");  // for nn=2
-  if (abs(sigmaz - 0.246623) > to1) cout << "Differenz ist zu groß!" << std::endl;  // for nn=5
+  if (abs(sigmaz - 0.246623) > to1) cout << "Differenz ist zu groß!" << std::endl;
 
   auto finish = std::chrono::high_resolution_clock::now();
   double elapsedTime2 = std::chrono::duration_cast<std::chrono::seconds>(finish - start).count();

@@ -9,6 +9,7 @@ using namespace std;
 void NonLinearSolver::NonlinearSolve(Epetra_SerialDenseMatrix& matrix, Epetra_SerialDenseMatrix& b0,
     Epetra_SerialDenseMatrix& y0, Epetra_SerialDenseMatrix& w, Epetra_SerialDenseMatrix& y)
 {
+  // Solving the non-linear set of equations using Non-Negative Least Squares (NNLS) method.
   // matrix -> A, b0 -> b, y0 -> y0 , y -> y, w-> w; nnstol, iter, maxiter ->
   // unused
   double nnlstol = 1.0000e-08;
