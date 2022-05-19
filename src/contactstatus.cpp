@@ -3,7 +3,7 @@
 #include <cmath>
 #include <vector>
 
-void ComputeContactNodes(std::vector<double> &xvf, std::vector<double> &yvf,
+void MIRCO::ComputeContactNodes(std::vector<double> &xvf, std::vector<double> &yvf,
     std::vector<double> &pf, int &nf, Epetra_SerialDenseMatrix y, std::vector<double> xv0,
     std::vector<double> yv0)
 {
@@ -33,7 +33,7 @@ void ComputeContactNodes(std::vector<double> &xvf, std::vector<double> &yvf,
   nf = cont;
 }
 
-void ComputeContactForceAndArea(std::vector<double> &force0, std::vector<double> &area0,
+void MIRCO::ComputeContactForceAndArea(std::vector<double> &force0, std::vector<double> &area0,
     double &w_el, int nf, std::vector<double> pf, int k, double delta, double lato, double k_el)
 {
   force0.push_back(0);

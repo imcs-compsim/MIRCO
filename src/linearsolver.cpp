@@ -3,8 +3,8 @@
 
 #include "linearsolver.h"
 
-void LinearSolver::Solve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatrix& vector_x,
-    Epetra_SerialDenseMatrix& vector_b)
+void MIRCO::LinearSolver::Solve(Epetra_SerialSymDenseMatrix& matrix,
+    Epetra_SerialDenseMatrix& vector_x, Epetra_SerialDenseMatrix& vector_b)
 {
   Epetra_SerialSpdDenseSolver solver;
   int err = solver.SetMatrix(matrix);

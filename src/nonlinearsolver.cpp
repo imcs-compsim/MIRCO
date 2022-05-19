@@ -6,8 +6,9 @@
 
 using namespace std;
 
-void NonLinearSolver::NonlinearSolve(Epetra_SerialDenseMatrix& matrix, Epetra_SerialDenseMatrix& b0,
-    Epetra_SerialDenseMatrix& y0, Epetra_SerialDenseMatrix& w, Epetra_SerialDenseMatrix& y)
+void MIRCO::NonLinearSolver::NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
+    Epetra_SerialDenseMatrix& b0, Epetra_SerialDenseMatrix& y0, Epetra_SerialDenseMatrix& w,
+    Epetra_SerialDenseMatrix& y)
 {
   // matrix -> A, b0 -> b, y0 -> y0 , y -> y, w-> w; nnstol, iter, maxiter ->
   // unused
@@ -149,7 +150,7 @@ void NonLinearSolver::NonlinearSolve(Epetra_SerialDenseMatrix& matrix, Epetra_Se
             solverMatrix(z, x) = matrix(P[x], P[z]);
         }
       }
-      LinearSolver solution;
+      MIRCO::LinearSolver solution;
       solution.Solve(solverMatrix, vector_x, vector_b);
 
 #pragma omp parallel for schedule(static, 16)  // Always same workload -> Static!

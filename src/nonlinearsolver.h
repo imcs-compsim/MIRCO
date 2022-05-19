@@ -5,12 +5,15 @@
 #include <Epetra_SerialSymDenseMatrix.h>
 #include <vector>
 
-class NonLinearSolver
+namespace MIRCO
 {
- public:
-  void NonlinearSolve(Epetra_SerialDenseMatrix& matrix, Epetra_SerialDenseMatrix& b0,
-      Epetra_SerialDenseMatrix& y0, Epetra_SerialDenseMatrix& w, Epetra_SerialDenseMatrix& y);
-  NonLinearSolver() = default;
-};
+  class NonLinearSolver
+  {
+   public:
+    void NonlinearSolve(Epetra_SerialDenseMatrix& matrix, Epetra_SerialDenseMatrix& b0,
+        Epetra_SerialDenseMatrix& y0, Epetra_SerialDenseMatrix& w, Epetra_SerialDenseMatrix& y);
+    NonLinearSolver() = default;
+  };
+}  // namespace MIRCO
 
 #endif  // SRC_NONLINEARSOLVER_H_
