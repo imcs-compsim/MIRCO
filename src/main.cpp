@@ -11,5 +11,5 @@ int main(int argc, char *argv[])
 
   double force = 0.0;
 
-  Evaluate(inputFileName, force);
+  MIRCO::Evaluate(inputFileName, force);
 }

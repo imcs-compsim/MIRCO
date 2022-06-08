@@ -25,7 +25,7 @@ using namespace std;
 #include "warmstart.h"
 #include "writetofile.h"
 
-void Evaluate(const std::string &inputFileName, double &force)
+void MIRCO::Evaluate(const std::string &inputFileName, double &force)
 {
   omp_set_num_threads(6);  // 6 seems to be optimal
 

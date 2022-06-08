@@ -3,6 +3,10 @@
 
 #include <string>
 
-void Evaluate(const std::string& inputFileName, double& force);
+namespace MIRCO
+{
+  void Evaluate(const std::string& inputFileName, double& force);
+}
+
 
 #endif  // SRC_EVALUATE_H_
