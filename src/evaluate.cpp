@@ -19,30 +19,18 @@ using namespace std;
 #include "linearsolver.h"
 #include "matrixsetup.h"
 #include "nonlinearsolver.h"
-#include "setparameters.h"
 #include "topology.h"
 #include "topologyutilities.h"
 #include "warmstart.h"
 #include "writetofile.h"
 
-void MIRCO::Evaluate(const std::string &inputFileName, double &force)
+void MIRCO::Evaluate(double &force, double Delta, double lato, double delta, int resolution,
+    double Hurst, bool rand_seed_flag, string zfilePath, bool rmg_flag, bool rmg_seed, double errf,
+    double to1, int max_iter, double E, bool flagwarm, double k_el)
 {
   omp_set_num_threads(6);  // 6 seems to be optimal
 
   auto start = std::chrono::high_resolution_clock::now();
-  bool flagwarm;
-  int n;
-  double nu1, nu2, G1, G2, E, alpha, k_el, delta, nnodi, to1, E1, E2, lato, errf, Delta;
-  bool rmg_flag;
-  bool rand_seed_flag;
-  double Hurst;
-  string zfilePath;
-  int rmg_seed;
-  int max_iter;
-
-  MIRCO::SetParameters(E1, E2, lato, nu1, nu2, G1, G2, E, alpha, k_el, delta, nnodi, errf, to1,
-      Delta, zfilePath, n, inputFileName, rmg_flag, Hurst, rand_seed_flag, rmg_seed, flagwarm,
-      max_iter);
 
   time_t now = time(0);
   tm *ltm = localtime(&now);
@@ -58,13 +46,13 @@ void MIRCO::Evaluate(const std::string &inputFileName, double &force)
 
   // Setup Topology
   Epetra_SerialDenseMatrix topology, y;
-  int N = pow(2, n);
+  int N = pow(2, resolution);
   topology.Shape(N + 1, N + 1);
 
   std::shared_ptr<MIRCO::TopologyGeneration> surfacegenerator;
   // creating the correct surface object
   MIRCO::CreateSurfaceObject(
-      n, Hurst, rand_seed_flag, zfilePath, rmg_flag, rmg_seed, surfacegenerator);
+      resolution, Hurst, rand_seed_flag, zfilePath, rmg_flag, rmg_seed, surfacegenerator);
 
   surfacegenerator->GetSurface(topology);
 

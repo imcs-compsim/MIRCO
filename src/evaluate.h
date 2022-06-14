@@ -5,7 +5,9 @@
 
 namespace MIRCO
 {
-  void Evaluate(const std::string& inputFileName, double& force);
+  void Evaluate(double &force, double Delta, double lato, double delta, int resolution,
+      double Hurst, bool rand_seed_flag, std::string zfilePath, bool rmg_flag, bool rmg_seed,
+      double errf, double to1, int max_iter, double E, bool flagwarm, double k_el);
 }
 
 
