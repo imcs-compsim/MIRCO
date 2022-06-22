@@ -9,9 +9,7 @@
 class NonlinearSolverTest : public ::testing::Test
 {
  protected:
-  void SetUp() override;
-
-  void TearDown() override {}
+  NonlinearSolverTest();
 
   Epetra_SerialDenseMatrix matrix_, b_vector_, w_, y_;
   Epetra_SerialDenseMatrix x_vector_;

@@ -1,7 +1,7 @@
 
 #include "nonlinear_solver_test.h"
 
-void NonlinearSolverTest::SetUp()
+NonlinearSolverTest::NonlinearSolverTest()
 {
   matrix_.Shape(9, 9);
   matrix_(0, 0) = 0.00381971863420549;
