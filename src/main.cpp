@@ -2,6 +2,9 @@
 #include <string>
 #include "evaluate.h"
 #include "setparameters.h"
+#include "topology.h"
+#include "topologyutilities.h"
+#include "writetofile.h"
 
 int main(int argc, char *argv[])
 {
@@ -24,8 +27,34 @@ int main(int argc, char *argv[])
       Delta, zfilePath, resolution, inputFileName, rmg_flag, Hurst, rand_seed_flag, rmg_seed,
       flagwarm, max_iter);
 
+  // Meshgrid-Command
+  // Identical Vectors/Matricies, therefore only created one here.
+  // Replacement for "for (double i = delta / 2; i < lato; i = i + delta)"
+  int iter = int(ceil((lato - (delta / 2)) / delta));
+  std::vector<double> x(iter);
+  MIRCO::CreateMeshgrid(x, iter, delta);
+
+  // Setup Topology
+  Epetra_SerialDenseMatrix topology, y;
+  int N = pow(2, resolution);
+  topology.Shape(N + 1, N + 1);
+
+  std::shared_ptr<MIRCO::TopologyGeneration> surfacegenerator;
+  // creating the correct surface object
+  MIRCO::CreateSurfaceObject(
+      resolution, Hurst, rand_seed_flag, zfilePath, rmg_flag, rmg_seed, surfacegenerator);
+
+  surfacegenerator->GetSurface(topology);
+
+  double zmax = 0;
+  double zmean = 0;
+
+  MIRCO::ComputeMaxAndMean(topology, zmax, zmean);
+
   double force;
 
-  MIRCO::Evaluate(force, Delta, lato, delta, resolution, Hurst, rand_seed_flag, zfilePath, rmg_flag,
-      rmg_seed, errf, to1, max_iter, E, flagwarm, k_el);
+  MIRCO::Evaluate(
+      force, Delta, lato, delta, errf, to1, max_iter, E, flagwarm, k_el, topology, zmax, x, y);
+
+  writeForceToFile(y, zfilePath);
 }
