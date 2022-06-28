@@ -35,7 +35,7 @@ void MIRCO::Evaluate(double &pressure, double Delta, double lato, double delta, 
 
   vector<double> area0;
   vector<double> force0;
-  double w_el = 0, force = 0, area = 0;
+  double w_el = 0.0, force = 0.0, area = 0.0;
   int k = 0, n0 = 0;
   std::vector<double> xv0, yv0, b0, xvf, yvf, pf;
   Epetra_SerialDenseMatrix x0;

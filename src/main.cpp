@@ -26,9 +26,7 @@ int main(int argc, char *argv[])
       Delta, zfilePath, resolution, inputFileName, rmg_flag, Hurst, rand_seed_flag, rmg_seed,
       flagwarm, max_iter);
 
-  // Meshgrid-Command
   // Identical Vectors/Matricies, therefore only created one here.
-  // Replacement for "for (double i = delta / 2; i < lato; i = i + delta)"
   int iter = int(ceil((lato - (delta / 2)) / delta));
   std::vector<double> meshgrid(iter);
   MIRCO::CreateMeshgrid(meshgrid, iter, delta);
@@ -50,7 +48,7 @@ int main(int argc, char *argv[])
 
   MIRCO::ComputeMaxAndMean(topology, zmax, zmean);
 
-  double pressure;
+  double pressure = 0.0;
 
   MIRCO::Evaluate(pressure, Delta, lato, delta, errf, to1, max_iter, E, flagwarm, k_el, topology,
       zmax, meshgrid);
