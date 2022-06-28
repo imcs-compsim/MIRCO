@@ -4,7 +4,6 @@
 #include "setparameters.h"
 #include "topology.h"
 #include "topologyutilities.h"
-#include "writetofile.h"
 
 int main(int argc, char *argv[])
 {
@@ -31,11 +30,11 @@ int main(int argc, char *argv[])
   // Identical Vectors/Matricies, therefore only created one here.
   // Replacement for "for (double i = delta / 2; i < lato; i = i + delta)"
   int iter = int(ceil((lato - (delta / 2)) / delta));
-  std::vector<double> x(iter);
-  MIRCO::CreateMeshgrid(x, iter, delta);
+  std::vector<double> meshgrid(iter);
+  MIRCO::CreateMeshgrid(meshgrid, iter, delta);
 
   // Setup Topology
-  Epetra_SerialDenseMatrix topology, y;
+  Epetra_SerialDenseMatrix topology;
   int N = pow(2, resolution);
   topology.Shape(N + 1, N + 1);
 
@@ -54,7 +53,5 @@ int main(int argc, char *argv[])
   double force;
 
   MIRCO::Evaluate(
-      force, Delta, lato, delta, errf, to1, max_iter, E, flagwarm, k_el, topology, zmax, x, y);
-
-  writeForceToFile(y, zfilePath);
+      force, Delta, lato, delta, errf, to1, max_iter, E, flagwarm, k_el, topology, zmax, meshgrid);
 }

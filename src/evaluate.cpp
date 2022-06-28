@@ -22,8 +22,7 @@ using namespace std;
 
 void MIRCO::Evaluate(double &force, double Delta, double lato, double delta, double errf,
     double to1, int max_iter, double E, bool flagwarm, double k_el,
-    Epetra_SerialDenseMatrix topology, double zmax, std::vector<double> x,
-    Epetra_SerialDenseMatrix &y)
+    Epetra_SerialDenseMatrix topology, double zmax, std::vector<double> x)
 {
   omp_set_num_threads(6);  // 6 seems to be optimal
 
@@ -42,6 +41,7 @@ void MIRCO::Evaluate(double &force, double Delta, double lato, double delta, dou
   Epetra_SerialDenseMatrix x0;
   int nf = 0;
   Epetra_SerialDenseMatrix A;
+  Epetra_SerialDenseMatrix y;
 
   while (errf > to1 && k < max_iter)
   {
