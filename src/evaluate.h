@@ -6,7 +6,7 @@
 
 namespace MIRCO
 {
-  void Evaluate(double &force, double Delta, double lato, double delta, double errf, double to1,
+  void Evaluate(double &pressure, double Delta, double lato, double delta, double errf, double to1,
       int max_iter, double E, bool flagwarm, double k_el, Epetra_SerialDenseMatrix topology,
       double zmax, std::vector<double> x);
 }  // namespace MIRCO

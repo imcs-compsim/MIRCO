@@ -50,8 +50,8 @@ int main(int argc, char *argv[])
 
   MIRCO::ComputeMaxAndMean(topology, zmax, zmean);
 
-  double force;
+  double pressure;
 
-  MIRCO::Evaluate(
-      force, Delta, lato, delta, errf, to1, max_iter, E, flagwarm, k_el, topology, zmax, meshgrid);
+  MIRCO::Evaluate(pressure, Delta, lato, delta, errf, to1, max_iter, E, flagwarm, k_el, topology,
+      zmax, meshgrid);
 }

@@ -20,7 +20,7 @@ using namespace std;
 #include "nonlinearsolver.h"
 
 
-void MIRCO::Evaluate(double &force, double Delta, double lato, double delta, double errf,
+void MIRCO::Evaluate(double &pressure, double Delta, double lato, double delta, double errf,
     double to1, int max_iter, double E, bool flagwarm, double k_el,
     Epetra_SerialDenseMatrix topology, double zmax, std::vector<double> x)
 {
@@ -35,7 +35,7 @@ void MIRCO::Evaluate(double &force, double Delta, double lato, double delta, dou
 
   vector<double> area0;
   vector<double> force0;
-  double w_el = 0, area = 0;
+  double w_el = 0, force = 0, area = 0;
   int k = 0, n0 = 0;
   std::vector<double> xv0, yv0, b0, xvf, yvf, pf;
   Epetra_SerialDenseMatrix x0;
@@ -111,13 +111,11 @@ void MIRCO::Evaluate(double &force, double Delta, double lato, double delta, dou
 
   // Mean pressure
   double sigmaz = force / pow(lato, 2);
-  // Pressure unit per depth
-  double pressz = sigmaz;
+  pressure = sigmaz;
   cout << "k= " << k << " nf= " << nf << endl;
   cout << "Force= " << force << endl;
   cout << "area= " << area << endl;
-  cout << "Mean pressure is:" + std::to_string(sigmaz) +
-              " ; pressure unit per depth is:" + std::to_string(pressz) + " . \n";
+  cout << "Mean pressure is:" << std::to_string(sigmaz) << endl;
 
   auto finish = std::chrono::high_resolution_clock::now();
   double elapsedTime2 = std::chrono::duration_cast<std::chrono::seconds>(finish - start).count();
