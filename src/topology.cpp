@@ -10,7 +10,7 @@ using namespace std;
 
 #include "topology.h"
 
-void ReadFile::GetSurface(Epetra_SerialDenseMatrix &z)
+void MIRCO::ReadFile::GetSurface(Epetra_SerialDenseMatrix &z)
 {
   // The aim of this function is to read the the topology from a file and store it in z.
   ifstream reader(filepath);
@@ -43,7 +43,7 @@ void ReadFile::GetSurface(Epetra_SerialDenseMatrix &z)
   stream.close();
 }
 
-void Rmg::GetSurface(Epetra_SerialDenseMatrix &z)
+void MIRCO::Rmg::GetSurface(Epetra_SerialDenseMatrix &z)
 {
   // The aim of this function is to generate a surface using the random mid-point generator and
   // store it in z.

@@ -3,7 +3,7 @@
 
 #include "matrixsetup.h"
 
-void MatrixGeneration::SetUpMatrix(Epetra_SerialDenseMatrix& A, std::vector<double> xv0,
+void MIRCO::MatrixGeneration::SetUpMatrix(Epetra_SerialDenseMatrix& A, std::vector<double> xv0,
     std::vector<double> yv0, double delta, double E, int systemsize)
 // The aim of this function is to create the influence coefficient matrix (Discreet version of Green
 // function)

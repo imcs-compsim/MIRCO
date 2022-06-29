@@ -3,7 +3,7 @@
 #include <vector>
 #include "warmstart.h"
 
-void ContactSetPredictor(int &n0, std::vector<double> &xv0, std::vector<double> &yv0,
+void MIRCO::ContactSetPredictor(int &n0, std::vector<double> &xv0, std::vector<double> &yv0,
     std::vector<double> &b0, double zmax, double Delta, double w_el, std::vector<double> x,
     Epetra_SerialDenseMatrix topology)
 {
@@ -76,7 +76,7 @@ void ContactSetPredictor(int &n0, std::vector<double> &xv0, std::vector<double> 
   }
 }
 
-void InitialGuessPredictor(bool flagwarm, int k, int n0, int nf, std::vector<double> xv0,
+void MIRCO::InitialGuessPredictor(bool flagwarm, int k, int n0, int nf, std::vector<double> xv0,
     std::vector<double> yv0, std::vector<double> pf, Epetra_SerialDenseMatrix &x0,
     std::vector<double> &b0, std::vector<double> xvf, std::vector<double> yvf)
 {
@@ -108,7 +108,7 @@ void InitialGuessPredictor(bool flagwarm, int k, int n0, int nf, std::vector<dou
       pft(0, j) = pf[j];
     }
 
-    Warmstart(x0, xv0t, yv0t, xvft, yvft, pft);
+    MIRCO::Warmstart(x0, xv0t, yv0t, xvft, yvft, pft);
   }
   else
   {

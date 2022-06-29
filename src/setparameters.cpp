@@ -9,11 +9,11 @@
 #include "filesystem_utils.h"
 #include "setparameters.h"
 
-void SetParameters(double& E1, double& E2, double& lato, double& nu1, double& nu2, double& G1,
-    double& G2, double& E, double& alpha, double& k_el, double& delta, double& nnodi, double& errf,
-    double& tol, double& Delta, std::string& zfilePath, int& n, const std::string& inputFileName,
-    bool& rmg_flag, double& Hurst, bool& rand_seed_flag, int& rmg_seed, bool& flagwarm,
-    int& max_iter)
+void MIRCO::SetParameters(double& E1, double& E2, double& lato, double& nu1, double& nu2,
+    double& G1, double& G2, double& E, double& alpha, double& k_el, double& delta, double& nnodi,
+    double& errf, double& tol, double& Delta, std::string& zfilePath, int& resolution,
+    const std::string& inputFileName, bool& rmg_flag, double& Hurst, bool& rand_seed_flag,
+    int& rmg_seed, bool& flagwarm, int& max_iter)
 {
   // The aim of this fuction is to read the input file containing the simulation specific, material
   // and geometrical parameters.
@@ -66,7 +66,7 @@ void SetParameters(double& E1, double& E2, double& lato, double& nu1, double& nu
   Teuchos::ParameterList& geoParams =
       parameterList->sublist("parameters").sublist("geometrical_parameters");
   // n --> resolution parameter
-  n = geoParams.get<int>("n");
+  resolution = geoParams.get<int>("n");
   // Hurst --> Hurst Exponent (Used in random mid-point generator)
   Hurst = geoParams.get<double>("H");
   // lato --> Lateral side of the surface [micrometers]
@@ -79,11 +79,11 @@ void SetParameters(double& E1, double& E2, double& lato, double& nu1, double& nu
   Delta = geoParams.get<double>("Delta");
 
   // alpha --> shape factor for this problem
-  alpha = alpha_con[n - 1];
+  alpha = alpha_con[resolution - 1];
   // k_el --> Elastic compliance correction
   k_el = lato * E / alpha;
   // delta --> grid size
-  delta = lato / (pow(2, n) + 1);
+  delta = lato / (pow(2, resolution) + 1);
   // nnodi --> total number of nodes
-  nnodi = pow(pow(2, n + 1), 2);
+  nnodi = pow(pow(2, resolution + 1), 2);
 }
