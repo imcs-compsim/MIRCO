@@ -16,71 +16,32 @@ using namespace std;
 #include "contactpredictors.h"
 #include "contactstatus.h"
 #include "evaluate.h"
-#include "linearsolver.h"
 #include "matrixsetup.h"
 #include "nonlinearsolver.h"
-#include "setparameters.h"
-#include "topology.h"
-#include "topologyutilities.h"
-#include "warmstart.h"
-#include "writetofile.h"
 
-void Evaluate(const std::string &inputFileName, double &force)
+
+void MIRCO::Evaluate(double &pressure, double Delta, double lato, double delta, double errf,
+    double to1, int max_iter, double E, bool flagwarm, double k_el,
+    Epetra_SerialDenseMatrix topology, double zmax, std::vector<double> x)
 {
   omp_set_num_threads(6);  // 6 seems to be optimal
 
   auto start = std::chrono::high_resolution_clock::now();
-  bool flagwarm;
-  int n;
-  double nu1, nu2, G1, G2, E, alpha, k_el, delta, nnodi, to1, E1, E2, lato, errf, Delta;
-  bool rmg_flag;
-  bool rand_seed_flag;
-  double Hurst;
-  string zfilePath;
-  int rmg_seed;
-  int max_iter;
-
-  MIRCO::SetParameters(E1, E2, lato, nu1, nu2, G1, G2, E, alpha, k_el, delta, nnodi, errf, to1,
-      Delta, zfilePath, n, inputFileName, rmg_flag, Hurst, rand_seed_flag, rmg_seed, flagwarm,
-      max_iter);
 
   time_t now = time(0);
   tm *ltm = localtime(&now);
   std::cout << "Time is: " << ltm->tm_hour << ":";
   std::cout << 1 + ltm->tm_min << endl;
 
-  // Meshgrid-Command
-  // Identical Vectors/Matricies, therefore only created one here.
-  // Replacement for "for (double i = delta / 2; i < lato; i = i + delta)"
-  int iter = int(ceil((lato - (delta / 2)) / delta));
-  std::vector<double> x(iter);
-  MIRCO::CreateMeshgrid(x, iter, delta);
-
-  // Setup Topology
-  Epetra_SerialDenseMatrix topology, y;
-  int N = pow(2, n);
-  topology.Shape(N + 1, N + 1);
-
-  std::shared_ptr<MIRCO::TopologyGeneration> surfacegenerator;
-  // creating the correct surface object
-  MIRCO::CreateSurfaceObject(
-      n, Hurst, rand_seed_flag, zfilePath, rmg_flag, rmg_seed, surfacegenerator);
-
-  surfacegenerator->GetSurface(topology);
-
-  double zmax = 0;
-  double zmean = 0;
-
-  MIRCO::ComputeMaxAndMean(topology, zmax, zmean);
-
   vector<double> area0;
   vector<double> force0;
-  double w_el = 0, area = 0;
+  double w_el = 0.0, force = 0.0, area = 0.0;
   int k = 0, n0 = 0;
   std::vector<double> xv0, yv0, b0, xvf, yvf, pf;
   Epetra_SerialDenseMatrix x0;
   int nf = 0;
   Epetra_SerialDenseMatrix A;
+  Epetra_SerialDenseMatrix y;
 
   while (errf > to1 && k < max_iter)
   {
@@ -150,20 +111,13 @@ void Evaluate(const std::string &inputFileName, double &force)
 
   // Mean pressure
   double sigmaz = force / pow(lato, 2);
-  // Pressure unit per depth
-  double pressz = sigmaz;
+  pressure = sigmaz;
   cout << "k= " << k << " nf= " << nf << endl;
   cout << "Force= " << force << endl;
   cout << "area= " << area << endl;
-  cout << "Mean pressure is:" + std::to_string(sigmaz) +
-              " ; pressure unit per depth is:" + std::to_string(pressz) + " . \n";
-  // if (abs(sigmaz - 0.130720) > to1)
-  //   std::runtime_error("Differenz ist zu groß!");  // for nn=2
-  if (abs(sigmaz - 0.246623) > to1) cout << "Differenz ist zu groß!" << std::endl;  // for nn=5
+  cout << "Mean pressure is:" << std::to_string(sigmaz) << endl;
 
   auto finish = std::chrono::high_resolution_clock::now();
   double elapsedTime2 = std::chrono::duration_cast<std::chrono::seconds>(finish - start).count();
   std::cout << "Elapsed time is: " + to_string(elapsedTime2) + "s." << endl;
-
-  writeForceToFile(y, zfilePath);
 }

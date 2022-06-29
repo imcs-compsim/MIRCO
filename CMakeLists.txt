@@ -69,7 +69,6 @@ add_library(mirco_library
 
 add_library(mirco_io
   src/setparameters.cpp
-  src/writetofile.cpp
 )
 
 add_library(mirco_utils

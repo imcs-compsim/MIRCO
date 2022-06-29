@@ -9,7 +9,7 @@
 
 namespace MIRCO
 {
-  void CreateMeshgrid(std::vector<double>& x, int iter, double delta);
+  void CreateMeshgrid(std::vector<double>& meshgrid, int iter, double delta);
 
   // forward declaration
   class TopologyGeneration;

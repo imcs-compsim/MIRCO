@@ -11,7 +11,7 @@
 
 void MIRCO::SetParameters(double& E1, double& E2, double& lato, double& nu1, double& nu2,
     double& G1, double& G2, double& E, double& alpha, double& k_el, double& delta, double& nnodi,
-    double& errf, double& tol, double& Delta, std::string& zfilePath, int& n,
+    double& errf, double& tol, double& Delta, std::string& zfilePath, int& resolution,
     const std::string& inputFileName, bool& rmg_flag, double& Hurst, bool& rand_seed_flag,
     int& rmg_seed, bool& flagwarm, int& max_iter)
 {
@@ -42,15 +42,15 @@ void MIRCO::SetParameters(double& E1, double& E2, double& lato, double& nu1, dou
 
   Teuchos::ParameterList& geoParams =
       parameterList->sublist("parameters").sublist("geometrical_parameters");
-  n = geoParams.get<int>("n");
+  resolution = geoParams.get<int>("n");
   Hurst = geoParams.get<double>("H");    // Hurst exponent
   lato = geoParams.get<double>("lato");  // Lateral side of the surface [micrometers]
   errf = geoParams.get<double>("errf");
   tol = geoParams.get<double>("tol");
   Delta = geoParams.get<double>("Delta");
 
-  alpha = alpha_con[n - 1];
+  alpha = alpha_con[resolution - 1];
   k_el = lato * E / alpha;
-  delta = lato / (pow(2, n) + 1);
-  nnodi = pow(pow(2, n + 1), 2);
+  delta = lato / (pow(2, resolution) + 1);
+  nnodi = pow(pow(2, resolution + 1), 2);
 }

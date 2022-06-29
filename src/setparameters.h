@@ -11,5 +11,4 @@ namespace MIRCO
       int& rmg_seed, bool& flagwarm, int& max_iter);
 }
 
-
 #endif  // SRC_SETPARAMETERS_H_
