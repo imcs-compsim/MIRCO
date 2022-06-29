@@ -27,9 +27,9 @@ int main(int argc, char *argv[])
       flagwarm, max_iter);
 
   // Identical Vectors/Matricies, therefore only created one here.
-  int iter = int(ceil((lato - (delta / 2)) / delta));
-  std::vector<double> meshgrid(iter);
-  MIRCO::CreateMeshgrid(meshgrid, iter, delta);
+  int ngrid = int(ceil((lato - (delta / 2)) / delta));
+  std::vector<double> meshgrid(ngrid);
+  MIRCO::CreateMeshgrid(meshgrid, ngrid, delta);
 
   // Setup Topology
   Epetra_SerialDenseMatrix topology;
@@ -43,11 +43,12 @@ int main(int argc, char *argv[])
 
   surfacegenerator->GetSurface(topology);
 
-  double zmax = 0;
-  double zmean = 0;
+  double zmax = 0.0;
+  double zmean = 0.0;
 
   MIRCO::ComputeMaxAndMean(topology, zmax, zmean);
 
+  // Initialise Pressure
   double pressure = 0.0;
 
   MIRCO::Evaluate(pressure, Delta, lato, delta, errf, to1, max_iter, E, flagwarm, k_el, topology,

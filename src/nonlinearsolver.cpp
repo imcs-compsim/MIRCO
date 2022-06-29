@@ -10,9 +10,6 @@ void MIRCO::NonLinearSolver::NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
     Epetra_SerialDenseMatrix& b0, Epetra_SerialDenseMatrix& y0, Epetra_SerialDenseMatrix& w,
     Epetra_SerialDenseMatrix& y)
 {
-  // Solving the non-linear set of equations using Non-Negative Least Squares (NNLS) method.
-  // matrix -> A, b0 -> b, y0 -> y0 , y -> y, w-> w; nnstol, iter, maxiter ->
-  // unused
   double nnlstol = 1.0000e-08;
   double maxiter = 10000;
   double eps = 2.2204e-16;
@@ -62,7 +59,7 @@ void MIRCO::NonLinearSolver::NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
     init = true;
   }
 
-  s0.Shape(n0, 1);  // Replacement for s
+  s0.Shape(n0, 1);
   bool aux1 = true, aux2 = true;
 
   // New searching algorithm
@@ -73,9 +70,6 @@ void MIRCO::NonLinearSolver::NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
 
   while (aux1 == true)
   {
-    // [wi,i]=min(w);
-    // This is slightly slower than the optimal one. So far at least. Should have a bit better
-    // scaling.
     // @{
     for (int i = 0; i < w.M(); i++)
     {
@@ -151,6 +145,7 @@ void MIRCO::NonLinearSolver::NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
             solverMatrix(z, x) = matrix(P[x], P[z]);
         }
       }
+      // Solving solverMatrix*vector_x=vector_b
       MIRCO::LinearSolver solution;
       solution.Solve(solverMatrix, vector_x, vector_b);
 
