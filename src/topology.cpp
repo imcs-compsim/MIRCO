@@ -12,7 +12,6 @@ using namespace std;
 
 void MIRCO::ReadFile::GetSurface(Epetra_SerialDenseMatrix &z)
 {
-  // The aim of this function is to read the the topology from a file and store it in z.
   ifstream reader(filepath);
   string blaLine;
   int dimension = 0;
@@ -45,8 +44,6 @@ void MIRCO::ReadFile::GetSurface(Epetra_SerialDenseMatrix &z)
 
 void MIRCO::Rmg::GetSurface(Epetra_SerialDenseMatrix &z)
 {
-  // The aim of this function is to generate a surface using the random mid-point generator and
-  // store it in z.
   srand(time(NULL));
 
   int seed;

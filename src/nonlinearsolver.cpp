@@ -162,7 +162,6 @@ void MIRCO::NonLinearSolver::NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
         if (s0(P[x], 0) < nnlstol)
         {
           allBigger = false;
-          // break; // -> Terminate Loop!
         }
       }
 
@@ -174,8 +173,6 @@ void MIRCO::NonLinearSolver::NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
         {
           y(P[x], 0) = s0(P[x], 0);
         }
-
-        // w=A(:,P(1:nP))*y(P(1:nP))-b;
         w.Scale(0.0);
 #pragma omp parallel for schedule(dynamic, 16)
         for (int a = 0; a < matrix.M(); a++)

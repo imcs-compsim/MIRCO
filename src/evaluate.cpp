@@ -50,7 +50,7 @@ void MIRCO::Evaluate(double &pressure, double Delta, double lato, double delta, 
   std::vector<double> xv0, yv0;
   // Coordinates of the points in contact in the previous iteration.
   std::vector<double> xvf, yvf;
-  // Indentation value of the half space at the point of contact.
+  // Indentation value of the half space at the predicted points of contact.
   std::vector<double> b0;
   // Contact force at (xvf,yvf) predicted in the previous iteration.
   std::vector<double> pf;
@@ -63,8 +63,9 @@ void MIRCO::Evaluate(double &pressure, double Delta, double lato, double delta, 
   // The number of nodes in contact in the previous iteration.
   int nf = 0;
 
-  // A --> the influence coefficient matrix (Discrete version of Green Function)
+  // The influence coefficient matrix (Discrete version of Green Function)
   Epetra_SerialDenseMatrix A;
+  // Solution containing force
   Epetra_SerialDenseMatrix y;
 
   while (errf > to1 && k < max_iter)
@@ -95,6 +96,7 @@ void MIRCO::Evaluate(double &pressure, double Delta, double lato, double delta, 
     }
 
     // Defined as (u - u(bar)) in (Bemporad & Paggi, 2015)
+    // Gap between the point on the topology and the half space
     Epetra_SerialDenseMatrix w;
 
     // use Nonlinear solver --> Non-Negative Least Squares (NNLS) as in

@@ -15,10 +15,10 @@ namespace MIRCO
      * Non-Negative Least Squares (NNLS) method.
      *
      * @param matrix Influence coefficient matrix (Discrete version of Green Function)
-     * @param b0 Indentation value of the half space at the point of contact.
+     * @param b0 Indentation value of the half space at the predicted points of contact.
      * @param y0 contact forces at (xvf,yvf) predicted in the previous iteration but are a part of
      * currect predicted contact set.
-     * @param w Defined as (u - u(bar))
+     * @param w Gap between the point on the topology and the half space
      * @param y Solution containing force
      */
     void NonlinearSolve(Epetra_SerialDenseMatrix& matrix, Epetra_SerialDenseMatrix& b0,

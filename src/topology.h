@@ -1,7 +1,7 @@
 #ifndef SRC_TOPOLOGY_H_
 #define SRC_TOPOLOGY_H_
 
-#include <Epetra_SerialDenseMatrix.h>  // Seems obvious
+#include <Epetra_SerialDenseMatrix.h>
 #include <string>
 
 namespace MIRCO
@@ -13,7 +13,7 @@ namespace MIRCO
   class TopologyGeneration
   {
    public:
-    int resolution;  // resolution parameter
+    int resolution;
     /**
      * @brief Get the Surface
      *
@@ -41,7 +41,7 @@ namespace MIRCO
   class Rmg : public TopologyGeneration
   {
    public:
-    double Hurst;  // Hurst component
+    double Hurst;
     bool rand_seed_flag;
     int rmg_seed;
     void GetSurface(Epetra_SerialDenseMatrix &z) override;

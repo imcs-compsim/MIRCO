@@ -14,7 +14,7 @@ namespace MIRCO
    * @param n0 Number of nodes predicted to be in contact
    * @param xv0 x-coordinates of the points in contact in the previous iteration.
    * @param yv0 y-coordinates of the points in contact in the previous iteration.
-   * @param b0 Indentation value of the half space at the point of contact.
+   * @param b0 Indentation value of the half space at the predicted points of contact.
    * @param zmax Maximum height of the topology
    * @param Delta Far-field displacement (Gap)
    * @param w_el Elastic correction
@@ -39,7 +39,7 @@ namespace MIRCO
    * @param pf Contact force at (xvf,yvf) predicted in the previous iteration.
    * @param x0 contact forces at (xvf,yvf) predicted in the previous iteration but are a part of
    * currect predicted contact set.
-   * @param b0 Indentation value of the half space at the point of contact.
+   * @param b0 Indentation value of the half space at the predicted points of contact.
    * @param xvf x-coordinates of the points in contact in the previous iteration.
    * @param yvf y-coordinates of the points in contact in the previous iteration.
    */
