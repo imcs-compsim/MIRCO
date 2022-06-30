@@ -4,11 +4,10 @@
 #include "warmstart.h"
 
 void MIRCO::ContactSetPredictor(int &n0, std::vector<double> &xv0, std::vector<double> &yv0,
-    std::vector<double> &b0, double zmax, double Delta, double w_el, std::vector<double> x,
+    std::vector<double> &b0, double zmax, double Delta, double w_el, std::vector<double> meshgrid,
     Epetra_SerialDenseMatrix topology)
 {
   std::vector<int> col, row;
-  // [ind1,ind2]=find(z>=(zmax-(Delta(s)+w_el(k))));
   double value = zmax - Delta - w_el;
   row.clear();
   col.clear();
@@ -42,7 +41,7 @@ void MIRCO::ContactSetPredictor(int &n0, std::vector<double> &xv0, std::vector<d
   {
     try
     {
-      xv0[b] = x[col[b]];
+      xv0[b] = meshgrid[col[b]];
     }
     catch (const std::exception &e)
     {
@@ -54,7 +53,7 @@ void MIRCO::ContactSetPredictor(int &n0, std::vector<double> &xv0, std::vector<d
   {
     try
     {
-      yv0[b] = x[row[b]];
+      yv0[b] = meshgrid[row[b]];
     }
     catch (const std::exception &e)
     {
@@ -81,7 +80,6 @@ void MIRCO::InitialGuessPredictor(bool flagwarm, int k, int n0, int nf, std::vec
   Epetra_SerialDenseMatrix xv0t, yv0t, xvft, yvft, pft;  // Temporary variables for warmup
   if (flagwarm == 1 && k > 0)
   {
-    // x0=warm_x(xv0(1:n0(k),k),yv0(1:n0(k),k),xvf(1:nf(k-1),k-1),yvf(1:nf(k-1),k-1),pf(1:nf(k-1),k-1));
     xv0t.Shape(1, n0);
     yv0t.Shape(1, n0);
     xvft.Shape(1, nf);
