@@ -4,6 +4,15 @@
 
 ## Getting up and running
 
+### Prerequesites
+
+MIRCO requires
+
+- C++ compiler
+- [CMake](www.cmake.org) (version: >= 3.14)
+- OpenMP
+- [Trilinos](https://github.com/trilinos/Trilinos) (version: >= 12.8)
+
 ### Clone the repository
 
 You can clone the repository along with its submodules using:
