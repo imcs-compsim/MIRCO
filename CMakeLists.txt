@@ -75,10 +75,10 @@ add_library(mirco_utils
   src/filesystem_utils.cpp
 )
 
-#find OpenMP
+# Find OpenMP
 find_package(OpenMP REQUIRED)
 
-#find OpenMPI
+# Find OpenMPI
 find_package(MPI REQUIRED)
 
 include_directories(${MPI_INCLUDE_PATH})
@@ -100,7 +100,7 @@ target_link_libraries(mirco
 enable_testing()
 include(GoogleTest)
 
-#Compile unittest executable
+# Compile unittest executable
 add_executable(tests
   tests/unittests/test.cpp
   tests/unittests/nonlinear_solver_test.cpp
