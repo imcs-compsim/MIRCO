@@ -65,3 +65,9 @@ To run the code with an input file, use the following command in your build dire
 ./mirco <sourceDir>/Input/<someInputFile.xml>
 ```
 where `<someInputFile.xml>` is any input file in the prescribed format.
+
+## How to cite?
+
+If you are using this code, please cite the following paper:
+
+- J. Bonari, M. R. Marulli, N. Hagmeyer, M. Mayr, A. Popp, M. Paggi: **A multi-scale FEM-BEM formulation for contact mechanics between rough surfaces**, _Computational Mechanics_, 65(3):731-749, 2020, [DOI: 10.1007/s00466-019-01791-3](https://doi.org/10.1007/s00466-019-01791-3)
