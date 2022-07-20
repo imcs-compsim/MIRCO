@@ -1,6 +1,6 @@
 # MIRCO (MUSAM-IMCS Rough Contact cOde)
 
-`MIRCO` is a Boundary element algorithm for simulating linear elastic frictionless normal contact between a rigid rough indentor and an elastic half-space. The research code is implemented throughout in object-oriented programming (C++) using modern software design and is parallelized with OpenMP for shared memory hardware architectures.
+`MIRCO` is a Boundary element algorithm for simulating linear elastic frictionless normal contact between a rigid rough indentor and an elastic half-space. The research code is implemented throughout in object-oriented programming (C++) and is parallelized with OpenMP for shared memory hardware architectures.
 
 ## Clone the Repository
 
