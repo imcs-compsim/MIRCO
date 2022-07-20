@@ -54,6 +54,9 @@ Now, you have to navigate to the build directory and call the `do-configure` scr
 cd <buildDir>
 <sourceDir>/do-configure
 ```
+
+> **IMPORTANT** Make sure to set `Trilinos_DIR` to point to you Trilinos installation.
+
 Build the `mirco` executable in the build directory using:
 ```bash
 cd <buildDir>
