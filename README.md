@@ -68,7 +68,7 @@ To run the code with an input file, use the following command in your build dire
 ```
 where `<someInputFile.xml>` is any input file in the prescribed format.
 
-## How to cite?
+## How to cite MIRCO?
 
 If you are using this code, please cite the following paper:
 
