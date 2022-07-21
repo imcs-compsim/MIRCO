@@ -67,7 +67,7 @@ The `mirco` executable will be created in the build directory.
 
 ### Run all tests
 
-You can run the unit tests from the the build directory using:
+You can run the tests from the build directory using:
 ```bash
 ctest
 ```
