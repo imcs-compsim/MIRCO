@@ -49,11 +49,6 @@ include_directories(SYSTEM ${Trilinos_INCLUDE_DIRS})
 link_directories(${Trilinos_TPL_LIBRARY_DIRS})
 link_directories(${Trilinos_LIBRARY_DIRS})
 
-#find JsonCpp package
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(JSONCPP jsoncpp)
-link_libraries(${JSONCPP_LIBRARIES})
-
 # Compile mirco library
 add_library(mirco_library
   src/topology.cpp
@@ -75,10 +70,10 @@ add_library(mirco_utils
   src/filesystem_utils.cpp
 )
 
-#find OpenMP
+# Find OpenMP
 find_package(OpenMP REQUIRED)
 
-#find OpenMPI
+# Find OpenMPI
 find_package(MPI REQUIRED)
 
 include_directories(${MPI_INCLUDE_PATH})
@@ -91,7 +86,6 @@ target_link_libraries(mirco
   mirco_library
   mirco_io
   mirco_utils
-  ${JSONCPP_LIBRARIES}
   ${Trilinos_LIBRARIES}
   ${Trilinos_TPL_LIBRARIES}
   ${MPI_LIBRARIES}
@@ -100,7 +94,7 @@ target_link_libraries(mirco
 enable_testing()
 include(GoogleTest)
 
-#Compile unittest executable
+# Compile unittest executable
 add_executable(tests
   tests/unittests/test.cpp
   tests/unittests/nonlinear_solver_test.cpp
@@ -112,7 +106,6 @@ target_link_libraries(tests
   mirco_io
   mirco_utils
   gtest
-  ${JSONCPP_LIBRARIES}
   ${Trilinos_LIBRARIES}
   ${Trilinos_TPL_LIBRARIES}
   ${MPI_LIBRARIES}
