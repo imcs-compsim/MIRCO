@@ -3,6 +3,11 @@ cmake_minimum_required(VERSION 3.14)
 # Project name
 project(mirco)
 
+# Check for out-of-source build
+if (${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
+    message(FATAL_ERROR "\nIn-source builds not allowed. Please make a new directory (called a build directory) and run CMake from there.\n\nTo clean-up, you may need to remove CMakeCache.txt and CMakeFiles from your source directory.")
+endif()
+
 # Compiler flags
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -Wall -Wextra -O3 -std=c++17")
 
