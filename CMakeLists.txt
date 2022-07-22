@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.14)
 
 # Project name
-project(mirco)
+project(mirco VERSION 0.1.0)
 
 # Check for out-of-source build
 if (${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
