@@ -3,7 +3,6 @@
 #include <omp.h>
 #include <unistd.h>
 #include <Teuchos_Assert.hpp>
-#include <chrono>
 #include <cmath>
 #include <cstdio>
 #include <ctime>
@@ -25,13 +24,6 @@ void MIRCO::Evaluate(double &pressure, double Delta, double lato, double delta, 
     Epetra_SerialDenseMatrix topology, double zmax, std::vector<double> meshgrid)
 {
   omp_set_num_threads(6);  // 6 seems to be optimal
-
-  auto start = std::chrono::high_resolution_clock::now();
-
-  time_t now = time(0);
-  tm *ltm = localtime(&now);
-  std::cout << "Time is: " << ltm->tm_hour << ":";
-  std::cout << 1 + ltm->tm_min << endl;
 
   // Initialise the area vector and force vector. Each element containing the
   // area and force calculated at every iteration.
@@ -135,12 +127,4 @@ void MIRCO::Evaluate(double &pressure, double Delta, double lato, double delta, 
   // Mean pressure
   double sigmaz = force / pow(lato, 2);
   pressure = sigmaz;
-  cout << "k= " << k << " nf= " << nf << endl;
-  cout << "Force= " << force << endl;
-  cout << "area= " << area << endl;
-  cout << "Mean pressure is:" << std::to_string(sigmaz) << endl;
-
-  auto finish = std::chrono::high_resolution_clock::now();
-  double elapsedTime2 = std::chrono::duration_cast<std::chrono::seconds>(finish - start).count();
-  std::cout << "Elapsed time is: " + to_string(elapsedTime2) + "s." << endl;
 }

@@ -15,14 +15,14 @@ void MIRCO::CreateMeshgrid(std::vector<double>& meshgrid, int ngrid, double delt
   }
 }
 
-void MIRCO::CreateSurfaceObject(int resolution, double Hurst, bool rand_seed_flag,
-    std::string zfilePath, bool rmg_flag, int rmg_seed,
+void MIRCO::CreateSurfaceObject(int resolution, double& user_zmax, double Hurst,
+    bool rand_seed_flag, std::string zfilePath, bool rmg_flag, int rmg_seed,
     std::shared_ptr<MIRCO::TopologyGeneration>& surfacegenerator)
 {
   if (rmg_flag)
   {
-    surfacegenerator =
-        std::shared_ptr<MIRCO::Rmg>(new MIRCO::Rmg(resolution, Hurst, rand_seed_flag, rmg_seed));
+    surfacegenerator = std::shared_ptr<MIRCO::Rmg>(
+        new MIRCO::Rmg(resolution, user_zmax, Hurst, rand_seed_flag, rmg_seed));
   }
   else
   {

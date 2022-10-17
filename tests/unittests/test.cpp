@@ -100,6 +100,7 @@ TEST(FilesystemUtils, keepabsolutpath)
 TEST(readtopology, RMG)
 {
   int resolution = 2;
+  double user_zmax = 94.9023;
   float Hurst = 0.1;
   bool rand_seed_flag = false;
   int rmg_seed = 95;
@@ -107,8 +108,8 @@ TEST(readtopology, RMG)
   int N = pow(2, resolution);
   outsurf.Shape(N + 1, N + 1);
 
-  MIRCO::Rmg surface(resolution, Hurst, rand_seed_flag, rmg_seed);
-  surface.GetSurface(outsurf);
+  MIRCO::Rmg surface(resolution, user_zmax, Hurst, rand_seed_flag, rmg_seed);
+  surface.GetSurface(outsurf, user_zmax);
 
   EXPECT_NEAR(outsurf(0, 0), 28.2215338276376, 1e-03);
   EXPECT_NEAR(outsurf(0, 1), 36.2753295855912, 1e-03);

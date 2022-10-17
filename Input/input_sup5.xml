@@ -17,6 +17,7 @@
     <ParameterList name="geometrical_parameters">
       <Parameter name="lato" type="double" value="1000.0"/>
       <Parameter name="n" type="int" value="5"/>
+      <Parameter name="zmax" type="double" value="50.0"/>
       <Parameter name="H" type="double" value="0.1"/>
       <Parameter name="Delta" type="double" value="10.0"/>
       <Parameter name="errf" type="double" value="100000000.0"/>

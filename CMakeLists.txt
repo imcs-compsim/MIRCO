@@ -96,6 +96,11 @@ target_link_libraries(mirco
   ${MPI_LIBRARIES}
   )
 
+file(COPY ${CMAKE_SOURCE_DIR}/src/
+  DESTINATION include
+  FILES_MATCHING PATTERN "*.h*"
+)
+
 enable_testing()
 include(GoogleTest)
 
