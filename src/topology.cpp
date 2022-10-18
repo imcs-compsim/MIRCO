@@ -116,15 +116,12 @@ void MIRCO::Rmg::GetSurface(Epetra_SerialDenseMatrix &z, double &zmax)
   }
 
   // Finding minimum of topology
-  double zmin = z(0, 0);
+  double zmin = std::numeric_limits<double>::max();
   for (int i = 0; i < N + 1; i++)
   {
     for (int j = 0; j < N + 1; j++)
     {
-      if (zmin > z(i, j))
-      {
-        zmin = z(i, j);
-      }
+      zmin = std::min(zmin, z(i, j));
     }
   }
   // Setting the minimum of topology to zero
@@ -137,16 +134,12 @@ void MIRCO::Rmg::GetSurface(Epetra_SerialDenseMatrix &z, double &zmax)
   }
 
   // Finding the current zmax
-  double c_zmax = z(0, 0);
-
+  double c_zmax = std::numeric_limits<double>::lowest();
   for (int i = 0; i < N + 1; i++)
   {
     for (int j = 0; j < N + 1; j++)
     {
-      if (c_zmax < z(i, j))
-      {
-        c_zmax = z(i, j);
-      }
+      c_zmax = std::max(c_zmax, z(i, j));
     }
   }
 
