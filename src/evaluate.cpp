@@ -31,9 +31,6 @@ void MIRCO::Evaluate(double &pressure, double Delta, double lato, double delta, 
   vector<double> force0;
   double w_el = 0.0;
 
-  // Initialise total force and contact area variable
-  double force = 0.0, area = 0.0;
-
   // Initialise number of iteration, k, and initial number of predicted contact
   // nodes, n0.
   int k = 0, n0 = 0;
@@ -121,8 +118,8 @@ void MIRCO::Evaluate(double &pressure, double Delta, double lato, double delta, 
   // @{
 
   // Calculate the final force and area value at the end of the iteration.
-  force = force0[k - 1];
-  area = area0[k - 1];
+  const double force = force0[k - 1];
+  const double area = area0[k - 1];
 
   // Mean pressure
   double sigmaz = force / pow(lato, 2);
