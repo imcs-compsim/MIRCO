@@ -86,6 +86,9 @@ include_directories(${MPI_INCLUDE_PATH})
 # Compile mirco itself
 add_executable(mirco src/main.cpp)
 
+# Install mirco (to be used as a library by other codes)
+install(TARGETS mirco DESTINATION lib)
+
 target_link_libraries(mirco
   PUBLIC OpenMP::OpenMP_CXX
   mirco_library
