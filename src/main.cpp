@@ -14,11 +14,7 @@ int main(int argc, char *argv[])
   // reading the input file name from the command line
   std::string inputFileName = argv[1];
 
-  auto start = std::chrono::high_resolution_clock::now();
-  time_t now = time(0);
-  tm *ltm = localtime(&now);
-  std::cout << "Time is: " << ltm->tm_hour << ":";
-  std::cout << 1 + ltm->tm_min << std::endl;
+  const auto start = std::chrono::high_resolution_clock::now();
 
   bool flagwarm;
   int resolution;
@@ -60,7 +56,8 @@ int main(int argc, char *argv[])
 
   std::cout << "Mean pressure is: " << std::to_string(pressure) << std::endl;
 
-  auto finish = std::chrono::high_resolution_clock::now();
-  double elapsedTime2 = std::chrono::duration_cast<std::chrono::seconds>(finish - start).count();
-  std::cout << "Elapsed time is: " + std::to_string(elapsedTime2) + "s." << std::endl;
+  const auto finish = std::chrono::high_resolution_clock::now();
+  const double elapsedTime =
+      std::chrono::duration_cast<std::chrono::seconds>(finish - start).count();
+  std::cout << "Elapsed time is: " + std::to_string(elapsedTime) + "s." << std::endl;
 }
