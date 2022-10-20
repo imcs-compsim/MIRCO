@@ -85,3 +85,16 @@ where `<someInputFile.xml>` is any input file in the prescribed format.
 If you are using this code, please cite the following paper:
 
 - J. Bonari, M. R. Marulli, N. Hagmeyer, M. Mayr, A. Popp, M. Paggi: **A multi-scale FEM-BEM formulation for contact mechanics between rough surfaces**, _Computational Mechanics_, 65(3):731-749, 2020, [DOI: 10.1007/s00466-019-01791-3](https://doi.org/10.1007/s00466-019-01791-3)
+
+   ```
+   @article{Bonari2020a,
+      author = {Bonari, Jacopo and Marulli, Maria Rosaria and Hagmeyer, Nora and Mayr, Matthias and Popp, Alexander and Paggi, Marco},
+      doi = {10.1007/s00466-019-01791-3},
+      issue = {3},
+      journal = {Computational Mechanics},
+      pages = {731--749},
+      title = {{A multi-scale FEM-BEM formulation for contact mechanics between rough surfaces}},
+      url = {https://doi.org/10.1007/s00466-019-01791-3},
+      volume = {65},
+      year = {2020}}
+   ```
