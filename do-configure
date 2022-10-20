@@ -11,5 +11,6 @@ echo "-- Path to build directory:" $BUILD_DIRECTORY
 
 cmake \
   -D TRILINOS_PATH:PATH="${Trilinos_DIR}" \
+  -D CMAKE_INSTALL_PREFIX:PATH="${BUILD_DIRECTORY}" \
   "${SOURCE_DIRECTORY}"
 

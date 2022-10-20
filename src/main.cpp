@@ -1,4 +1,6 @@
 #include <Teuchos_TestForException.hpp>
+#include <chrono>
+#include <iostream>
 #include <string>
 #include "evaluate.h"
 #include "setparameters.h"
@@ -12,8 +14,11 @@ int main(int argc, char *argv[])
   // reading the input file name from the command line
   std::string inputFileName = argv[1];
 
+  const auto start = std::chrono::high_resolution_clock::now();
+
   bool flagwarm;
   int resolution;
+  double zmax;
   double nu1, nu2, G1, G2, E, alpha, k_el, delta, nnodi, to1, E1, E2, lato, errf, Delta;
   bool rmg_flag;
   bool rand_seed_flag;
@@ -23,7 +28,7 @@ int main(int argc, char *argv[])
   int max_iter;
 
   MIRCO::SetParameters(E1, E2, lato, nu1, nu2, G1, G2, E, alpha, k_el, delta, nnodi, errf, to1,
-      Delta, zfilePath, resolution, inputFileName, rmg_flag, Hurst, rand_seed_flag, rmg_seed,
+      Delta, zfilePath, resolution, zmax, inputFileName, rmg_flag, Hurst, rand_seed_flag, rmg_seed,
       flagwarm, max_iter);
 
   // Identical Vectors/Matricies, therefore only created one here.
@@ -39,18 +44,20 @@ int main(int argc, char *argv[])
   std::shared_ptr<MIRCO::TopologyGeneration> surfacegenerator;
   // creating the correct surface object
   MIRCO::CreateSurfaceObject(
-      resolution, Hurst, rand_seed_flag, zfilePath, rmg_flag, rmg_seed, surfacegenerator);
+      resolution, zmax, Hurst, rand_seed_flag, zfilePath, rmg_flag, rmg_seed, surfacegenerator);
 
-  surfacegenerator->GetSurface(topology);
-
-  double zmax = 0.0;
-  double zmean = 0.0;
-
-  MIRCO::ComputeMaxAndMean(topology, zmax, zmean);
+  surfacegenerator->GetSurface(topology, zmax);
 
   // Initialise Pressure
   double pressure = 0.0;
 
   MIRCO::Evaluate(pressure, Delta, lato, delta, errf, to1, max_iter, E, flagwarm, k_el, topology,
       zmax, meshgrid);
+
+  std::cout << "Mean pressure is: " << std::to_string(pressure) << std::endl;
+
+  const auto finish = std::chrono::high_resolution_clock::now();
+  const double elapsedTime =
+      std::chrono::duration_cast<std::chrono::seconds>(finish - start).count();
+  std::cout << "Elapsed time is: " + std::to_string(elapsedTime) + "s." << std::endl;
 }

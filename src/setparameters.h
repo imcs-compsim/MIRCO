@@ -27,6 +27,7 @@ namespace MIRCO
    * @param Delta Far-field displacement (Gap).
    * @param zfilePath Path of the input file containing the topology.
    * @param resolution Resolution parameter
+   * @param user_zmax Maximum height of the topology
    * @param inputFileName The name of the input file containing all the parameters
    * @param rmg_flag Set `true` to use the Random-Midpoint Generator to generate the topology. Set
    * `false` to read topology from a file.
@@ -41,8 +42,8 @@ namespace MIRCO
   void SetParameters(double& E1, double& E2, double& lato, double& nu1, double& nu2, double& G1,
       double& G2, double& E, double& alpha, double& k_el, double& delta, double& nnodi,
       double& errf, double& tol, double& Delta, std::string& zfilePath, int& resolution,
-      const std::string& inputFileName, bool& rmg_flag, double& Hurst, bool& rand_seed_flag,
-      int& rmg_seed, bool& flagwarm, int& max_iter);
+      double& user_zmax, const std::string& inputFileName, bool& rmg_flag, double& Hurst,
+      bool& rand_seed_flag, int& rmg_seed, bool& flagwarm, int& max_iter);
 }  // namespace MIRCO
 
 #endif  // SRC_SETPARAMETERS_H_

@@ -30,7 +30,8 @@ namespace MIRCO
    * The aim of this this function is to create a surface object of correct object class depending
    * on the rmg_flag.
    *
-   * @param resolution
+   * @param resolution Resolution parameter
+   * @param user_zmax Maximum height of the topology
    * @param Hurst Hurst Exponent (Used in random mid-point generator)
    * @param rand_seed_flag Set `true` to fix the seed to generate psuedo random topology to
    * reproduce results. Set `false` to use random seed.
@@ -41,8 +42,9 @@ namespace MIRCO
    * @param rmg_seed Seed for the random mid-point generator
    * @param surfacegenerator Surface object
    */
-  void CreateSurfaceObject(int resolution, double Hurst, bool rand_seed_flag, std::string zfilePath,
-      bool rmg_flag, int rmg_seed, std::shared_ptr<TopologyGeneration>& surfacegenerator);
+  void CreateSurfaceObject(int resolution, double& user_zmax, double Hurst, bool rand_seed_flag,
+      std::string zfilePath, bool rmg_flag, int rmg_seed,
+      std::shared_ptr<TopologyGeneration>& surfacegenerator);
 
   /**
    * @brief Compute the maximum height (zmax) and the mean height (zmean) of the topology.

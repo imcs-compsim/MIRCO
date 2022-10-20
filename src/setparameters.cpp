@@ -12,8 +12,8 @@
 void MIRCO::SetParameters(double& E1, double& E2, double& lato, double& nu1, double& nu2,
     double& G1, double& G2, double& E, double& alpha, double& k_el, double& delta, double& nnodi,
     double& errf, double& tol, double& Delta, std::string& zfilePath, int& resolution,
-    const std::string& inputFileName, bool& rmg_flag, double& Hurst, bool& rand_seed_flag,
-    int& rmg_seed, bool& flagwarm, int& max_iter)
+    double& user_zmax, const std::string& inputFileName, bool& rmg_flag, double& Hurst,
+    bool& rand_seed_flag, int& rmg_seed, bool& flagwarm, int& max_iter)
 {
   Teuchos::RCP<Teuchos::ParameterList> parameterList = Teuchos::rcp(new Teuchos::ParameterList());
   Teuchos::updateParametersFromXmlFile(inputFileName, parameterList.ptr());
@@ -53,6 +53,7 @@ void MIRCO::SetParameters(double& E1, double& E2, double& lato, double& nu1, dou
       parameterList->sublist("parameters").sublist("geometrical_parameters");
 
   resolution = geoParams.get<int>("n");
+  user_zmax = geoParams.get<double>("zmax");
   Hurst = geoParams.get<double>("H");
   lato = geoParams.get<double>("lato");
   errf = geoParams.get<double>("errf");

@@ -9,8 +9,9 @@
 using namespace std;
 
 #include "topology.h"
+#include "topologyutilities.h"
 
-void MIRCO::ReadFile::GetSurface(Epetra_SerialDenseMatrix &z)
+void MIRCO::ReadFile::GetSurface(Epetra_SerialDenseMatrix &z, double &zmax)
 {
   ifstream reader(filepath);
   string blaLine;
@@ -40,9 +41,12 @@ void MIRCO::ReadFile::GetSurface(Epetra_SerialDenseMatrix &z)
     }
   }
   stream.close();
+  zmax = 0.0;
+  double zmean = 0.0;
+  MIRCO::ComputeMaxAndMean(z, zmax, zmean);
 }
 
-void MIRCO::Rmg::GetSurface(Epetra_SerialDenseMatrix &z)
+void MIRCO::Rmg::GetSurface(Epetra_SerialDenseMatrix &z, double &zmax)
 {
   srand(time(NULL));
 
@@ -111,43 +115,16 @@ void MIRCO::Rmg::GetSurface(Epetra_SerialDenseMatrix &z)
     d = d / 2;
   }
 
-  double zref = 50;
-  double zmax = z(0, 0);
-
-  double zmean;
-  double sum = 0;
-
+  // Finding minimum of topology
+  double zmin = std::numeric_limits<double>::max();
   for (int i = 0; i < N + 1; i++)
   {
     for (int j = 0; j < N + 1; j++)
     {
-      if (zmax < z(i, j))
-      {
-        zmax = z(i, j);
-      }
-      sum = sum + z(i, j);
+      zmin = std::min(zmin, z(i, j));
     }
   }
-  zmean = sum / (pow((N + 1), 2));
-  double scalefactor = zref / (zmax - zmean);
-  for (int i = 0; i < N + 1; i++)
-  {
-    for (int j = 0; j < N + 1; j++)
-    {
-      z(i, j) = scalefactor * z(i, j);
-    }
-  }
-  double zmin = z(0, 0);
-  for (int i = 0; i < N + 1; i++)
-  {
-    for (int j = 0; j < N + 1; j++)
-    {
-      if (zmin > z(i, j))
-      {
-        zmin = z(i, j);
-      }
-    }
-  }
+  // Setting the minimum of topology to zero
   for (int i = 0; i < N + 1; i++)
   {
     for (int j = 0; j < N + 1; j++)
@@ -155,4 +132,24 @@ void MIRCO::Rmg::GetSurface(Epetra_SerialDenseMatrix &z)
       z(i, j) = z(i, j) - zmin;
     }
   }
+
+  // Finding the current zmax
+  double c_zmax = std::numeric_limits<double>::lowest();
+  for (int i = 0; i < N + 1; i++)
+  {
+    for (int j = 0; j < N + 1; j++)
+    {
+      c_zmax = std::max(c_zmax, z(i, j));
+    }
+  }
+
+  // Scaling the topology with the max topology height provided by the user
+  for (int i = 0; i < N + 1; i++)
+  {
+    for (int j = 0; j < N + 1; j++)
+    {
+      z(i, j) = z(i, j) * user_zmax / c_zmax;
+    }
+  }
+  zmax = user_zmax;
 }
