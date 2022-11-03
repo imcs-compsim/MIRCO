@@ -34,7 +34,8 @@ void MIRCO::ComputeContactNodes(std::vector<double> &xvf, std::vector<double> &y
 }
 
 void MIRCO::ComputeContactForceAndArea(std::vector<double> &force0, std::vector<double> &area0,
-    double &w_el, int nf, std::vector<double> pf, int k, double delta, double lato, double k_el)
+    double &w_el, int nf, std::vector<double> pf, int k, double GridSize, double LateralLength,
+    double ElasticComplianceCorrection)
 {
   force0.push_back(0);
   double sum = 0;
@@ -44,6 +45,6 @@ void MIRCO::ComputeContactForceAndArea(std::vector<double> &force0, std::vector<
     sum += pf[i];
   }
   force0[k] += sum;
-  area0.push_back(nf * (pow(delta, 2) / pow(lato, 2)) * 100);
-  w_el = force0[k] / k_el;
+  area0.push_back(nf * (pow(GridSize, 2) / pow(LateralLength, 2)) * 100);
+  w_el = force0[k] / ElasticComplianceCorrection;
 }

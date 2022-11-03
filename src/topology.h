@@ -27,7 +27,7 @@ namespace MIRCO
   class ReadFile : public TopologyGeneration
   {
    public:
-    std::string filepath;
+    std::string TopologyFilePath;
     void GetSurface(Epetra_SerialDenseMatrix &z, double &zmax) override;
     /**
      * @brief Construct a Surface object by reading topology from an input file.
@@ -36,7 +36,10 @@ namespace MIRCO
      * @param ffilepath Path of the input file containing the topology relative to the build
      * directory.
      */
-    ReadFile(int nn, std::string ffilepath) : TopologyGeneration(nn) { filepath = ffilepath; }
+    ReadFile(int nn, std::string ffilepath) : TopologyGeneration(nn)
+    {
+      TopologyFilePath = ffilepath;
+    }
   };
 
   class Rmg : public TopologyGeneration
@@ -44,14 +47,14 @@ namespace MIRCO
    public:
     double user_zmax;
     double Hurst;
-    bool rand_seed_flag;
-    int rmg_seed;
+    bool RandomSeedFlag;
+    int RandomGeneratorSeed;
     void GetSurface(Epetra_SerialDenseMatrix &z, double &zmax) override;
     /**
      * @brief Construct a Surface object using Random Midpoint Generator
      *
      * @param nn Resolution parameter
-     * @param u_max Maximum height of the topology
+     * @param u_zmax Maximum height of the topology
      * @param HH Hurst exponent
      * @param rsf Random Seed Flag
      * @param rmgs eed for the random mid-point generator
@@ -60,8 +63,8 @@ namespace MIRCO
     {
       user_zmax = u_zmax;
       Hurst = HH;
-      rand_seed_flag = rsf;
-      rmg_seed = rmgs;
+      RandomSeedFlag = rsf;
+      RandomGeneratorSeed = rmgs;
     }
   };
 }  // namespace MIRCO

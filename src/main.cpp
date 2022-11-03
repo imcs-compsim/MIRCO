@@ -7,7 +7,7 @@
 #include "topology.h"
 #include "topologyutilities.h"
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
   TEUCHOS_TEST_FOR_EXCEPTION(
       argc != 2, std::invalid_argument, "The code expects (only) an input file as argument");
@@ -16,43 +16,46 @@ int main(int argc, char *argv[])
 
   const auto start = std::chrono::high_resolution_clock::now();
 
-  bool flagwarm;
-  int resolution;
-  double zmax;
-  double nu1, nu2, G1, G2, E, alpha, k_el, delta, nnodi, to1, E1, E2, lato, errf, Delta;
-  bool rmg_flag;
-  bool rand_seed_flag;
+  bool WarmStartingFlag;
+  int Resolution;
+  double MaxTopologyHeight;
+  double nu1, nu2, G1, G2, CompositeYoungs, alpha, ElasticComplianceCorrection, GridSize, Tolerance,
+      E1, E2, LateralLength, Delta;
+  bool RandomTopologyFlag;
+  bool RandomSeedFlag;
   double Hurst;
-  std::string zfilePath;
-  int rmg_seed;
-  int max_iter;
+  std::string TopologyFilePath;
+  int RandomGeneratorSeed;
+  int MaxIteration;
 
-  MIRCO::SetParameters(E1, E2, lato, nu1, nu2, G1, G2, E, alpha, k_el, delta, nnodi, errf, to1,
-      Delta, zfilePath, resolution, zmax, inputFileName, rmg_flag, Hurst, rand_seed_flag, rmg_seed,
-      flagwarm, max_iter);
+  MIRCO::SetParameters(E1, E2, LateralLength, nu1, nu2, G1, G2, CompositeYoungs, alpha,
+      ElasticComplianceCorrection, GridSize, Tolerance, Delta, TopologyFilePath, Resolution,
+      MaxTopologyHeight, inputFileName, RandomTopologyFlag, Hurst, RandomSeedFlag,
+      RandomGeneratorSeed, WarmStartingFlag, MaxIteration);
 
   // Identical Vectors/Matricies, therefore only created one here.
-  int ngrid = int(ceil((lato - (delta / 2)) / delta));
+  int ngrid = int(ceil((LateralLength - (GridSize / 2)) / GridSize));
   std::vector<double> meshgrid(ngrid);
-  MIRCO::CreateMeshgrid(meshgrid, ngrid, delta);
+  MIRCO::CreateMeshgrid(meshgrid, ngrid, GridSize);
 
   // Setup Topology
   Epetra_SerialDenseMatrix topology;
-  int N = pow(2, resolution);
+  int N = pow(2, Resolution);
   topology.Shape(N + 1, N + 1);
 
   std::shared_ptr<MIRCO::TopologyGeneration> surfacegenerator;
   // creating the correct surface object
-  MIRCO::CreateSurfaceObject(
-      resolution, zmax, Hurst, rand_seed_flag, zfilePath, rmg_flag, rmg_seed, surfacegenerator);
+  MIRCO::CreateSurfaceObject(Resolution, MaxTopologyHeight, Hurst, RandomSeedFlag, TopologyFilePath,
+      RandomTopologyFlag, RandomGeneratorSeed, surfacegenerator);
 
-  surfacegenerator->GetSurface(topology, zmax);
+  surfacegenerator->GetSurface(topology, MaxTopologyHeight);
 
   // Initialise Pressure
   double pressure = 0.0;
 
-  MIRCO::Evaluate(pressure, Delta, lato, delta, errf, to1, max_iter, E, flagwarm, k_el, topology,
-      zmax, meshgrid);
+  MIRCO::Evaluate(pressure, Delta, LateralLength, GridSize, Tolerance, MaxIteration,
+      CompositeYoungs, WarmStartingFlag, ElasticComplianceCorrection, topology, MaxTopologyHeight,
+      meshgrid);
 
   std::cout << "Mean pressure is: " << std::to_string(pressure) << std::endl;
 

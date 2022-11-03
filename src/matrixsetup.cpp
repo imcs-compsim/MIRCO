@@ -4,10 +4,10 @@
 #include "matrixsetup.h"
 
 void MIRCO::MatrixGeneration::SetUpMatrix(Epetra_SerialDenseMatrix& A, std::vector<double> xv0,
-    std::vector<double> yv0, double delta, double E, int systemsize)
+    std::vector<double> yv0, double GridSize, double CompositeYoungs, int systemsize)
 {
-  double r, pi = atan(1) * 4, raggio = delta / 2;
-  double C = 1 / (E * pi * raggio);
+  double r, pi = atan(1) * 4, raggio = GridSize / 2;
+  double C = 1 / (CompositeYoungs * pi * raggio);
 
 #pragma omp parallel for schedule(static, 16)  // Always same workload -> static
   for (int i = 0; i < systemsize; i++)

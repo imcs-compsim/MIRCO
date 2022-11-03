@@ -23,14 +23,14 @@ namespace MIRCO
    */
   void ContactSetPredictor(int &n0, std::vector<double> &xv0, std::vector<double> &yv0,
       std::vector<double> &b0, double zmax, double Delta, double w_el, std::vector<double> meshgrid,
-      Epetra_SerialDenseMatrix topology);
+      Epetra_SerialDenseMatrix &topology);
 
   /**
    * @brief The aim of this function is to guess the set of nodes in contact among the nodes
    * predicted in the ContactSetPredictor function. It uses Warmstart to make an initial guess of
    * the nodes incontact in this iteration based on the previous iteration.
    *
-   * @param flagwarm Warm-Starter flag
+   * @param WarmStartingFlag Warm-Starter flag
    * @param k Iteration number
    * @param n0 Number of nodes predicted to be in contact
    * @param nf Number of nodes in contact in the previous iteration
@@ -43,7 +43,7 @@ namespace MIRCO
    * @param xvf x-coordinates of the points in contact in the previous iteration.
    * @param yvf y-coordinates of the points in contact in the previous iteration.
    */
-  void InitialGuessPredictor(bool flagwarm, int k, int n0, int nf, std::vector<double> xv0,
+  void InitialGuessPredictor(bool WarmStartingFlag, int k, int n0, int nf, std::vector<double> xv0,
       std::vector<double> yv0, std::vector<double> pf, Epetra_SerialDenseMatrix &x0,
       std::vector<double> &b0, std::vector<double> xvf, std::vector<double> yvf);
 }  // namespace MIRCO

@@ -19,9 +19,10 @@ using namespace std;
 #include "nonlinearsolver.h"
 
 
-void MIRCO::Evaluate(double &pressure, double Delta, double lato, double delta, double errf,
-    double to1, int max_iter, double E, bool flagwarm, double k_el,
-    Epetra_SerialDenseMatrix topology, double zmax, std::vector<double> meshgrid)
+void MIRCO::Evaluate(double& pressure, double Delta, double LateralLength, double GridSize,
+    double Tolerance, int MaxIteration, double CompositeYoungs, bool WarmStartingFlag,
+    double ElasticComplianceCorrection, Epetra_SerialDenseMatrix& topology, double zmax,
+    std::vector<double> meshgrid)
 {
   omp_set_num_threads(6);  // 6 seems to be optimal
 
@@ -57,7 +58,8 @@ void MIRCO::Evaluate(double &pressure, double Delta, double lato, double delta, 
   // Solution containing force
   Epetra_SerialDenseMatrix y;
 
-  while (errf > to1 && k < max_iter)
+  double errf = std::numeric_limits<double>::max();
+  while (errf > Tolerance && k < MaxIteration)
   {
     // First predictor for contact set
     // @{
@@ -67,11 +69,11 @@ void MIRCO::Evaluate(double &pressure, double Delta, double lato, double delta, 
 
     // Construction of the Matrix A
     MIRCO::MatrixGeneration matrix1;
-    matrix1.SetUpMatrix(A, xv0, yv0, delta, E, n0);
+    matrix1.SetUpMatrix(A, xv0, yv0, GridSize, CompositeYoungs, n0);
 
     // Second predictor for contact set
     // @{
-    MIRCO::InitialGuessPredictor(flagwarm, k, n0, nf, xv0, yv0, pf, x0, b0, xvf, yvf);
+    MIRCO::InitialGuessPredictor(WarmStartingFlag, k, n0, nf, xv0, yv0, pf, x0, b0, xvf, yvf);
     // }
 
     // {
@@ -100,7 +102,8 @@ void MIRCO::Evaluate(double &pressure, double Delta, double lato, double delta, 
 
     // Compute contact force and contact area
     // @{
-    MIRCO::ComputeContactForceAndArea(force0, area0, w_el, nf, pf, k, delta, lato, k_el);
+    MIRCO::ComputeContactForceAndArea(
+        force0, area0, w_el, nf, pf, k, GridSize, LateralLength, ElasticComplianceCorrection);
     // }
 
     // Compute error due to nonlinear correction
@@ -113,7 +116,7 @@ void MIRCO::Evaluate(double &pressure, double Delta, double lato, double delta, 
     // }
   }
 
-  TEUCHOS_TEST_FOR_EXCEPTION(errf > to1, std::out_of_range,
+  TEUCHOS_TEST_FOR_EXCEPTION(errf > Tolerance, std::out_of_range,
       "The solution did not converge in the maximum number of iternations defined");
   // @{
 
@@ -122,6 +125,6 @@ void MIRCO::Evaluate(double &pressure, double Delta, double lato, double delta, 
   const double area = area0[k - 1];
 
   // Mean pressure
-  double sigmaz = force / pow(lato, 2);
+  double sigmaz = force / pow(LateralLength, 2);
   pressure = sigmaz;
 }

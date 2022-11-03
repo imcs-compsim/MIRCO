@@ -9,25 +9,26 @@
 #include "filesystem_utils.h"
 #include "setparameters.h"
 
-void MIRCO::SetParameters(double& E1, double& E2, double& lato, double& nu1, double& nu2,
-    double& G1, double& G2, double& E, double& alpha, double& k_el, double& delta, double& nnodi,
-    double& errf, double& tol, double& Delta, std::string& zfilePath, int& resolution,
-    double& user_zmax, const std::string& inputFileName, bool& rmg_flag, double& Hurst,
-    bool& rand_seed_flag, int& rmg_seed, bool& flagwarm, int& max_iter)
+void MIRCO::SetParameters(double& E1, double& E2, double& LateralLength, double& nu1, double& nu2,
+    double& G1, double& G2, double& CompositeYoungs, double& alpha,
+    double& ElasticComplianceCorrection, double& GridSize, double& Tolerance, double& Delta,
+    std::string& TopologyFilePath, int& Resolution, double& MaxTopologyHeight,
+    const std::string& inputFileName, bool& RandomTopologyFlag, double& Hurst, bool& RandomSeedFlag,
+    int& RandomGeneratorSeed, bool& WarmStartingFlag, int& MaxIteration)
 {
   Teuchos::RCP<Teuchos::ParameterList> parameterList = Teuchos::rcp(new Teuchos::ParameterList());
   Teuchos::updateParametersFromXmlFile(inputFileName, parameterList.ptr());
 
   // Setting up the simulation specific parameters.
-  flagwarm = parameterList->get<bool>("flagwarm");
-  rmg_flag = parameterList->get<bool>("rmg_flag");
-  rand_seed_flag = parameterList->get<bool>("rand_seed_flag");
-  rmg_seed = parameterList->get<int>("rmg_seed");
-  zfilePath = parameterList->get<std::string>("z_file_path");
-  max_iter = parameterList->get<int>("max_iter");
+  WarmStartingFlag = parameterList->get<bool>("WarmStartingFlag");
+  RandomTopologyFlag = parameterList->get<bool>("RandomTopologyFlag");
+  RandomSeedFlag = parameterList->get<bool>("RandomSeedFlag");
+  RandomGeneratorSeed = parameterList->get<int>("RandomGeneratorSeed");
+  TopologyFilePath = parameterList->get<std::string>("TopologyFilePath");
+  MaxIteration = parameterList->get<int>("MaxIteration");
 
   // following function generates the actual path of the topology file.
-  UTILS::ChangeRelativePath(zfilePath, inputFileName);
+  UTILS::ChangeRelativePath(TopologyFilePath, inputFileName);
 
   // Setting up the material parameters.
   Teuchos::ParameterList& matParams =
@@ -41,7 +42,7 @@ void MIRCO::SetParameters(double& E1, double& E2, double& lato, double& nu1, dou
   G2 = E2 / (2 * (1 + nu2));
 
   // Composite Young's modulus.
-  E = pow(((1 - pow(nu1, 2)) / E1 + (1 - pow(nu2, 2)) / E2), -1);
+  CompositeYoungs = pow(((1 - pow(nu1, 2)) / E1 + (1 - pow(nu2, 2)) / E2), -1);
 
   // Correction factor vector
   std::vector<double> alpha_con{0.778958541513360, 0.805513388666376, 0.826126871395416,
@@ -52,15 +53,13 @@ void MIRCO::SetParameters(double& E1, double& E2, double& lato, double& nu1, dou
   Teuchos::ParameterList& geoParams =
       parameterList->sublist("parameters").sublist("geometrical_parameters");
 
-  resolution = geoParams.get<int>("n");
-  user_zmax = geoParams.get<double>("zmax");
-  Hurst = geoParams.get<double>("H");
-  lato = geoParams.get<double>("lato");
-  errf = geoParams.get<double>("errf");
-  tol = geoParams.get<double>("tol");
+  Resolution = geoParams.get<int>("Resolution");
+  MaxTopologyHeight = geoParams.get<double>("MaxTopologyHeight");
+  Hurst = geoParams.get<double>("HurstExponent");
+  LateralLength = geoParams.get<double>("LateralLength");
+  Tolerance = geoParams.get<double>("Tolerance");
   Delta = geoParams.get<double>("Delta");
-  alpha = alpha_con[resolution - 1];
-  k_el = lato * E / alpha;
-  delta = lato / (pow(2, resolution) + 1);
-  nnodi = pow(pow(2, resolution + 1), 2);
+  alpha = alpha_con[Resolution - 1];
+  ElasticComplianceCorrection = LateralLength * CompositeYoungs / alpha;
+  GridSize = LateralLength / (pow(2, Resolution) + 1);
 }

@@ -1,10 +1,10 @@
 <ParameterList>
-  <Parameter name="flagwarm" type="bool" value="true"/>
-  <Parameter name="rmg_flag" type="bool" value="true"/>
-  <Parameter name="rand_seed_flag" type="bool" value="false"/>
-  <Parameter name="rmg_seed" type="int" value="95"/>
-  <Parameter name="z_file_path" type="string" value="sup2.dat"/>
-  <Parameter name="max_iter" type="int" value="100"/>
+  <Parameter name="WarmStartingFlag" type="bool" value="true"/>
+  <Parameter name="RandomTopologyFlag" type="bool" value="true"/>
+  <Parameter name="RandomSeedFlag" type="bool" value="false"/>
+  <Parameter name="RandomGeneratorSeed" type="int" value="95"/>
+  <Parameter name="TopologyFilePath" type="string" value="sup2.dat"/>
+  <Parameter name="MaxIteration" type="int" value="100"/>
 
   <ParameterList name="parameters">
     <ParameterList name="material_parameters">
@@ -15,13 +15,12 @@
     </ParameterList>
 
     <ParameterList name="geometrical_parameters">
-      <Parameter name="lato" type="double" value="1000.0"/>
-      <Parameter name="n" type="int" value="6"/>
-      <Parameter name="H" type="double" value="0.7"/>
-      <Parameter name="zmax" type="double" value="50.0"/>
+      <Parameter name="LateralLength" type="double" value="1000.0"/>
+      <Parameter name="Resolution" type="int" value="6"/>
+      <Parameter name="HurstExponent" type="double" value="0.7"/>
+      <Parameter name="MaxTopologyHeight" type="double" value="50.0"/>
       <Parameter name="Delta" type="double" value="25.0"/>
-      <Parameter name="errf" type="double" value="100000000.0"/>
-      <Parameter name="tol" type="double" value="0.01"/>
+      <Parameter name="Tolerance" type="double" value="0.01"/>
     </ParameterList>
 
   </ParameterList>

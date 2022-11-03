@@ -17,9 +17,9 @@ namespace MIRCO
    *
    * @param meshgrid Meshgrid vector
    * @param ngrid Number of grid points in one direction
-   * @param delta Grid size
+   * @param GridSize Grid size
    */
-  void CreateMeshgrid(std::vector<double>& meshgrid, int ngrid, double delta);
+  void CreateMeshgrid(std::vector<double>& meshgrid, int ngrid, double GridSize);
 
   // forward declaration
   class TopologyGeneration;
@@ -28,23 +28,23 @@ namespace MIRCO
    * @brief Create a Surface Object
    *
    * The aim of this this function is to create a surface object of correct object class depending
-   * on the rmg_flag.
+   * on the RandomTopologyFlag.
    *
-   * @param resolution Resolution parameter
-   * @param user_zmax Maximum height of the topology
+   * @param Resolution Resolution parameter
+   * @param MaxTopologyHeight Maximum height of the topology
    * @param Hurst Hurst Exponent (Used in random mid-point generator)
-   * @param rand_seed_flag Set `true` to fix the seed to generate psuedo random topology to
+   * @param RandomSeedFlag Set `true` to fix the seed to generate psuedo random topology to
    * reproduce results. Set `false` to use random seed.
-   * @param zfilePath Path of the input file containing the topology relative to the build
+   * @param TopologyFilePath Path of the input file containing the topology relative to the build
    * directory.
-   * @param rmg_flag Set `true` to use the Random-Midpoint Generator to generate the topology. Set
-   * `false` to read topology from a file.
-   * @param rmg_seed Seed for the random mid-point generator
+   * @param RandomTopologyFlag Set `true` to use the Random-Midpoint Generator to generate the
+   * topology. Set `false` to read topology from a file.
+   * @param RandomGeneratorSeed Seed for the random mid-point generator
    * @param surfacegenerator Surface object
    */
-  void CreateSurfaceObject(int resolution, double& user_zmax, double Hurst, bool rand_seed_flag,
-      std::string zfilePath, bool rmg_flag, int rmg_seed,
-      std::shared_ptr<TopologyGeneration>& surfacegenerator);
+  void CreateSurfaceObject(int Resolution, double& MaxTopologyHeight, double Hurst,
+      bool RandomSeedFlag, std::string TopologyFilePath, bool RandomTopologyFlag,
+      int RandomGeneratorSeed, std::shared_ptr<TopologyGeneration>& surfacegenerator);
 
   /**
    * @brief Compute the maximum height (zmax) and the mean height (zmean) of the topology.

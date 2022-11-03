@@ -13,7 +13,7 @@ using namespace std;
 
 void MIRCO::ReadFile::GetSurface(Epetra_SerialDenseMatrix &z, double &zmax)
 {
-  ifstream reader(filepath);
+  ifstream reader(TopologyFilePath);
   string blaLine;
   int dimension = 0;
   while (getline(reader, blaLine))
@@ -23,7 +23,7 @@ void MIRCO::ReadFile::GetSurface(Epetra_SerialDenseMatrix &z, double &zmax)
   reader.close();
   z.Shape(dimension, dimension);
   int position = 0, separatorPosition, lineCounter = 0;
-  ifstream stream(filepath);
+  ifstream stream(TopologyFilePath);
   string line, container;
   double value;
   while (getline(stream, line))
@@ -52,13 +52,13 @@ void MIRCO::Rmg::GetSurface(Epetra_SerialDenseMatrix &z, double &zmax)
 
   int seed;
 
-  if (rand_seed_flag)
+  if (RandomSeedFlag)
   {
     seed = rand();
   }
   else
   {
-    seed = rmg_seed;  // seed can be fixed to reproduce result
+    seed = RandomGeneratorSeed;  // seed can be fixed to reproduce result
   }
   std::default_random_engine generate(seed);
   std::normal_distribution<double> distribution(
