@@ -1,10 +1,8 @@
+#include "mirco_nonlinearsolver.h"
 #include <Epetra_SerialSpdDenseSolver.h>
 #include <Epetra_SerialSymDenseMatrix.h>
 #include <vector>
 #include "mirco_linearsolver.h"
-#include "mirco_nonlinearsolver.h"
-
-using namespace std;
 
 void MIRCO::NonLinearSolver::NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
     Epetra_SerialDenseMatrix& b0, Epetra_SerialDenseMatrix& y0, Epetra_SerialDenseMatrix& w,
@@ -20,12 +18,12 @@ void MIRCO::NonLinearSolver::NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
   int n0 = b0.M();
   y.Shape(n0, 1);
   Epetra_SerialDenseMatrix s0;
-  vector<int> P(n0);
+  std::vector<int> P(n0);
   Epetra_SerialDenseMatrix vector_x, vector_b;
   Epetra_SerialSymDenseMatrix solverMatrix;
 
   // Initialize active set
-  vector<int> positions;
+  std::vector<int> positions;
   for (int i = 0; i < y0.M(); i++)
   {
     if (y0(i, 0) >= nnlstol)
@@ -63,8 +61,8 @@ void MIRCO::NonLinearSolver::NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
   bool aux1 = true, aux2 = true;
 
   // New searching algorithm
-  vector<double> values, newValues;
-  vector<int> poss, newPositions;
+  std::vector<double> values, newValues;
+  std::vector<int> poss, newPositions;
   double minValue = w(0, 0);
   int minPosition = 0;
 

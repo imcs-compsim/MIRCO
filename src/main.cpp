@@ -7,8 +7,6 @@
 #include "mirco_topology.h"
 #include "mirco_topologyutilities.h"
 
-
-
 int main(int argc, char* argv[])
 {
   TEUCHOS_TEST_FOR_EXCEPTION(
@@ -18,17 +16,18 @@ int main(int argc, char* argv[])
 
   const auto start = std::chrono::high_resolution_clock::now();
 
-  bool WarmStartingFlag;
-  int Resolution;
-  double MaxTopologyHeight;
-  double nu1, nu2, CompositeYoungs, alpha, ElasticComplianceCorrection, GridSize, Tolerance, E1, E2,
-      LateralLength, Delta;
-  bool RandomTopologyFlag;
-  bool RandomSeedFlag;
-  double Hurst;
-  std::string TopologyFilePath;
-  int RandomGeneratorSeed;
-  int MaxIteration;
+  bool WarmStartingFlag = false;
+  int Resolution = 0;
+  double MaxTopologyHeight = 0.0;
+  double nu1 = 0.0, nu2 = 0.0, CompositeYoungs = 0.0, alpha = 0.0,
+         ElasticComplianceCorrection = 0.0, GridSize = 0.0, Tolerance = 0.0, E1 = 0.0, E2 = 0.0,
+         LateralLength = 0.0, Delta = 0.0;
+  bool RandomTopologyFlag = false;
+  bool RandomSeedFlag = false;
+  double Hurst = 0.0;
+  std::string TopologyFilePath = "";
+  int RandomGeneratorSeed = 0;
+  int MaxIteration = 0;
 
   MIRCO::SetParameters(E1, E2, LateralLength, nu1, nu2, CompositeYoungs, alpha,
       ElasticComplianceCorrection, GridSize, Tolerance, Delta, TopologyFilePath, Resolution,

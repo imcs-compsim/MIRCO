@@ -1,8 +1,6 @@
+#include "mirco_warmstart.h"
 #include <Epetra_SerialSymDenseMatrix.h>
 #include <vector>
-#include "mirco_warmstart.h"
-
-using namespace std;
 
 void MIRCO::Warmstart(Epetra_SerialDenseMatrix& x0, Epetra_SerialDenseMatrix xv0,
     Epetra_SerialDenseMatrix yv0, Epetra_SerialDenseMatrix& xvf, Epetra_SerialDenseMatrix& yvf,

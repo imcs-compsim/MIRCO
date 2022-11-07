@@ -1,3 +1,4 @@
+#include "mirco_topology.h"
 #include <Epetra_SerialDenseMatrix.h>
 #include <cmath>
 #include <ctime>
@@ -6,15 +7,12 @@
 #include <random>
 #include <string>
 #include <vector>
-using namespace std;
-
-#include "mirco_topology.h"
 #include "mirco_topologyutilities.h"
 
 void MIRCO::ReadFile::GetSurface(Epetra_SerialDenseMatrix &z, double &zmax)
 {
-  ifstream reader(TopologyFilePath);
-  string blaLine;
+  std::ifstream reader(TopologyFilePath);
+  std::string blaLine;
   int dimension = 0;
   while (getline(reader, blaLine))
   {
@@ -23,8 +21,8 @@ void MIRCO::ReadFile::GetSurface(Epetra_SerialDenseMatrix &z, double &zmax)
   reader.close();
   z.Shape(dimension, dimension);
   int position = 0, separatorPosition, lineCounter = 0;
-  ifstream stream(TopologyFilePath);
-  string line, container;
+  std::ifstream stream(TopologyFilePath);
+  std::string line, container;
   double value;
   while (getline(stream, line))
   {

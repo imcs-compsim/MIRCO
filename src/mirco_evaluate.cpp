@@ -1,3 +1,4 @@
+#include "mirco_evaluate.h"
 #include <Epetra_SerialSpdDenseSolver.h>
 #include <Epetra_SerialSymDenseMatrix.h>
 #include <omp.h>
@@ -11,10 +12,8 @@
 #include <memory>
 #include <string>
 #include <vector>
-using namespace std;
 #include "mirco_contactpredictors.h"
 #include "mirco_contactstatus.h"
-#include "mirco_evaluate.h"
 #include "mirco_matrixsetup.h"
 #include "mirco_nonlinearsolver.h"
 
@@ -28,8 +27,8 @@ void MIRCO::Evaluate(double& pressure, double Delta, double LateralLength, doubl
 
   // Initialise the area vector and force vector. Each element containing the
   // area and force calculated at every iteration.
-  vector<double> area0;
-  vector<double> force0;
+  std::vector<double> area0;
+  std::vector<double> force0;
   double w_el = 0.0;
 
   // Initialise number of iteration, k, and initial number of predicted contact
