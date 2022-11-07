@@ -2,6 +2,7 @@
 #define SRC_TOPOLOGYUTILITIES_H_
 
 #include <Epetra_SerialSymDenseMatrix.h>
+#include <Teuchos_RCP.hpp>
 #include <cmath>
 #include <memory>
 #include <string>
@@ -44,7 +45,7 @@ namespace MIRCO
    */
   void CreateSurfaceObject(int Resolution, double& MaxTopologyHeight, double Hurst,
       bool RandomSeedFlag, std::string TopologyFilePath, bool RandomTopologyFlag,
-      int RandomGeneratorSeed, std::shared_ptr<TopologyGeneration>& surfacegenerator);
+      int RandomGeneratorSeed, Teuchos::RCP<TopologyGeneration>& surfacegenerator);
 
   /**
    * @brief Compute the maximum height (zmax) and the mean height (zmean) of the topology.

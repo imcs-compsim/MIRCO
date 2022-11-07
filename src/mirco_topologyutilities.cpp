@@ -1,10 +1,10 @@
+#include "mirco_topologyutilities.h"
 #include <Epetra_SerialSymDenseMatrix.h>
 #include <cmath>
 #include <memory>
 #include <string>
 #include <vector>
 #include "mirco_topology.h"
-#include "mirco_topologyutilities.h"
 
 void MIRCO::CreateMeshgrid(std::vector<double>& meshgrid, int ngrid, double GridSize)
 {
@@ -17,17 +17,16 @@ void MIRCO::CreateMeshgrid(std::vector<double>& meshgrid, int ngrid, double Grid
 
 void MIRCO::CreateSurfaceObject(int Resolution, double& MaxTopologyHeight, double Hurst,
     bool RandomSeedFlag, std::string TopologyFilePath, bool RandomTopologyFlag,
-    int RandomGeneratorSeed, std::shared_ptr<MIRCO::TopologyGeneration>& surfacegenerator)
+    int RandomGeneratorSeed, Teuchos::RCP<MIRCO::TopologyGeneration>& surfacegenerator)
 {
   if (RandomTopologyFlag)
   {
-    surfacegenerator = std::shared_ptr<MIRCO::Rmg>(
+    surfacegenerator = Teuchos::rcp(
         new MIRCO::Rmg(Resolution, MaxTopologyHeight, Hurst, RandomSeedFlag, RandomGeneratorSeed));
   }
   else
   {
-    surfacegenerator =
-        std::shared_ptr<MIRCO::ReadFile>(new MIRCO::ReadFile(Resolution, TopologyFilePath));
+    surfacegenerator = Teuchos::rcp(new MIRCO::ReadFile(Resolution, TopologyFilePath));
   }
 }
 

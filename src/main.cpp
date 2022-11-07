@@ -45,7 +45,7 @@ int main(int argc, char* argv[])
   int N = pow(2, Resolution);
   topology.Shape(N + 1, N + 1);
 
-  std::shared_ptr<MIRCO::TopologyGeneration> surfacegenerator;
+  Teuchos::RCP<MIRCO::TopologyGeneration> surfacegenerator;
   // creating the correct surface object
   MIRCO::CreateSurfaceObject(Resolution, MaxTopologyHeight, Hurst, RandomSeedFlag, TopologyFilePath,
       RandomTopologyFlag, RandomGeneratorSeed, surfacegenerator);
