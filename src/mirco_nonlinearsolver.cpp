@@ -1,8 +1,8 @@
-#include "nonlinearsolver.h"
 #include <Epetra_SerialSpdDenseSolver.h>
 #include <Epetra_SerialSymDenseMatrix.h>
 #include <vector>
-#include "linearsolver.h"
+#include "mirco_linearsolver.h"
+#include "mirco_nonlinearsolver.h"
 
 using namespace std;
 

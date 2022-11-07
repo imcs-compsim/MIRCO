@@ -1,7 +1,7 @@
 #include <Epetra_SerialSymDenseMatrix.h>
 #include <vector>
 
-#include "matrixsetup.h"
+#include "mirco_matrixsetup.h"
 
 void MIRCO::MatrixGeneration::SetUpMatrix(Epetra_SerialDenseMatrix& A, std::vector<double> xv0,
     std::vector<double> yv0, double GridSize, double CompositeYoungs, int systemsize)

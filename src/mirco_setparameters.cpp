@@ -6,15 +6,15 @@
 #include <Teuchos_RCP.hpp>
 #include <Teuchos_XMLParameterListHelpers.hpp>
 
-#include "filesystem_utils.h"
-#include "setparameters.h"
+#include "mirco_filesystem_utils.h"
+#include "mirco_setparameters.h"
 
 void MIRCO::SetParameters(double& E1, double& E2, double& LateralLength, double& nu1, double& nu2,
-    double& G1, double& G2, double& CompositeYoungs, double& alpha,
-    double& ElasticComplianceCorrection, double& GridSize, double& Tolerance, double& Delta,
-    std::string& TopologyFilePath, int& Resolution, double& MaxTopologyHeight,
-    const std::string& inputFileName, bool& RandomTopologyFlag, double& Hurst, bool& RandomSeedFlag,
-    int& RandomGeneratorSeed, bool& WarmStartingFlag, int& MaxIteration)
+    double& CompositeYoungs, double& alpha, double& ElasticComplianceCorrection, double& GridSize,
+    double& Tolerance, double& Delta, std::string& TopologyFilePath, int& Resolution,
+    double& MaxTopologyHeight, const std::string& inputFileName, bool& RandomTopologyFlag,
+    double& Hurst, bool& RandomSeedFlag, int& RandomGeneratorSeed, bool& WarmStartingFlag,
+    int& MaxIteration)
 {
   Teuchos::RCP<Teuchos::ParameterList> parameterList = Teuchos::rcp(new Teuchos::ParameterList());
   Teuchos::updateParametersFromXmlFile(inputFileName, parameterList.ptr());
@@ -38,8 +38,6 @@ void MIRCO::SetParameters(double& E1, double& E2, double& LateralLength, double&
   E2 = matParams.get<double>("E2");
   nu1 = matParams.get<double>("nu1");
   nu2 = matParams.get<double>("nu2");
-  G1 = E1 / (2 * (1 + nu1));
-  G2 = E2 / (2 * (1 + nu2));
 
   // Composite Young's modulus.
   CompositeYoungs = pow(((1 - pow(nu1, 2)) / E1 + (1 - pow(nu2, 2)) / E2), -1);

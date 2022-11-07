@@ -12,11 +12,11 @@
 #include <string>
 #include <vector>
 using namespace std;
-#include "contactpredictors.h"
-#include "contactstatus.h"
-#include "evaluate.h"
-#include "matrixsetup.h"
-#include "nonlinearsolver.h"
+#include "mirco_contactpredictors.h"
+#include "mirco_contactstatus.h"
+#include "mirco_evaluate.h"
+#include "mirco_matrixsetup.h"
+#include "mirco_nonlinearsolver.h"
 
 
 void MIRCO::Evaluate(double& pressure, double Delta, double LateralLength, double GridSize,
@@ -58,8 +58,9 @@ void MIRCO::Evaluate(double& pressure, double Delta, double LateralLength, doubl
   // Solution containing force
   Epetra_SerialDenseMatrix y;
 
-  double errf = std::numeric_limits<double>::max();
-  while (errf > Tolerance && k < MaxIteration)
+  // Initialise the error in force
+  double ErrorForce = std::numeric_limits<double>::max();
+  while (ErrorForce > Tolerance && k < MaxIteration)
   {
     // First predictor for contact set
     // @{
@@ -110,13 +111,13 @@ void MIRCO::Evaluate(double& pressure, double Delta, double LateralLength, doubl
     // @{
     if (k > 0)
     {
-      errf = abs(force0[k] - force0[k - 1]) / force0[k];
+      ErrorForce = abs(force0[k] - force0[k - 1]) / force0[k];
     }
     k += 1;
     // }
   }
 
-  TEUCHOS_TEST_FOR_EXCEPTION(errf > Tolerance, std::out_of_range,
+  TEUCHOS_TEST_FOR_EXCEPTION(ErrorForce > Tolerance, std::out_of_range,
       "The solution did not converge in the maximum number of iternations defined");
   // @{
 

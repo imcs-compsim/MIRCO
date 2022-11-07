@@ -8,8 +8,8 @@
 #include <vector>
 using namespace std;
 
-#include "topology.h"
-#include "topologyutilities.h"
+#include "mirco_topology.h"
+#include "mirco_topologyutilities.h"
 
 void MIRCO::ReadFile::GetSurface(Epetra_SerialDenseMatrix &z, double &zmax)
 {

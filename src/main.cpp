@@ -2,10 +2,12 @@
 #include <chrono>
 #include <iostream>
 #include <string>
-#include "evaluate.h"
-#include "setparameters.h"
-#include "topology.h"
-#include "topologyutilities.h"
+#include "mirco_evaluate.h"
+#include "mirco_setparameters.h"
+#include "mirco_topology.h"
+#include "mirco_topologyutilities.h"
+
+
 
 int main(int argc, char* argv[])
 {
@@ -19,8 +21,8 @@ int main(int argc, char* argv[])
   bool WarmStartingFlag;
   int Resolution;
   double MaxTopologyHeight;
-  double nu1, nu2, G1, G2, CompositeYoungs, alpha, ElasticComplianceCorrection, GridSize, Tolerance,
-      E1, E2, LateralLength, Delta;
+  double nu1, nu2, CompositeYoungs, alpha, ElasticComplianceCorrection, GridSize, Tolerance, E1, E2,
+      LateralLength, Delta;
   bool RandomTopologyFlag;
   bool RandomSeedFlag;
   double Hurst;
@@ -28,7 +30,7 @@ int main(int argc, char* argv[])
   int RandomGeneratorSeed;
   int MaxIteration;
 
-  MIRCO::SetParameters(E1, E2, LateralLength, nu1, nu2, G1, G2, CompositeYoungs, alpha,
+  MIRCO::SetParameters(E1, E2, LateralLength, nu1, nu2, CompositeYoungs, alpha,
       ElasticComplianceCorrection, GridSize, Tolerance, Delta, TopologyFilePath, Resolution,
       MaxTopologyHeight, inputFileName, RandomTopologyFlag, Hurst, RandomSeedFlag,
       RandomGeneratorSeed, WarmStartingFlag, MaxIteration);

@@ -1,7 +1,7 @@
 #include <Epetra_SerialSpdDenseSolver.h>
 #include <Epetra_SerialSymDenseMatrix.h>
 
-#include "linearsolver.h"
+#include "mirco_linearsolver.h"
 
 void MIRCO::LinearSolver::Solve(Epetra_SerialSymDenseMatrix& matrix,
     Epetra_SerialDenseMatrix& vector_x, Epetra_SerialDenseMatrix& vector_b)

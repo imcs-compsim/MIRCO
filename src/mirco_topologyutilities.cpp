@@ -1,10 +1,10 @@
-#include "topologyutilities.h"
 #include <Epetra_SerialSymDenseMatrix.h>
 #include <cmath>
 #include <memory>
 #include <string>
 #include <vector>
-#include "topology.h"
+#include "mirco_topology.h"
+#include "mirco_topologyutilities.h"
 
 void MIRCO::CreateMeshgrid(std::vector<double>& meshgrid, int ngrid, double GridSize)
 {

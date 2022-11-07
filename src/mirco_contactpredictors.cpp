@@ -1,7 +1,7 @@
-#include "contactpredictors.h"
 #include <Epetra_SerialSymDenseMatrix.h>
 #include <vector>
-#include "warmstart.h"
+#include "mirco_contactpredictors.h"
+#include "mirco_warmstart.h"
 
 void MIRCO::ContactSetPredictor(int &n0, std::vector<double> &xv0, std::vector<double> &yv0,
     std::vector<double> &b0, double zmax, double Delta, double w_el, std::vector<double> meshgrid,
