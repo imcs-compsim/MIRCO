@@ -1,32 +1,32 @@
-#include "topologyutilities.h"
+#include "mirco_topologyutilities.h"
 #include <Epetra_SerialSymDenseMatrix.h>
 #include <cmath>
 #include <memory>
 #include <string>
 #include <vector>
-#include "topology.h"
+#include "mirco_topology.h"
 
-void MIRCO::CreateMeshgrid(std::vector<double>& meshgrid, int ngrid, double delta)
+void MIRCO::CreateMeshgrid(std::vector<double>& meshgrid, int ngrid, double GridSize)
 {
 #pragma omp parallel for schedule(static, 16)  // Same amount of work -> static
   for (int i = 0; i < ngrid; i++)
   {
-    meshgrid[i] = (delta / 2) + i * delta;
+    meshgrid[i] = (GridSize / 2) + i * GridSize;
   }
 }
 
-void MIRCO::CreateSurfaceObject(int resolution, double& user_zmax, double Hurst,
-    bool rand_seed_flag, std::string zfilePath, bool rmg_flag, int rmg_seed,
-    std::shared_ptr<MIRCO::TopologyGeneration>& surfacegenerator)
+void MIRCO::CreateSurfaceObject(int Resolution, double& MaxTopologyHeight, double Hurst,
+    bool RandomSeedFlag, std::string TopologyFilePath, bool RandomTopologyFlag,
+    int RandomGeneratorSeed, Teuchos::RCP<MIRCO::TopologyGeneration>& surfacegenerator)
 {
-  if (rmg_flag)
+  if (RandomTopologyFlag)
   {
-    surfacegenerator = std::shared_ptr<MIRCO::Rmg>(
-        new MIRCO::Rmg(resolution, user_zmax, Hurst, rand_seed_flag, rmg_seed));
+    surfacegenerator = Teuchos::rcp(
+        new MIRCO::Rmg(Resolution, MaxTopologyHeight, Hurst, RandomSeedFlag, RandomGeneratorSeed));
   }
   else
   {
-    surfacegenerator = std::shared_ptr<MIRCO::ReadFile>(new MIRCO::ReadFile(resolution, zfilePath));
+    surfacegenerator = Teuchos::rcp(new MIRCO::ReadFile(Resolution, TopologyFilePath));
   }
 }
 

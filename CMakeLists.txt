@@ -56,23 +56,23 @@ link_directories(${Trilinos_LIBRARY_DIRS})
 
 # Compile mirco library
 add_library(mirco_library
-  src/topology.cpp
-  src/linearsolver.cpp
-  src/nonlinearsolver.cpp
-  src/matrixsetup.cpp
-  src/warmstart.cpp
-  src/evaluate.cpp
-  src/topologyutilities.cpp
-  src/contactpredictors.cpp
-  src/contactstatus.cpp
+  src/mirco_topology.cpp
+  src/mirco_linearsolver.cpp
+  src/mirco_nonlinearsolver.cpp
+  src/mirco_matrixsetup.cpp
+  src/mirco_warmstart.cpp
+  src/mirco_evaluate.cpp
+  src/mirco_topologyutilities.cpp
+  src/mirco_contactpredictors.cpp
+  src/mirco_contactstatus.cpp
 )
 
 add_library(mirco_io
-  src/setparameters.cpp
+  src/mirco_setparameters.cpp
 )
 
 add_library(mirco_utils
-  src/filesystem_utils.cpp
+  src/mirco_filesystem_utils.cpp
 )
 
 # Find OpenMP

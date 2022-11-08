@@ -32,12 +32,13 @@ namespace MIRCO
    * @param nf Number of nodes in contact in the previous iteration
    * @param pf Contact force at (xvf,yvf) predicted in the previous iteration.
    * @param k Iteration number
-   * @param delta Grid size
-   * @param lato Lateral side of the surface [micrometers]
-   * @param k_el Elastic compliance correction
+   * @param GridSize Grid size
+   * @param LateralLength Lateral side of the surface [micrometers]
+   * @param ElasticComplianceCorrection Elastic compliance correction
    */
   void ComputeContactForceAndArea(std::vector<double> &force0, std::vector<double> &area0,
-      double &w_el, int nf, std::vector<double> pf, int k, double delta, double lato, double k_el);
+      double &w_el, int nf, std::vector<double> pf, int k, double GridSize, double LateralLength,
+      double ElasticComplianceCorrection);
 }  // namespace MIRCO
 
 #endif  // SRC_CONTACTSTATUS_H_

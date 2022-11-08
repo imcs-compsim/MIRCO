@@ -3,11 +3,11 @@
 #include <gtest/gtest.h>
 #include <stdlib.h>
 #include <vector>
-#include "../../src/filesystem_utils.h"
-#include "../../src/linearsolver.h"
-#include "../../src/nonlinearsolver.h"
-#include "../../src/topology.h"
-#include "../../src/warmstart.h"
+#include "../../src/mirco_filesystem_utils.h"
+#include "../../src/mirco_linearsolver.h"
+#include "../../src/mirco_nonlinearsolver.h"
+#include "../../src/mirco_topology.h"
+#include "../../src/mirco_warmstart.h"
 #include "nonlinear_solver_test.h"
 
 TEST(linearsolver, solves)

@@ -1,3 +1,4 @@
+#include "mirco_topology.h"
 #include <Epetra_SerialDenseMatrix.h>
 #include <cmath>
 #include <ctime>
@@ -6,15 +7,12 @@
 #include <random>
 #include <string>
 #include <vector>
-using namespace std;
-
-#include "topology.h"
-#include "topologyutilities.h"
+#include "mirco_topologyutilities.h"
 
 void MIRCO::ReadFile::GetSurface(Epetra_SerialDenseMatrix &z, double &zmax)
 {
-  ifstream reader(filepath);
-  string blaLine;
+  std::ifstream reader(TopologyFilePath);
+  std::string blaLine;
   int dimension = 0;
   while (getline(reader, blaLine))
   {
@@ -23,8 +21,8 @@ void MIRCO::ReadFile::GetSurface(Epetra_SerialDenseMatrix &z, double &zmax)
   reader.close();
   z.Shape(dimension, dimension);
   int position = 0, separatorPosition, lineCounter = 0;
-  ifstream stream(filepath);
-  string line, container;
+  std::ifstream stream(TopologyFilePath);
+  std::string line, container;
   double value;
   while (getline(stream, line))
   {
@@ -52,13 +50,13 @@ void MIRCO::Rmg::GetSurface(Epetra_SerialDenseMatrix &z, double &zmax)
 
   int seed;
 
-  if (rand_seed_flag)
+  if (RandomSeedFlag)
   {
     seed = rand();
   }
   else
   {
-    seed = rmg_seed;  // seed can be fixed to reproduce result
+    seed = RandomGeneratorSeed;  // seed can be fixed to reproduce result
   }
   std::default_random_engine generate(seed);
   std::normal_distribution<double> distribution(
