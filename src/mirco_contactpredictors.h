@@ -22,8 +22,8 @@ namespace MIRCO
    * @param topology Topology matrix containing heights
    */
   void ContactSetPredictor(int &n0, std::vector<double> &xv0, std::vector<double> &yv0,
-      std::vector<double> &b0, double zmax, double Delta, double w_el, std::vector<double> meshgrid,
-      Epetra_SerialDenseMatrix &topology);
+      std::vector<double> &b0, double zmax, double Delta, double w_el,
+      std::vector<double> &meshgrid, Epetra_SerialDenseMatrix &topology);
 
   /**
    * @brief The aim of this function is to guess the set of nodes in contact among the nodes

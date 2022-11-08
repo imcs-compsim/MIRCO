@@ -25,7 +25,7 @@ namespace MIRCO
   void Evaluate(double& pressure, double Delta, double LateralLength, double GridSize,
       double Tolerance, int MaxIteration, double CompositeYoungs, bool WarmStartingFlag,
       double ElasticComplianceCorrection, Epetra_SerialDenseMatrix& topology, double zmax,
-      std::vector<double> meshgrid);
+      std::vector<double>& meshgrid);
 }  // namespace MIRCO
 
 

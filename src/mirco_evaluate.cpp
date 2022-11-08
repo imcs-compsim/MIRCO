@@ -21,7 +21,7 @@
 void MIRCO::Evaluate(double& pressure, double Delta, double LateralLength, double GridSize,
     double Tolerance, int MaxIteration, double CompositeYoungs, bool WarmStartingFlag,
     double ElasticComplianceCorrection, Epetra_SerialDenseMatrix& topology, double zmax,
-    std::vector<double> meshgrid)
+    std::vector<double>& meshgrid)
 {
   omp_set_num_threads(6);  // 6 seems to be optimal
 
