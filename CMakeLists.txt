@@ -88,7 +88,7 @@ add_executable(mirco src/main.cpp)
 
 # Install mirco (to be used as a library by other codes)
 install(TARGETS mirco DESTINATION lib)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/ DESTINATION include FILES_MATCHING PATTERN "*.h*")
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/ DESTINATION include/mirco FILES_MATCHING PATTERN "*.h*")
 
 target_link_libraries(mirco
   PUBLIC OpenMP::OpenMP_CXX
