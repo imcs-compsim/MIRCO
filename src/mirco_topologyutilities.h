@@ -32,7 +32,7 @@ namespace MIRCO
    * on the RandomTopologyFlag.
    *
    * @param Resolution Resolution parameter
-   * @param MaxTopologyHeight Maximum height of the topology
+   * @param LateralLength Lateral side of the surface [micrometers]
    * @param Hurst Hurst Exponent (Used in random mid-point generator)
    * @param RandomSeedFlag Set `true` to fix the seed to generate psuedo random topology to
    * reproduce results. Set `false` to use random seed.
@@ -43,9 +43,9 @@ namespace MIRCO
    * @param RandomGeneratorSeed Seed for the random mid-point generator
    * @param surfacegenerator Surface object
    */
-  void CreateSurfaceObject(int Resolution, double& MaxTopologyHeight, double Hurst,
-      bool RandomSeedFlag, std::string TopologyFilePath, bool RandomTopologyFlag,
-      int RandomGeneratorSeed, Teuchos::RCP<TopologyGeneration>& surfacegenerator);
+  void CreateSurfaceObject(int Resolution, double LateralLength, double Hurst, bool RandomSeedFlag,
+      std::string TopologyFilePath, bool RandomTopologyFlag, int RandomGeneratorSeed,
+      Teuchos::RCP<TopologyGeneration>& surfacegenerator);
 
   /**
    * @brief Compute the maximum height (zmax) and the mean height (zmean) of the topology.

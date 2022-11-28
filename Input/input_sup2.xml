@@ -18,7 +18,6 @@
       <Parameter name="LateralLength" type="double" value="1000.0"/>
       <Parameter name="Resolution" type="int" value="2"/>
       <Parameter name="HurstExponent" type="double" value="0.1"/>
-      <Parameter name="MaxTopologyHeight" type="double" value="50.0"/>
       <Parameter name="Delta" type="double" value="15.0"/>
       <Parameter name="Tolerance" type="double" value="0.01"/>
     </ParameterList>

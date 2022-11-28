@@ -7,6 +7,8 @@
 #include "mirco_topology.h"
 #include "mirco_topologyutilities.h"
 
+#include <iomanip>
+
 int main(int argc, char* argv[])
 {
   TEUCHOS_TEST_FOR_EXCEPTION(
@@ -31,8 +33,8 @@ int main(int argc, char* argv[])
 
   MIRCO::SetParameters(E1, E2, LateralLength, nu1, nu2, CompositeYoungs, alpha,
       ElasticComplianceCorrection, GridSize, Tolerance, Delta, TopologyFilePath, Resolution,
-      MaxTopologyHeight, inputFileName, RandomTopologyFlag, Hurst, RandomSeedFlag,
-      RandomGeneratorSeed, WarmStartingFlag, MaxIteration);
+      inputFileName, RandomTopologyFlag, Hurst, RandomSeedFlag, RandomGeneratorSeed,
+      WarmStartingFlag, MaxIteration);
 
   // Identical Vectors/Matricies, therefore only created one here.
   int ngrid = int(ceil((LateralLength - (GridSize / 2)) / GridSize));
@@ -46,10 +48,13 @@ int main(int argc, char* argv[])
 
   Teuchos::RCP<MIRCO::TopologyGeneration> surfacegenerator;
   // creating the correct surface object
-  MIRCO::CreateSurfaceObject(Resolution, MaxTopologyHeight, Hurst, RandomSeedFlag, TopologyFilePath,
+  MIRCO::CreateSurfaceObject(Resolution, LateralLength, Hurst, RandomSeedFlag, TopologyFilePath,
       RandomTopologyFlag, RandomGeneratorSeed, surfacegenerator);
 
-  surfacegenerator->GetSurface(topology, MaxTopologyHeight);
+  surfacegenerator->GetSurface(topology);
+
+  double MeanTopologyHeight = 0.0;
+  MIRCO::ComputeMaxAndMean(topology, MaxTopologyHeight, MeanTopologyHeight);
 
   // Initialise Pressure
   double pressure = 0.0;
