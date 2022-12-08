@@ -60,7 +60,7 @@ void MIRCO::Rmg::GetSurface(Epetra_SerialDenseMatrix &z)
       0.0, 1.0);  // normal distribution: mean = 0.0, standard deviation = 1.0
 
   int N = pow(2, resolution);
-  double alpha = 1 / sqrt(0.09);
+  double alpha = InitialStdDeviation * (pow(sqrt(2), Hurst));
 
   int D = N;
   int d = N / 2;
@@ -126,15 +126,6 @@ void MIRCO::Rmg::GetSurface(Epetra_SerialDenseMatrix &z)
     for (int j = 0; j < N + 1; j++)
     {
       z(i, j) = z(i, j) - zmin;
-    }
-  }
-
-  // Scaling the topology in accordance with the lateral length provided by the user
-  for (int i = 0; i < N + 1; i++)
-  {
-    for (int j = 0; j < N + 1; j++)
-    {
-      z(i, j) = z(i, j) * LateralLength;
     }
   }
 }

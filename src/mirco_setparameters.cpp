@@ -12,8 +12,9 @@
 void MIRCO::SetParameters(double& E1, double& E2, double& LateralLength, double& nu1, double& nu2,
     double& CompositeYoungs, double& alpha, double& ElasticComplianceCorrection, double& GridSize,
     double& Tolerance, double& Delta, std::string& TopologyFilePath, int& Resolution,
-    const std::string& inputFileName, bool& RandomTopologyFlag, double& Hurst, bool& RandomSeedFlag,
-    int& RandomGeneratorSeed, bool& WarmStartingFlag, int& MaxIteration)
+    double& InitialStdDeviation, const std::string& inputFileName, bool& RandomTopologyFlag,
+    double& Hurst, bool& RandomSeedFlag, int& RandomGeneratorSeed, bool& WarmStartingFlag,
+    int& MaxIteration)
 {
   Teuchos::RCP<Teuchos::ParameterList> parameterList = Teuchos::rcp(new Teuchos::ParameterList());
   Teuchos::updateParametersFromXmlFile(inputFileName, parameterList.ptr());
@@ -53,6 +54,7 @@ void MIRCO::SetParameters(double& E1, double& E2, double& LateralLength, double&
   Resolution = geoParams.get<int>("Resolution");
   Hurst = geoParams.get<double>("HurstExponent");
   LateralLength = geoParams.get<double>("LateralLength");
+  InitialStdDeviation = geoParams.get<double>("InitialStdDeviation");
   Tolerance = geoParams.get<double>("Tolerance");
   Delta = geoParams.get<double>("Delta");
   alpha = alpha_con[Resolution - 1];

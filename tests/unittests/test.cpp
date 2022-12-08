@@ -106,36 +106,36 @@ TEST(readtopology, RMG)
   Epetra_SerialDenseMatrix outsurf;
   int N = pow(2, resolution);
   outsurf.Shape(N + 1, N + 1);
-  double LateralLength = 1000;
+  double InitialStdDeviation = 20;
 
-  MIRCO::Rmg surface(resolution, LateralLength, Hurst, rand_seed_flag, rmg_seed);
+  MIRCO::Rmg surface(resolution, InitialStdDeviation, Hurst, rand_seed_flag, rmg_seed);
   surface.GetSurface(outsurf);
 
-  EXPECT_NEAR(outsurf(0, 0), 3790.26122633529, 1e-03);
-  EXPECT_NEAR(outsurf(0, 1), 4871.93366647452, 1e-03);
-  EXPECT_NEAR(outsurf(0, 2), 11201.8609342306, 1e-03);
-  EXPECT_NEAR(outsurf(0, 3), 7003.46380530129, 1e-03);
-  EXPECT_NEAR(outsurf(0, 4), 3790.26122633529, 1e-03);
-  EXPECT_NEAR(outsurf(1, 0), 11084.2409740010, 1e-03);
-  EXPECT_NEAR(outsurf(1, 1), 11886.6633888590, 1e-03);
-  EXPECT_NEAR(outsurf(1, 2), 12556.0127153703, 1e-03);
-  EXPECT_NEAR(outsurf(1, 3), 5681.76294587438, 1e-03);
-  EXPECT_NEAR(outsurf(1, 4), 3648.34675362529, 1e-03);
-  EXPECT_NEAR(outsurf(2, 0), 6304.07980664345, 1e-03);
-  EXPECT_NEAR(outsurf(2, 1), 3094.97565086270, 1e-03);
-  EXPECT_NEAR(outsurf(2, 2), 12745.7212245737, 1e-03);
-  EXPECT_NEAR(outsurf(2, 3), 912.374043566341, 1e-03);
-  EXPECT_NEAR(outsurf(2, 4), 6659.99316045450, 1e-03);
-  EXPECT_NEAR(outsurf(3, 0), 9527.54077507710, 1e-03);
-  EXPECT_NEAR(outsurf(3, 1), 3419.42424749242, 1e-03);
-  EXPECT_NEAR(outsurf(3, 2), 8800.58346244825, 1e-03);
-  EXPECT_NEAR(outsurf(3, 3), 4511.67889999766, 1e-03);
-  EXPECT_NEAR(outsurf(3, 4), 1083.02457045383, 1e-03);
-  EXPECT_NEAR(outsurf(4, 0), 3790.26122633529, 1e-03);
+  EXPECT_NEAR(outsurf(0, 0), 23.5435469989256, 1e-06);
+  EXPECT_NEAR(outsurf(0, 1), 30.2624522170979, 1e-06);
+  EXPECT_NEAR(outsurf(0, 2), 69.5813622417479, 1e-06);
+  EXPECT_NEAR(outsurf(0, 3), 43.5026425381265, 1e-06);
+  EXPECT_NEAR(outsurf(0, 4), 23.5435469989256, 1e-06);
+  EXPECT_NEAR(outsurf(1, 0), 68.8507553267314, 1e-06);
+  EXPECT_NEAR(outsurf(1, 1), 73.8350740079714, 1e-06);
+  EXPECT_NEAR(outsurf(1, 2), 77.9927972851754, 1e-06);
+  EXPECT_NEAR(outsurf(1, 3), 35.2927793006724, 1e-06);
+  EXPECT_NEAR(outsurf(1, 4), 22.6620325442329, 1e-06);
+  EXPECT_NEAR(outsurf(2, 0), 39.1583562054882, 1e-06);
+  EXPECT_NEAR(outsurf(2, 1), 19.2247183888878, 1e-06);
+  EXPECT_NEAR(outsurf(2, 2), 79.1711886771701, 1e-06);
+  EXPECT_NEAR(outsurf(2, 3), 5.66729306836534, 1e-06);
+  EXPECT_NEAR(outsurf(2, 4), 41.3691438722521, 1e-06);
+  EXPECT_NEAR(outsurf(3, 0), 59.1811726494348, 1e-06);
+  EXPECT_NEAR(outsurf(3, 1), 21.2400598989696, 1e-06);
+  EXPECT_NEAR(outsurf(3, 2), 54.6656122080671, 1e-06);
+  EXPECT_NEAR(outsurf(3, 3), 28.0246974768169, 1e-06);
+  EXPECT_NEAR(outsurf(3, 4), 6.72730409669533, 1e-06);
+  EXPECT_NEAR(outsurf(4, 0), 23.5435469989256, 1e-06);
   EXPECT_NEAR(outsurf(4, 1), 0, 1e-03);
-  EXPECT_NEAR(outsurf(4, 2), 4938.79935963518, 1e-03);
-  EXPECT_NEAR(outsurf(4, 3), 5669.91464185705, 1e-03);
-  EXPECT_NEAR(outsurf(4, 4), 3790.26122633529, 1e-03);
+  EXPECT_NEAR(outsurf(4, 2), 30.6777944575233, 1e-06);
+  EXPECT_NEAR(outsurf(4, 3), 35.2191824993355, 1e-06);
+  EXPECT_NEAR(outsurf(4, 4), 23.5435469989256, 1e-06);
 }
 
 TEST(warmstarting, warmstart)

@@ -45,7 +45,7 @@ namespace MIRCO
   class Rmg : public TopologyGeneration
   {
    public:
-    double LateralLength;
+    double InitialStdDeviation;
     double Hurst;
     bool RandomSeedFlag;
     int RandomGeneratorSeed;
@@ -54,14 +54,15 @@ namespace MIRCO
      * @brief Construct a Surface object using Random Midpoint Generator
      *
      * @param nn Resolution parameter
-     * @param LLength Lateral side of the surface [micrometers]
+     * @param InStdDev Initial Standard deviation for the random-midpoint generator
+     * [micrometers]
      * @param HH Hurst exponent
      * @param rsf Random Seed Flag
      * @param rmgs eed for the random mid-point generator
      */
-    Rmg(int nn, double LLength, double HH, bool rsf, int rmgs) : TopologyGeneration(nn)
+    Rmg(int nn, double InStdDev, double HH, bool rsf, int rmgs) : TopologyGeneration(nn)
     {
-      LateralLength = LLength;
+      InitialStdDeviation = InStdDev;
       Hurst = HH;
       RandomSeedFlag = rsf;
       RandomGeneratorSeed = rmgs;

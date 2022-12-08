@@ -23,6 +23,8 @@ namespace MIRCO
    * @param Delta Far-field displacement (Gap).
    * @param TopologyFilePath Path of the input file containing the topology.
    * @param Resolution Resolution parameter
+   * @param InitialStdDeviation Initial Standard deviation for the random-midpoint generator
+   * [micrometers]
    * @param inputFileName The name of the input file containing all the parameters
    * @param RandomTopologyFlag Set `true` to use the Random-Midpoint Generator to generate the
    * topology. Set `false` to read topology from a file.
@@ -37,8 +39,9 @@ namespace MIRCO
   void SetParameters(double& E1, double& E2, double& LateralLength, double& nu1, double& nu2,
       double& CompositeYoungs, double& alpha, double& ElasticComplianceCorrection, double& GridSize,
       double& Tolerance, double& Delta, std::string& TopologyFilePath, int& Resolution,
-      const std::string& inputFileName, bool& RandomTopologyFlag, double& Hurst,
-      bool& RandomSeedFlag, int& RandomGeneratorSeed, bool& WarmStartingFlag, int& MaxIteration);
+      double& InitialStdDeviation, const std::string& inputFileName, bool& RandomTopologyFlag,
+      double& Hurst, bool& RandomSeedFlag, int& RandomGeneratorSeed, bool& WarmStartingFlag,
+      int& MaxIteration);
 }  // namespace MIRCO
 
 #endif  // SRC_SETPARAMETERS_H_
