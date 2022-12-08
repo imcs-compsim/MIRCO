@@ -99,16 +99,17 @@ TEST(FilesystemUtils, keepabsolutpath)
 
 TEST(readtopology, RMG)
 {
-  int resolution = 2;
-  float Hurst = 0.1;
-  bool rand_seed_flag = false;
-  int rmg_seed = 95;
+  int Resolution = 2;
+  float HurstExponent = 0.1;
+  bool RandomSeedFlag = false;
+  int RandomGeneratorSeed = 95;
   Epetra_SerialDenseMatrix outsurf;
-  int N = pow(2, resolution);
+  int N = pow(2, Resolution);
   outsurf.Shape(N + 1, N + 1);
-  double InitialStdDeviation = 20;
+  double InitialTopologyStdDeviation = 20.0;
 
-  MIRCO::Rmg surface(resolution, InitialStdDeviation, Hurst, rand_seed_flag, rmg_seed);
+  MIRCO::Rmg surface(
+      Resolution, InitialTopologyStdDeviation, HurstExponent, RandomSeedFlag, RandomGeneratorSeed);
   surface.GetSurface(outsurf);
 
   EXPECT_NEAR(outsurf(0, 0), 23.5435469989256, 1e-06);

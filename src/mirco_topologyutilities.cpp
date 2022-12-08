@@ -15,14 +15,14 @@ void MIRCO::CreateMeshgrid(std::vector<double>& meshgrid, int ngrid, double Grid
   }
 }
 
-void MIRCO::CreateSurfaceObject(int Resolution, double InitialStdDeviation, double Hurst,
+void MIRCO::CreateSurfaceObject(int Resolution, double InitialTopologyStdDeviation, double Hurst,
     bool RandomSeedFlag, std::string TopologyFilePath, bool RandomTopologyFlag,
     int RandomGeneratorSeed, Teuchos::RCP<MIRCO::TopologyGeneration>& surfacegenerator)
 {
   if (RandomTopologyFlag)
   {
     surfacegenerator = Teuchos::rcp(new MIRCO::Rmg(
-        Resolution, InitialStdDeviation, Hurst, RandomSeedFlag, RandomGeneratorSeed));
+        Resolution, InitialTopologyStdDeviation, Hurst, RandomSeedFlag, RandomGeneratorSeed));
   }
   else
   {

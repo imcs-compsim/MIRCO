@@ -60,7 +60,7 @@ void MIRCO::Rmg::GetSurface(Epetra_SerialDenseMatrix &z)
       0.0, 1.0);  // normal distribution: mean = 0.0, standard deviation = 1.0
 
   int N = pow(2, resolution);
-  double alpha = InitialStdDeviation * (pow(sqrt(2), Hurst));
+  double alpha = InitialTopologyStdDeviation * (pow(sqrt(2), Hurst));
 
   int D = N;
   int d = N / 2;

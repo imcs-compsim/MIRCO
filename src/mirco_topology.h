@@ -45,7 +45,7 @@ namespace MIRCO
   class Rmg : public TopologyGeneration
   {
    public:
-    double InitialStdDeviation;
+    double InitialTopologyStdDeviation;
     double Hurst;
     bool RandomSeedFlag;
     int RandomGeneratorSeed;
@@ -62,7 +62,7 @@ namespace MIRCO
      */
     Rmg(int nn, double InStdDev, double HH, bool rsf, int rmgs) : TopologyGeneration(nn)
     {
-      InitialStdDeviation = InStdDev;
+      InitialTopologyStdDeviation = InStdDev;
       Hurst = HH;
       RandomSeedFlag = rsf;
       RandomGeneratorSeed = rmgs;
