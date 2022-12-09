@@ -1,12 +1,13 @@
-#include <Teuchos_SerialSpdDenseSolver.hpp>
 #include <Teuchos_SerialDenseMatrix.hpp>
+#include <Teuchos_SerialDenseVector.hpp>
+#include <Teuchos_SerialSpdDenseSolver.hpp>
 #include <Teuchos_SerialSymDenseMatrix.hpp>
 #include <Teuchos_RCP.hpp>
 
 #include "mirco_linearsolver.h"
 
 void MIRCO::LinearSolver::Solve(Teuchos::SerialSymDenseMatrix<int,double>& matrix,
-    Teuchos::SerialDenseMatrix<int,double>& vector_x, Teuchos::SerialDenseMatrix<int,double>& vector_b)
+    Teuchos::SerialDenseVector<int,double>& vector_x, Teuchos::SerialDenseVector<int,double>& vector_b)
 {
   Teuchos::SerialSpdDenseSolver<int,double> solver;
   int err = solver.setMatrix(Teuchos::rcpFromRef(matrix));

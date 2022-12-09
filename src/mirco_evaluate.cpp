@@ -55,7 +55,7 @@ void MIRCO::Evaluate(double& pressure, double Delta, double LateralLength, doubl
   // The influence coefficient matrix (Discrete version of Green Function)
   Teuchos::SerialDenseMatrix<int,double> A;
   // Solution containing force
-  Teuchos::SerialDenseMatrix<int,double> y;
+  Teuchos::SerialDenseVector<int,double> y;
 
   // Initialise the error in force
   double ErrorForce = std::numeric_limits<double>::max();

@@ -2,6 +2,7 @@
 #define SRC_NONLINEARSOLVER_H_
 
 #include <Teuchos_SerialDenseMatrix.hpp>
+#include <Teuchos_SerialDenseVector.hpp>
 #include <vector>
 
 namespace MIRCO
@@ -21,7 +22,7 @@ namespace MIRCO
      * @param y Solution containing force
      */
     void NonlinearSolve(Teuchos::SerialDenseMatrix<int,double>& matrix, Teuchos::SerialDenseMatrix<int,double>& b0,
-        Teuchos::SerialDenseMatrix<int,double>& y0, Teuchos::SerialDenseMatrix<int,double>& w, Teuchos::SerialDenseMatrix<int,double>& y);
+        Teuchos::SerialDenseMatrix<int,double>& y0, Teuchos::SerialDenseMatrix<int,double>& w, Teuchos::SerialDenseVector<int,double>& y);
     NonLinearSolver() = default;
   };
 }  // namespace MIRCO

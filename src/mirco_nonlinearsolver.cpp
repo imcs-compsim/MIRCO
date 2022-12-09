@@ -1,12 +1,13 @@
 #include "mirco_nonlinearsolver.h"
 #include <Teuchos_SerialDenseMatrix.hpp>
+#include <Teuchos_SerialDenseVector.hpp>
 #include <Teuchos_SerialSymDenseMatrix.hpp>
 #include <vector>
 #include "mirco_linearsolver.h"
 
 void MIRCO::NonLinearSolver::NonlinearSolve(Teuchos::SerialDenseMatrix<int,double>& matrix,
     Teuchos::SerialDenseMatrix<int,double>& b0, Teuchos::SerialDenseMatrix<int,double>& y0, Teuchos::SerialDenseMatrix<int,double>& w,
-    Teuchos::SerialDenseMatrix<int,double>& y)
+    Teuchos::SerialDenseVector<int,double>& y)
 {
   double nnlstol = 1.0000e-08;
   double maxiter = 10000;
@@ -16,11 +17,11 @@ void MIRCO::NonLinearSolver::NonlinearSolve(Teuchos::SerialDenseMatrix<int,doubl
   int iter = 0;
   bool init = false;
   int n0 = b0.numRows();
-  y.shape(n0, 1);
+  y.size(n0);
   y.putScalar(0.0);
   Teuchos::SerialDenseMatrix<int,double> s0;
   std::vector<int> P(n0);
-  Teuchos::SerialDenseMatrix<int,double> vector_x, vector_b;
+  Teuchos::SerialDenseVector<int,double> vector_x, vector_b;
   Teuchos::SerialSymDenseMatrix<int,double> solverMatrix;
 
   // Initialize active set
@@ -128,14 +129,14 @@ void MIRCO::NonLinearSolver::NonlinearSolve(Teuchos::SerialDenseMatrix<int,doubl
     while (aux2 == true)
     {
       iter++;
-      vector_x.shape(counter, 1);
-      vector_b.shape(counter, 1);
+      vector_x.size(counter);
+      vector_b.size(counter);
       solverMatrix.shape(counter);
 
 #pragma omp parallel for schedule(static, 16)  // Always same workload -> Static!
       for (int x = 0; x < counter; x++)
       {
-        vector_b(x, 0) = b0(P[x], 0);
+        vector_b(x) = b0(P[x], 0);
 
         for (int z = 0; z < counter; z++)
         {
@@ -152,7 +153,7 @@ void MIRCO::NonLinearSolver::NonlinearSolve(Teuchos::SerialDenseMatrix<int,doubl
 #pragma omp parallel for schedule(static, 16)  // Always same workload -> Static!
       for (int x = 0; x < counter; x++)
       {
-        s0(P[x], 0) = vector_x(x, 0);
+        s0(P[x], 0) = vector_x(x);
       }
 
       bool allBigger = true;
@@ -171,7 +172,7 @@ void MIRCO::NonLinearSolver::NonlinearSolve(Teuchos::SerialDenseMatrix<int,doubl
 #pragma omp parallel for schedule(guided, 16)
         for (int x = 0; x < counter; x++)
         {
-          y(P[x], 0) = s0(P[x], 0);
+          y(P[x]) = s0(P[x], 0);
         }
         w.scale(0.0);
 #pragma omp parallel for schedule(dynamic, 16)
@@ -180,7 +181,7 @@ void MIRCO::NonLinearSolver::NonlinearSolve(Teuchos::SerialDenseMatrix<int,doubl
           w(a, 0) = 0;
           for (int b = 0; b < counter; b++)
           {
-            w(a, 0) += (matrix(a, P[b]) * y(P[b], 0));
+            w(a, 0) += (matrix(a, P[b]) * y(P[b]));
           }
           w(a, 0) -= b0(a, 0);
         }
@@ -200,7 +201,7 @@ void MIRCO::NonLinearSolver::NonlinearSolve(Teuchos::SerialDenseMatrix<int,doubl
           {
             if (s0(P[i], 0) < nnlstol)
             {
-              alphai = y(P[i], 0) / (eps + y(P[i], 0) - s0(P[i], 0));
+              alphai = y(P[i]) / (eps + y(P[i]) - s0(P[i], 0));
               if (alphai < alphaP)
               {
                 alphaP = alphai;
@@ -218,7 +219,7 @@ void MIRCO::NonLinearSolver::NonlinearSolve(Teuchos::SerialDenseMatrix<int,doubl
         // TODO: WHAT BELONGS TO THIS LOOP?????????????????????
 #pragma omp parallel for schedule(guided, 16)
         for (int a = 0; a < counter; a++)
-          y(P[a], 0) = y(P[a], 0) + alpha * (s0(P[a], 0) - y(P[a], 0));
+          y(P[a]) = y(P[a]) + alpha * (s0(P[a], 0) - y(P[a]));
         if (j > 0)
         {
           // jth entry in P leaves active set

@@ -2,6 +2,7 @@
 #define SRC_LINEARSOLVER_H_
 
 #include <Teuchos_SerialDenseMatrix.hpp>
+#include <Teuchos_SerialDenseVector.hpp>
 #include <Teuchos_SerialSymDenseMatrix.hpp>
 
 namespace MIRCO
@@ -16,8 +17,8 @@ namespace MIRCO
      * @param vector_x Solution
      * @param vector_b RHS
      */
-    void Solve(Teuchos::SerialSymDenseMatrix<int,double>& matrix, Teuchos::SerialDenseMatrix<int,double>& vector_x,
-        Teuchos::SerialDenseMatrix<int,double>& vector_b);
+    void Solve(Teuchos::SerialSymDenseMatrix<int,double>& matrix, Teuchos::SerialDenseVector<int,double>& vector_x,
+        Teuchos::SerialDenseVector<int,double>& vector_b);
     LinearSolver() = default;
   };
 }  // namespace MIRCO

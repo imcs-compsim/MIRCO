@@ -1,8 +1,11 @@
 #include <Teuchos_SerialDenseMatrix.hpp>
+#include <Teuchos_SerialDenseVector.hpp>
 #include <Teuchos_SerialSymDenseMatrix.hpp>
+
 #include <gtest/gtest.h>
 #include <stdlib.h>
 #include <vector>
+
 #include "../../src/mirco_filesystem_utils.h"
 #include "../../src/mirco_linearsolver.h"
 #include "../../src/mirco_nonlinearsolver.h"
@@ -28,25 +31,25 @@ TEST(linearsolver, solves)
   }
 
   // Build the vectors
-  Teuchos::SerialDenseMatrix<int,double> vector_x;
-  Teuchos::SerialDenseMatrix<int,double> vector_b;
+  Teuchos::SerialDenseVector<int,double> vector_x;
+  Teuchos::SerialDenseVector<int,double> vector_b;
 
   // Bring matrices in correct form
-  vector_x.shape(systemsize, 1);
-  vector_b.shape(systemsize, 1);
+  vector_x.size(systemsize);
+  vector_b.size(systemsize);
 
   // Build right hand side
   for (int i = 0; i < systemsize; i++)
   {
-    vector_b(i, 0) = 1;
+    vector_b(i) = 1;
   }
 
   // Call linear solver
   MIRCO::LinearSolver linearsolver;
   linearsolver.Solve(topology, vector_x, vector_b);
 
-  EXPECT_NEAR(vector_x(0, 0), 0.333333333333333, 1e-06);
-  EXPECT_NEAR(vector_x(1, 0), 0.333333333333333, 1e-06);
+  EXPECT_NEAR(vector_x(0), 0.333333333333333, 1e-06);
+  EXPECT_NEAR(vector_x(1), 0.333333333333333, 1e-06);
 }
 
 TEST_F(NonlinearSolverTest, primalvariable)
@@ -54,15 +57,15 @@ TEST_F(NonlinearSolverTest, primalvariable)
   MIRCO::NonLinearSolver nonlinearsolver;
   nonlinearsolver.NonlinearSolve(matrix_, b_vector_, x_vector_, w_, y_);
 
-  EXPECT_NEAR(y_(0, 0), 163213.374921086, 1e-06);
-  EXPECT_NEAR(y_(1, 0), 43877.9231473546, 1e-06);
-  EXPECT_NEAR(y_(2, 0), 163702.923578063, 1e-06);
-  EXPECT_NEAR(y_(3, 0), 55159.5440853170, 1e-06);
-  EXPECT_NEAR(y_(4, 0), 10542.1713862417, 1e-06);
-  EXPECT_NEAR(y_(5, 0), 53809.0897795325, 1e-06);
-  EXPECT_NEAR(y_(6, 0), 148773.412150208, 1e-06);
-  EXPECT_NEAR(y_(7, 0), 83711.5732276221, 1e-06);
-  EXPECT_NEAR(y_(8, 0), 149262.960807186, 1e-06);
+  EXPECT_NEAR(y_(0), 163213.374921086, 1e-06);
+  EXPECT_NEAR(y_(1), 43877.9231473546, 1e-06);
+  EXPECT_NEAR(y_(2), 163702.923578063, 1e-06);
+  EXPECT_NEAR(y_(3), 55159.5440853170, 1e-06);
+  EXPECT_NEAR(y_(4), 10542.1713862417, 1e-06);
+  EXPECT_NEAR(y_(5), 53809.0897795325, 1e-06);
+  EXPECT_NEAR(y_(6), 148773.412150208, 1e-06);
+  EXPECT_NEAR(y_(7), 83711.5732276221, 1e-06);
+  EXPECT_NEAR(y_(8), 149262.960807186, 1e-06);
 }
 
 TEST_F(NonlinearSolverTest, dualvariable)
