@@ -41,9 +41,9 @@ int main(int argc, char* argv[])
   MIRCO::CreateMeshgrid(meshgrid, ngrid, GridSize);
 
   // Setup Topology
-  Epetra_SerialDenseMatrix topology;
+  Teuchos::SerialDenseMatrix<int,double> topology;
   int N = pow(2, Resolution);
-  topology.Shape(N + 1, N + 1);
+  topology.shape(N + 1, N + 1);
 
   Teuchos::RCP<MIRCO::TopologyGeneration> surfacegenerator;
   // creating the correct surface object

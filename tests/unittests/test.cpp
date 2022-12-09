@@ -1,5 +1,5 @@
-#include <Epetra_SerialDenseMatrix.h>
-#include <Epetra_SerialSymDenseMatrix.h>
+#include <Teuchos_SerialDenseMatrix.hpp>
+#include <Teuchos_SerialDenseMatrix.hpp>
 #include <gtest/gtest.h>
 #include <stdlib.h>
 #include <vector>
@@ -15,8 +15,8 @@ TEST(linearsolver, solves)
   int systemsize = 2;
 
   // Build the matrix
-  Epetra_SerialSymDenseMatrix topology;
-  topology.Shape(systemsize);
+  Teuchos::SerialDenseMatrix<int,double> topology;
+  topology.shape(systemsize, systemsize);
   for (int i = 0; i < systemsize; i++)
   {
     topology(i, i) = 2;
@@ -28,12 +28,12 @@ TEST(linearsolver, solves)
   }
 
   // Build the vectors
-  Epetra_SerialDenseMatrix vector_x;
-  Epetra_SerialDenseMatrix vector_b;
+  Teuchos::SerialDenseMatrix<int,double> vector_x;
+  Teuchos::SerialDenseMatrix<int,double> vector_b;
 
   // Bring matrices in correct form
-  vector_x.Shape(systemsize, 1);
-  vector_b.Shape(systemsize, 1);
+  vector_x.shape(systemsize, 1);
+  vector_b.shape(systemsize, 1);
 
   // Build right hand side
   for (int i = 0; i < systemsize; i++)
@@ -103,9 +103,9 @@ TEST(readtopology, RMG)
   float HurstExponent = 0.1;
   bool RandomSeedFlag = false;
   int RandomGeneratorSeed = 95;
-  Epetra_SerialDenseMatrix outsurf;
+  Teuchos::SerialDenseMatrix<int,double> outsurf;
   int N = pow(2, Resolution);
-  outsurf.Shape(N + 1, N + 1);
+  outsurf.shape(N + 1, N + 1);
   double InitialTopologyStdDeviation = 20.0;
 
   MIRCO::Rmg surface(
@@ -141,14 +141,14 @@ TEST(readtopology, RMG)
 
 TEST(warmstarting, warmstart)
 {
-  Epetra_SerialDenseMatrix xv0, yv0, xvf, yvf, pf, x0;
+  Teuchos::SerialDenseMatrix<int,double> xv0, yv0, xvf, yvf, pf, x0;
 
-  xv0.Shape(1, 3);
-  yv0.Shape(1, 3);
-  x0.Shape(3, 1);
-  xvf.Shape(1, 2);
-  yvf.Shape(1, 2);
-  pf.Shape(1, 2);
+  xv0.shape(1, 3);
+  yv0.shape(1, 3);
+  x0.shape(3, 1);
+  xvf.shape(1, 2);
+  yvf.shape(1, 2);
+  pf.shape(1, 2);
 
   xv0(0, 0) = 1;
   xv0(0, 1) = 3;

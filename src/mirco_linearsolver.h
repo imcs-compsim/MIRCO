@@ -1,8 +1,8 @@
 #ifndef SRC_LINEARSOLVER_H_
 #define SRC_LINEARSOLVER_H_
 
-#include <Epetra_SerialSpdDenseSolver.h>
-#include <Epetra_SerialSymDenseMatrix.h>
+#include <Teuchos_SerialDenseSolver.hpp>
+#include <Teuchos_SerialDenseMatrix.hpp>
 
 namespace MIRCO
 {
@@ -16,8 +16,8 @@ namespace MIRCO
      * @param vector_x Solution
      * @param vector_b RHS
      */
-    void Solve(Epetra_SerialSymDenseMatrix& matrix, Epetra_SerialDenseMatrix& vector_x,
-        Epetra_SerialDenseMatrix& vector_b);
+    void Solve(Teuchos::SerialDenseMatrix<int,double>& matrix, Teuchos::SerialDenseMatrix<int,double>& vector_x,
+        Teuchos::SerialDenseMatrix<int,double>& vector_b);
     LinearSolver() = default;
   };
 }  // namespace MIRCO

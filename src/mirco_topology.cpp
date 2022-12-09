@@ -1,5 +1,5 @@
 #include "mirco_topology.h"
-#include <Epetra_SerialDenseMatrix.h>
+#include <Teuchos_SerialDenseMatrix.hpp>
 #include <cmath>
 #include <ctime>
 #include <fstream>
@@ -9,7 +9,7 @@
 #include <vector>
 #include "mirco_topologyutilities.h"
 
-void MIRCO::ReadFile::GetSurface(Epetra_SerialDenseMatrix &z)
+void MIRCO::ReadFile::GetSurface(Teuchos::SerialDenseMatrix<int,double> &z)
 {
   std::ifstream reader(TopologyFilePath);
   std::string blaLine;
@@ -19,7 +19,7 @@ void MIRCO::ReadFile::GetSurface(Epetra_SerialDenseMatrix &z)
     dimension += 1;
   }
   reader.close();
-  z.Shape(dimension, dimension);
+  z.shape(dimension, dimension);
   int position = 0, separatorPosition, lineCounter = 0;
   std::ifstream stream(TopologyFilePath);
   std::string line, container;
@@ -41,7 +41,7 @@ void MIRCO::ReadFile::GetSurface(Epetra_SerialDenseMatrix &z)
   stream.close();
 }
 
-void MIRCO::Rmg::GetSurface(Epetra_SerialDenseMatrix &z)
+void MIRCO::Rmg::GetSurface(Teuchos::SerialDenseMatrix<int,double> &z)
 {
   srand(time(NULL));
 

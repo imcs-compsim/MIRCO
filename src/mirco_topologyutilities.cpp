@@ -1,5 +1,5 @@
 #include "mirco_topologyutilities.h"
-#include <Epetra_SerialSymDenseMatrix.h>
+#include <Teuchos_SerialDenseMatrix.hpp>
 #include <cmath>
 #include <memory>
 #include <string>
@@ -30,13 +30,13 @@ void MIRCO::CreateSurfaceObject(int Resolution, double InitialTopologyStdDeviati
   }
 }
 
-void MIRCO::ComputeMaxAndMean(Epetra_SerialDenseMatrix topology, double& zmax, double& zmean)
+void MIRCO::ComputeMaxAndMean(Teuchos::SerialDenseMatrix<int,double> topology, double& zmax, double& zmean)
 {
 #pragma omp parallel for schedule(guided, 16) reduction(+ : zmean) reduction(max : zmax)
   // Static and Guided seem even but Guided makes more sense
-  for (int i = 0; i < topology.M(); i++)
+  for (int i = 0; i < topology.numRows(); i++)
   {
-    for (int j = 0; j < topology.N(); j++)
+    for (int j = 0; j < topology.numCols(); j++)
     {
       zmean += topology(i, j);
       if (topology(i, j) > zmax)
@@ -46,5 +46,5 @@ void MIRCO::ComputeMaxAndMean(Epetra_SerialDenseMatrix topology, double& zmax, d
     }
   }
 
-  zmean = zmean / (topology.N() * topology.M());
+  zmean = zmean / (topology.numCols() * topology.numRows());
 }

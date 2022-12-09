@@ -3,7 +3,7 @@
 
 NonlinearSolverTest::NonlinearSolverTest()
 {
-  matrix_.Shape(9, 9);
+  matrix_.shape(9, 9);
   matrix_(0, 0) = 0.00381971863420549;
   matrix_(1, 0) = 0.0020;
   matrix_(2, 0) = 0.000965167479061995;
@@ -94,7 +94,7 @@ NonlinearSolverTest::NonlinearSolverTest()
   matrix_(7, 8) = 0.00200000000000000;
   matrix_(8, 8) = 0.00381971863420549;
 
-  b_vector_.Shape(9, 1);
+  b_vector_.shape(9, 1);
   b_vector_(0, 0) = 1357.42803841637;
   b_vector_(1, 0) = 1330.45347724905;
   b_vector_(2, 0) = 1357.42803841637;
@@ -105,7 +105,7 @@ NonlinearSolverTest::NonlinearSolverTest()
   b_vector_(7, 0) = 1411.27792115093;
   b_vector_(8, 0) = 1357.42803841637;
 
-  x_vector_.Shape(9, 1);
+  x_vector_.shape(9, 1);
   x_vector_(0, 0) = 161643.031767534;
   x_vector_(1, 0) = 43277.7916790043;
   x_vector_(2, 0) = 162132.580424512;
