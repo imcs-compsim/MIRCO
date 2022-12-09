@@ -1,22 +1,24 @@
 #include "mirco_contactstatus.h"
-#include <Epetra_SerialSymDenseMatrix.h>
+
+#include <Teuchos_SerialDenseMatrix.hpp>
+
 #include <cmath>
 #include <vector>
 
 void MIRCO::ComputeContactNodes(std::vector<double> &xvf, std::vector<double> &yvf,
-    std::vector<double> &pf, int &nf, Epetra_SerialDenseMatrix y, std::vector<double> xv0,
+    std::vector<double> &pf, int &nf, Teuchos::SerialDenseMatrix<int,double> y, std::vector<double> xv0,
     std::vector<double> yv0)
 {
   xvf.clear();
-  xvf.resize(y.M());
+  xvf.resize(y.numRows());
   yvf.clear();
-  yvf.resize(y.M());
-  pf.resize(y.M());
+  yvf.resize(y.numRows());
+  pf.resize(y.numRows());
   int cont = 0;
   // @} Parallelizing this slows down program, so removed it.
 
 #pragma omp for schedule(guided, 16)
-  for (int i = 0; i < y.M(); i++)
+  for (int i = 0; i < y.numRows(); i++)
   {
     if (y(i, 0) != 0)
     {

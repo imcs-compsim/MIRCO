@@ -1,11 +1,11 @@
 #include "mirco_contactpredictors.h"
-#include <Epetra_SerialSymDenseMatrix.h>
+#include <Teuchos_SerialDenseMatrix.hpp>
 #include <vector>
 #include "mirco_warmstart.h"
 
 void MIRCO::ContactSetPredictor(int &n0, std::vector<double> &xv0, std::vector<double> &yv0,
     std::vector<double> &b0, double zmax, double Delta, double w_el, std::vector<double> &meshgrid,
-    Epetra_SerialDenseMatrix &topology)
+    Teuchos::SerialDenseMatrix<int,double> &topology)
 {
   std::vector<int> col, row;
   double value = zmax - Delta - w_el;
@@ -13,9 +13,9 @@ void MIRCO::ContactSetPredictor(int &n0, std::vector<double> &xv0, std::vector<d
   col.clear();
 
   // Data is even, guided makes more sense
-  for (int i = 0; i < topology.N(); i++)
+  for (int i = 0; i < topology.numCols(); i++)
   {
-    for (int j = 0; j < topology.N(); j++)
+    for (int j = 0; j < topology.numCols(); j++)
     {
       if (topology(i, j) >= value)
       {
@@ -75,17 +75,17 @@ void MIRCO::ContactSetPredictor(int &n0, std::vector<double> &xv0, std::vector<d
 
 void MIRCO::InitialGuessPredictor(bool WarmStartingFlag, int k, int n0, int nf,
     std::vector<double> xv0, std::vector<double> yv0, std::vector<double> pf,
-    Epetra_SerialDenseMatrix &x0, std::vector<double> &b0, std::vector<double> xvf,
+    Teuchos::SerialDenseMatrix<int,double> &x0, std::vector<double> &b0, std::vector<double> xvf,
     std::vector<double> yvf)
 {
-  Epetra_SerialDenseMatrix xv0t, yv0t, xvft, yvft, pft;  // Temporary variables for warmup
+  Teuchos::SerialDenseMatrix<int,double> xv0t, yv0t, xvft, yvft, pft;  // Temporary variables for warmup
   if (WarmStartingFlag == 1 && k > 0)
   {
-    xv0t.Shape(1, n0);
-    yv0t.Shape(1, n0);
-    xvft.Shape(1, nf);
-    yvft.Shape(1, nf);
-    pft.Shape(1, nf);
+    xv0t.shape(1, n0);
+    yv0t.shape(1, n0);
+    xvft.shape(1, nf);
+    yvft.shape(1, nf);
+    pft.shape(1, nf);
 
 #pragma omp parallel for schedule(static, 16)  // Always same workload -> Static
     for (int i = 0; i < n0; i++)
@@ -108,7 +108,7 @@ void MIRCO::InitialGuessPredictor(bool WarmStartingFlag, int k, int n0, int nf,
   {
     if (b0.size() > 0)
     {
-      x0.Shape(n0, 1);
+      x0.shape(n0, 1);
     }
   }
 }

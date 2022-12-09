@@ -1,12 +1,13 @@
 #include "mirco_nonlinearsolver.h"
-#include <Epetra_SerialSpdDenseSolver.h>
-#include <Epetra_SerialSymDenseMatrix.h>
+#include <Teuchos_SerialDenseMatrix.hpp>
+#include <Teuchos_SerialDenseVector.hpp>
+#include <Teuchos_SerialSymDenseMatrix.hpp>
 #include <vector>
 #include "mirco_linearsolver.h"
 
-void MIRCO::NonLinearSolver::NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
-    Epetra_SerialDenseMatrix& b0, Epetra_SerialDenseMatrix& y0, Epetra_SerialDenseMatrix& w,
-    Epetra_SerialDenseMatrix& y)
+void MIRCO::NonLinearSolver::NonlinearSolve(Teuchos::SerialDenseMatrix<int,double>& matrix,
+    Teuchos::SerialDenseMatrix<int,double>& b0, Teuchos::SerialDenseMatrix<int,double>& y0, Teuchos::SerialDenseMatrix<int,double>& w,
+    Teuchos::SerialDenseVector<int,double>& y)
 {
   double nnlstol = 1.0000e-08;
   double maxiter = 10000;
@@ -15,16 +16,17 @@ void MIRCO::NonLinearSolver::NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
   double alpha = 100000000;
   int iter = 0;
   bool init = false;
-  int n0 = b0.M();
-  y.Shape(n0, 1);
-  Epetra_SerialDenseMatrix s0;
+  int n0 = b0.numRows();
+  y.size(n0);
+  y.putScalar(0.0);
+  Teuchos::SerialDenseMatrix<int,double> s0;
   std::vector<int> P(n0);
-  Epetra_SerialDenseMatrix vector_x, vector_b;
-  Epetra_SerialSymDenseMatrix solverMatrix;
+  Teuchos::SerialDenseVector<int,double> vector_x, vector_b;
+  Teuchos::SerialSymDenseMatrix<int,double> solverMatrix;
 
   // Initialize active set
   std::vector<int> positions;
-  for (int i = 0; i < y0.M(); i++)
+  for (int i = 0; i < y0.numRows(); i++)
   {
     if (y0(i, 0) >= nnlstol)
     {
@@ -34,12 +36,13 @@ void MIRCO::NonLinearSolver::NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
 
   int counter = 0;
   counter = positions.size();
-  w.Reshape(b0.M(), b0.N());
+  w.reshape(b0.numRows(), b0.numCols());
+  w.putScalar(0.0);
 
   if (counter == 0)
   {
 #pragma omp parallel for schedule(static, 16)  // Always same workload -> static
-    for (int x = 0; x < b0.M(); x++)
+    for (int x = 0; x < b0.numRows(); x++)
     {
       w(x, 0) = -b0(x, 0);
     }
@@ -57,7 +60,7 @@ void MIRCO::NonLinearSolver::NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
     init = true;
   }
 
-  s0.Shape(n0, 1);
+  s0.shape(n0, 1);
   bool aux1 = true, aux2 = true;
 
   // New searching algorithm
@@ -69,7 +72,7 @@ void MIRCO::NonLinearSolver::NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
   while (aux1 == true)
   {
     // @{
-    for (int i = 0; i < w.M(); i++)
+    for (int i = 0; i < w.numRows(); i++)
     {
       values.push_back(w(i, 0));
       poss.push_back(i);
@@ -126,14 +129,14 @@ void MIRCO::NonLinearSolver::NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
     while (aux2 == true)
     {
       iter++;
-      vector_x.Shape(counter, 1);
-      vector_b.Shape(counter, 1);
-      solverMatrix.Shape(counter, counter);
+      vector_x.size(counter);
+      vector_b.size(counter);
+      solverMatrix.shape(counter);
 
 #pragma omp parallel for schedule(static, 16)  // Always same workload -> Static!
       for (int x = 0; x < counter; x++)
       {
-        vector_b(x, 0) = b0(P[x], 0);
+        vector_b(x) = b0(P[x], 0);
 
         for (int z = 0; z < counter; z++)
         {
@@ -150,7 +153,7 @@ void MIRCO::NonLinearSolver::NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
 #pragma omp parallel for schedule(static, 16)  // Always same workload -> Static!
       for (int x = 0; x < counter; x++)
       {
-        s0(P[x], 0) = vector_x(x, 0);
+        s0(P[x], 0) = vector_x(x);
       }
 
       bool allBigger = true;
@@ -169,16 +172,16 @@ void MIRCO::NonLinearSolver::NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
 #pragma omp parallel for schedule(guided, 16)
         for (int x = 0; x < counter; x++)
         {
-          y(P[x], 0) = s0(P[x], 0);
+          y(P[x]) = s0(P[x], 0);
         }
-        w.Scale(0.0);
+        w.scale(0.0);
 #pragma omp parallel for schedule(dynamic, 16)
-        for (int a = 0; a < matrix.M(); a++)
+        for (int a = 0; a < matrix.numRows(); a++)
         {
           w(a, 0) = 0;
           for (int b = 0; b < counter; b++)
           {
-            w(a, 0) += (matrix(a, P[b]) * y(P[b], 0));
+            w(a, 0) += (matrix(a, P[b]) * y(P[b]));
           }
           w(a, 0) -= b0(a, 0);
         }
@@ -198,7 +201,7 @@ void MIRCO::NonLinearSolver::NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
           {
             if (s0(P[i], 0) < nnlstol)
             {
-              alphai = y(P[i], 0) / (eps + y(P[i], 0) - s0(P[i], 0));
+              alphai = y(P[i]) / (eps + y(P[i]) - s0(P[i], 0));
               if (alphai < alphaP)
               {
                 alphaP = alphai;
@@ -216,7 +219,7 @@ void MIRCO::NonLinearSolver::NonlinearSolve(Epetra_SerialDenseMatrix& matrix,
         // TODO: WHAT BELONGS TO THIS LOOP?????????????????????
 #pragma omp parallel for schedule(guided, 16)
         for (int a = 0; a < counter; a++)
-          y(P[a], 0) = y(P[a], 0) + alpha * (s0(P[a], 0) - y(P[a], 0));
+          y(P[a]) = y(P[a]) + alpha * (s0(P[a], 0) - y(P[a]));
         if (j > 0)
         {
           // jth entry in P leaves active set

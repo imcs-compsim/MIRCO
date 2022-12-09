@@ -1,7 +1,7 @@
 #ifndef SRC_TOPOLOGY_H_
 #define SRC_TOPOLOGY_H_
 
-#include <Epetra_SerialDenseMatrix.h>
+#include <Teuchos_SerialDenseMatrix.hpp>
 #include <string>
 
 namespace MIRCO
@@ -20,7 +20,7 @@ namespace MIRCO
      * @param z Initialised topology matrix containing heights
      * @param zmax Maximum height of the topology
      */
-    virtual void GetSurface(Epetra_SerialDenseMatrix &z) = 0;
+    virtual void GetSurface(Teuchos::SerialDenseMatrix<int,double> &z) = 0;
     TopologyGeneration(int nn) { resolution = nn; }
   };
 
@@ -28,7 +28,9 @@ namespace MIRCO
   {
    public:
     std::string TopologyFilePath;
-    void GetSurface(Epetra_SerialDenseMatrix &z) override;
+
+    void GetSurface(Teuchos::SerialDenseMatrix<int,double> &z) override;
+
     /**
      * @brief Construct a Surface object by reading topology from an input file.
      *
@@ -49,7 +51,9 @@ namespace MIRCO
     double Hurst;
     bool RandomSeedFlag;
     int RandomGeneratorSeed;
-    void GetSurface(Epetra_SerialDenseMatrix &z) override;
+
+    void GetSurface(Teuchos::SerialDenseMatrix<int,double> &z) override;
+
     /**
      * @brief Construct a Surface object using Random Midpoint Generator
      *

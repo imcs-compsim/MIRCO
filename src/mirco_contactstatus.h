@@ -1,7 +1,7 @@
 #ifndef SRC_CONTACTSTATUS_H_
 #define SRC_CONTACTSTATUS_H_
 
-#include <Epetra_SerialSymDenseMatrix.h>
+#include <Teuchos_SerialDenseMatrix.hpp>
 #include <cmath>
 #include <vector>
 
@@ -19,7 +19,7 @@ namespace MIRCO
    * @param yv0 y-coordinates of the points in contact in the previous iteration.
    */
   void ComputeContactNodes(std::vector<double> &xvf, std::vector<double> &yvf,
-      std::vector<double> &pf, int &nf, Epetra_SerialDenseMatrix y, std::vector<double> xv0,
+      std::vector<double> &pf, int &nf, Teuchos::SerialDenseMatrix<int,double> y, std::vector<double> xv0,
       std::vector<double> yv0);
 
   /**

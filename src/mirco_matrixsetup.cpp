@@ -1,9 +1,9 @@
-#include <Epetra_SerialSymDenseMatrix.h>
+#include <Teuchos_SerialDenseMatrix.hpp>
 #include <vector>
 
 #include "mirco_matrixsetup.h"
 
-void MIRCO::MatrixGeneration::SetUpMatrix(Epetra_SerialDenseMatrix& A, std::vector<double> xv0,
+void MIRCO::MatrixGeneration::SetUpMatrix(Teuchos::SerialDenseMatrix<int,double>& A, std::vector<double> xv0,
     std::vector<double> yv0, double GridSize, double CompositeYoungs, int systemsize)
 {
   double r, pi = atan(1) * 4, raggio = GridSize / 2;

@@ -1,7 +1,7 @@
 #ifndef SRC_MATRIXSETUP_H_
 #define SRC_MATRIXSETUP_H_
 
-#include <Epetra_SerialSymDenseMatrix.h>
+#include <Teuchos_SerialDenseMatrix.hpp>
 #include <vector>
 
 namespace MIRCO
@@ -20,7 +20,7 @@ namespace MIRCO
      * @param CompositeYoungs The composite Young's modulus
      * @param systemsize Number of nodes predicted to be in contact
      */
-    void SetUpMatrix(Epetra_SerialDenseMatrix& A, std::vector<double> xv0, std::vector<double> yv0,
+    void SetUpMatrix(Teuchos::SerialDenseMatrix<int,double>& A, std::vector<double> xv0, std::vector<double> yv0,
         double GridSize, double CompositeYoungs, int systemsize);
     MatrixGeneration() = default;
   };

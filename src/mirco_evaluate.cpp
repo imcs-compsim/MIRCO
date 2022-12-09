@@ -1,6 +1,6 @@
 #include "mirco_evaluate.h"
-#include <Epetra_SerialSpdDenseSolver.h>
-#include <Epetra_SerialSymDenseMatrix.h>
+#include <Teuchos_SerialDenseSolver.hpp>
+#include <Teuchos_SerialDenseMatrix.hpp>
 #include <omp.h>
 #include <unistd.h>
 #include <Teuchos_Assert.hpp>
@@ -20,7 +20,7 @@
 
 void MIRCO::Evaluate(double& pressure, double Delta, double LateralLength, double GridSize,
     double Tolerance, int MaxIteration, double CompositeYoungs, bool WarmStartingFlag,
-    double ElasticComplianceCorrection, Epetra_SerialDenseMatrix& topology, double zmax,
+    double ElasticComplianceCorrection, Teuchos::SerialDenseMatrix<int,double>& topology, double zmax,
     std::vector<double>& meshgrid)
 {
   omp_set_num_threads(6);  // 6 seems to be optimal
@@ -47,15 +47,15 @@ void MIRCO::Evaluate(double& pressure, double Delta, double LateralLength, doubl
   // x0 --> contact forces at (xvf,yvf) predicted in the previous iteration but
   // are a part of currect predicted contact set. x0 is calculated in the
   // Warmstart function to be used in the NNLS to accelerate the simulation.
-  Epetra_SerialDenseMatrix x0;
+  Teuchos::SerialDenseMatrix<int,double> x0;
 
   // The number of nodes in contact in the previous iteration.
   int nf = 0;
 
   // The influence coefficient matrix (Discrete version of Green Function)
-  Epetra_SerialDenseMatrix A;
+  Teuchos::SerialDenseMatrix<int,double> A;
   // Solution containing force
-  Epetra_SerialDenseMatrix y;
+  Teuchos::SerialDenseVector<int,double> y;
 
   // Initialise the error in force
   double ErrorForce = std::numeric_limits<double>::max();
@@ -65,7 +65,7 @@ void MIRCO::Evaluate(double& pressure, double Delta, double LateralLength, doubl
     // @{
     MIRCO::ContactSetPredictor(n0, xv0, yv0, b0, zmax, Delta, w_el, meshgrid, topology);
 
-    A.Shape(xv0.size(), xv0.size());
+    A.shape(xv0.size(), xv0.size());
 
     // Construction of the Matrix A
     MIRCO::MatrixGeneration matrix1;
@@ -77,8 +77,8 @@ void MIRCO::Evaluate(double& pressure, double Delta, double LateralLength, doubl
     // }
 
     // {
-    Epetra_SerialDenseMatrix b0new;
-    b0new.Shape(b0.size(), 1);
+    Teuchos::SerialDenseMatrix<int,double> b0new;
+    b0new.shape(b0.size(), 1);
     // } Parallel region makes around this makes program slower
 #pragma omp parallel for schedule(static, 16)  // Always same workload -> Static!
     for (long unsigned int i = 0; i < b0.size(); i++)
@@ -88,7 +88,7 @@ void MIRCO::Evaluate(double& pressure, double Delta, double LateralLength, doubl
 
     // Defined as (u - u(bar)) in (Bemporad & Paggi, 2015)
     // Gap between the point on the topology and the half space
-    Epetra_SerialDenseMatrix w;
+    Teuchos::SerialDenseMatrix<int,double> w;
 
     // use Nonlinear solver --> Non-Negative Least Squares (NNLS) as in
     // (Bemporad & Paggi, 2015)

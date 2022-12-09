@@ -1,7 +1,7 @@
 #ifndef SRC_WARMSTART_H_
 #define SRC_WARMSTART_H_
 
-#include <Epetra_SerialSymDenseMatrix.h>
+#include <Teuchos_SerialDenseMatrix.hpp>
 
 namespace MIRCO
 {
@@ -18,9 +18,9 @@ namespace MIRCO
    * @param yvf y-coordinates of the points in contact in the previous iteration.
    * @param pf Contact force at (xvf,yvf) predicted in the previous iteration.
    */
-  void Warmstart(Epetra_SerialDenseMatrix& x0, Epetra_SerialDenseMatrix xv0,
-      Epetra_SerialDenseMatrix yv0, Epetra_SerialDenseMatrix& xvf, Epetra_SerialDenseMatrix& yvf,
-      Epetra_SerialDenseMatrix& pf);
+  void Warmstart(Teuchos::SerialDenseMatrix<int,double>& x0, Teuchos::SerialDenseMatrix<int,double> xv0,
+      Teuchos::SerialDenseMatrix<int,double> yv0, Teuchos::SerialDenseMatrix<int,double>& xvf, Teuchos::SerialDenseMatrix<int,double>& yvf,
+      Teuchos::SerialDenseMatrix<int,double>& pf);
 }  // namespace MIRCO
 
 #endif  // SRC_WARMSTART_H_

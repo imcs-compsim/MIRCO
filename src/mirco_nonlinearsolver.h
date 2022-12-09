@@ -1,8 +1,8 @@
 #ifndef SRC_NONLINEARSOLVER_H_
 #define SRC_NONLINEARSOLVER_H_
 
-#include <Epetra_SerialSpdDenseSolver.h>
-#include <Epetra_SerialSymDenseMatrix.h>
+#include <Teuchos_SerialDenseMatrix.hpp>
+#include <Teuchos_SerialDenseVector.hpp>
 #include <vector>
 
 namespace MIRCO
@@ -21,8 +21,8 @@ namespace MIRCO
      * @param w Gap between the point on the topology and the half space
      * @param y Solution containing force
      */
-    void NonlinearSolve(Epetra_SerialDenseMatrix& matrix, Epetra_SerialDenseMatrix& b0,
-        Epetra_SerialDenseMatrix& y0, Epetra_SerialDenseMatrix& w, Epetra_SerialDenseMatrix& y);
+    void NonlinearSolve(Teuchos::SerialDenseMatrix<int,double>& matrix, Teuchos::SerialDenseMatrix<int,double>& b0,
+        Teuchos::SerialDenseMatrix<int,double>& y0, Teuchos::SerialDenseMatrix<int,double>& w, Teuchos::SerialDenseVector<int,double>& y);
     NonLinearSolver() = default;
   };
 }  // namespace MIRCO

@@ -1,7 +1,7 @@
 #ifndef SRC_CONTACTPREDICTORS_H_
 #define SRC_CONTACTPREDICTORS_H_
 
-#include <Epetra_SerialSymDenseMatrix.h>
+#include <Teuchos_SerialDenseMatrix.hpp>
 #include <vector>
 
 namespace MIRCO
@@ -23,7 +23,7 @@ namespace MIRCO
    */
   void ContactSetPredictor(int &n0, std::vector<double> &xv0, std::vector<double> &yv0,
       std::vector<double> &b0, double zmax, double Delta, double w_el,
-      std::vector<double> &meshgrid, Epetra_SerialDenseMatrix &topology);
+      std::vector<double> &meshgrid, Teuchos::SerialDenseMatrix<int,double> &topology);
 
   /**
    * @brief The aim of this function is to guess the set of nodes in contact among the nodes
@@ -44,7 +44,7 @@ namespace MIRCO
    * @param yvf y-coordinates of the points in contact in the previous iteration.
    */
   void InitialGuessPredictor(bool WarmStartingFlag, int k, int n0, int nf, std::vector<double> xv0,
-      std::vector<double> yv0, std::vector<double> pf, Epetra_SerialDenseMatrix &x0,
+      std::vector<double> yv0, std::vector<double> pf, Teuchos::SerialDenseMatrix<int,double> &x0,
       std::vector<double> &b0, std::vector<double> xvf, std::vector<double> yvf);
 }  // namespace MIRCO
 

@@ -1,7 +1,7 @@
 #ifndef SRC_EVALUATE_H_
 #define SRC_EVALUATE_H_
 
-#include <Epetra_SerialSymDenseMatrix.h>
+#include <Teuchos_SerialDenseMatrix.hpp>
 #include <string>
 
 namespace MIRCO
@@ -24,7 +24,7 @@ namespace MIRCO
    */
   void Evaluate(double& pressure, double Delta, double LateralLength, double GridSize,
       double Tolerance, int MaxIteration, double CompositeYoungs, bool WarmStartingFlag,
-      double ElasticComplianceCorrection, Epetra_SerialDenseMatrix& topology, double zmax,
+      double ElasticComplianceCorrection, Teuchos::SerialDenseMatrix<int,double>& topology, double zmax,
       std::vector<double>& meshgrid);
 }  // namespace MIRCO
 

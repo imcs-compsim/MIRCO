@@ -1,16 +1,16 @@
 #include "mirco_warmstart.h"
-#include <Epetra_SerialSymDenseMatrix.h>
+#include <Teuchos_SerialDenseMatrix.hpp>
 #include <vector>
 
-void MIRCO::Warmstart(Epetra_SerialDenseMatrix& x0, Epetra_SerialDenseMatrix xv0,
-    Epetra_SerialDenseMatrix yv0, Epetra_SerialDenseMatrix& xvf, Epetra_SerialDenseMatrix& yvf,
-    Epetra_SerialDenseMatrix& pf)
+void MIRCO::Warmstart(Teuchos::SerialDenseMatrix<int,double>& x0, Teuchos::SerialDenseMatrix<int,double> xv0,
+    Teuchos::SerialDenseMatrix<int,double> yv0, Teuchos::SerialDenseMatrix<int,double>& xvf, Teuchos::SerialDenseMatrix<int,double>& yvf,
+    Teuchos::SerialDenseMatrix<int,double>& pf)
 {
-  x0.Shape(xv0.N(), 1);
+  x0.shape(xv0.numCols(), 1);
 
-  for (int i = 0; i < xv0.N(); i++)
+  for (int i = 0; i < xv0.numCols(); i++)
   {
-    for (int j = 0; j < xvf.N(); j++)
+    for (int j = 0; j < xvf.numCols(); j++)
     {
       if (xvf(0, j) == xv0(0, i) && yvf(0, j) == yv0(0, i))
       {
