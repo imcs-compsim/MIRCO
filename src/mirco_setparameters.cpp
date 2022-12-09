@@ -12,7 +12,7 @@
 void MIRCO::SetParameters(double& E1, double& E2, double& LateralLength, double& nu1, double& nu2,
     double& CompositeYoungs, double& alpha, double& ElasticComplianceCorrection, double& GridSize,
     double& Tolerance, double& Delta, std::string& TopologyFilePath, int& Resolution,
-    double& MaxTopologyHeight, const std::string& inputFileName, bool& RandomTopologyFlag,
+    double& InitialTopologyStdDeviation, const std::string& inputFileName, bool& RandomTopologyFlag,
     double& Hurst, bool& RandomSeedFlag, int& RandomGeneratorSeed, bool& WarmStartingFlag,
     int& MaxIteration)
 {
@@ -52,9 +52,9 @@ void MIRCO::SetParameters(double& E1, double& E2, double& LateralLength, double&
       parameterList->sublist("parameters").sublist("geometrical_parameters");
 
   Resolution = geoParams.get<int>("Resolution");
-  MaxTopologyHeight = geoParams.get<double>("MaxTopologyHeight");
   Hurst = geoParams.get<double>("HurstExponent");
   LateralLength = geoParams.get<double>("LateralLength");
+  InitialTopologyStdDeviation = geoParams.get<double>("InitialTopologyStdDeviation");
   Tolerance = geoParams.get<double>("Tolerance");
   Delta = geoParams.get<double>("Delta");
   alpha = alpha_con[Resolution - 1];

@@ -20,7 +20,7 @@ namespace MIRCO
      * @param z Initialised topology matrix containing heights
      * @param zmax Maximum height of the topology
      */
-    virtual void GetSurface(Epetra_SerialDenseMatrix &z, double &zmax) = 0;
+    virtual void GetSurface(Epetra_SerialDenseMatrix &z) = 0;
     TopologyGeneration(int nn) { resolution = nn; }
   };
 
@@ -28,7 +28,7 @@ namespace MIRCO
   {
    public:
     std::string TopologyFilePath;
-    void GetSurface(Epetra_SerialDenseMatrix &z, double &zmax) override;
+    void GetSurface(Epetra_SerialDenseMatrix &z) override;
     /**
      * @brief Construct a Surface object by reading topology from an input file.
      *
@@ -45,23 +45,24 @@ namespace MIRCO
   class Rmg : public TopologyGeneration
   {
    public:
-    double user_zmax;
+    double InitialTopologyStdDeviation;
     double Hurst;
     bool RandomSeedFlag;
     int RandomGeneratorSeed;
-    void GetSurface(Epetra_SerialDenseMatrix &z, double &zmax) override;
+    void GetSurface(Epetra_SerialDenseMatrix &z) override;
     /**
      * @brief Construct a Surface object using Random Midpoint Generator
      *
      * @param nn Resolution parameter
-     * @param u_zmax Maximum height of the topology
+     * @param InStdDev Initial Standard deviation for the random-midpoint generator
+     * [micrometers]
      * @param HH Hurst exponent
      * @param rsf Random Seed Flag
      * @param rmgs eed for the random mid-point generator
      */
-    Rmg(int nn, double u_zmax, double HH, bool rsf, int rmgs) : TopologyGeneration(nn)
+    Rmg(int nn, double InStdDev, double HH, bool rsf, int rmgs) : TopologyGeneration(nn)
     {
-      user_zmax = u_zmax;
+      InitialTopologyStdDeviation = InStdDev;
       Hurst = HH;
       RandomSeedFlag = rsf;
       RandomGeneratorSeed = rmgs;

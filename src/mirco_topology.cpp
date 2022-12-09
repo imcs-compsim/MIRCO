@@ -9,7 +9,7 @@
 #include <vector>
 #include "mirco_topologyutilities.h"
 
-void MIRCO::ReadFile::GetSurface(Epetra_SerialDenseMatrix &z, double &zmax)
+void MIRCO::ReadFile::GetSurface(Epetra_SerialDenseMatrix &z)
 {
   std::ifstream reader(TopologyFilePath);
   std::string blaLine;
@@ -39,12 +39,9 @@ void MIRCO::ReadFile::GetSurface(Epetra_SerialDenseMatrix &z, double &zmax)
     }
   }
   stream.close();
-  zmax = 0.0;
-  double zmean = 0.0;
-  MIRCO::ComputeMaxAndMean(z, zmax, zmean);
 }
 
-void MIRCO::Rmg::GetSurface(Epetra_SerialDenseMatrix &z, double &zmax)
+void MIRCO::Rmg::GetSurface(Epetra_SerialDenseMatrix &z)
 {
   srand(time(NULL));
 
@@ -63,7 +60,7 @@ void MIRCO::Rmg::GetSurface(Epetra_SerialDenseMatrix &z, double &zmax)
       0.0, 1.0);  // normal distribution: mean = 0.0, standard deviation = 1.0
 
   int N = pow(2, resolution);
-  double alpha = 1 / sqrt(0.09);
+  double alpha = InitialTopologyStdDeviation * (pow(sqrt(2), Hurst));
 
   int D = N;
   int d = N / 2;
@@ -122,6 +119,7 @@ void MIRCO::Rmg::GetSurface(Epetra_SerialDenseMatrix &z, double &zmax)
       zmin = std::min(zmin, z(i, j));
     }
   }
+
   // Setting the minimum of topology to zero
   for (int i = 0; i < N + 1; i++)
   {
@@ -130,24 +128,4 @@ void MIRCO::Rmg::GetSurface(Epetra_SerialDenseMatrix &z, double &zmax)
       z(i, j) = z(i, j) - zmin;
     }
   }
-
-  // Finding the current zmax
-  double c_zmax = std::numeric_limits<double>::lowest();
-  for (int i = 0; i < N + 1; i++)
-  {
-    for (int j = 0; j < N + 1; j++)
-    {
-      c_zmax = std::max(c_zmax, z(i, j));
-    }
-  }
-
-  // Scaling the topology with the max topology height provided by the user
-  for (int i = 0; i < N + 1; i++)
-  {
-    for (int j = 0; j < N + 1; j++)
-    {
-      z(i, j) = z(i, j) * user_zmax / c_zmax;
-    }
-  }
-  zmax = user_zmax;
 }

@@ -1,7 +1,7 @@
+#include "mirco_contactstatus.h"
 #include <Epetra_SerialSymDenseMatrix.h>
 #include <cmath>
 #include <vector>
-#include "mirco_contactstatus.h"
 
 void MIRCO::ComputeContactNodes(std::vector<double> &xvf, std::vector<double> &yvf,
     std::vector<double> &pf, int &nf, Epetra_SerialDenseMatrix y, std::vector<double> xv0,
