@@ -1,6 +1,6 @@
 #include "mirco_nonlinearsolver.h"
-#include <Teuchos_SerialDenseSolver.hpp>
 #include <Teuchos_SerialDenseMatrix.hpp>
+#include <Teuchos_SerialSymDenseMatrix.hpp>
 #include <vector>
 #include "mirco_linearsolver.h"
 
@@ -21,7 +21,7 @@ void MIRCO::NonLinearSolver::NonlinearSolve(Teuchos::SerialDenseMatrix<int,doubl
   Teuchos::SerialDenseMatrix<int,double> s0;
   std::vector<int> P(n0);
   Teuchos::SerialDenseMatrix<int,double> vector_x, vector_b;
-  Teuchos::SerialDenseMatrix<int,double> solverMatrix;
+  Teuchos::SerialSymDenseMatrix<int,double> solverMatrix;
 
   // Initialize active set
   std::vector<int> positions;
@@ -130,7 +130,7 @@ void MIRCO::NonLinearSolver::NonlinearSolve(Teuchos::SerialDenseMatrix<int,doubl
       iter++;
       vector_x.shape(counter, 1);
       vector_b.shape(counter, 1);
-      solverMatrix.shape(counter, counter);
+      solverMatrix.shape(counter);
 
 #pragma omp parallel for schedule(static, 16)  // Always same workload -> Static!
       for (int x = 0; x < counter; x++)

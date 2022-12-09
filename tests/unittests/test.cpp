@@ -1,5 +1,5 @@
 #include <Teuchos_SerialDenseMatrix.hpp>
-#include <Teuchos_SerialDenseMatrix.hpp>
+#include <Teuchos_SerialSymDenseMatrix.hpp>
 #include <gtest/gtest.h>
 #include <stdlib.h>
 #include <vector>
@@ -15,8 +15,8 @@ TEST(linearsolver, solves)
   int systemsize = 2;
 
   // Build the matrix
-  Teuchos::SerialDenseMatrix<int,double> topology;
-  topology.shape(systemsize, systemsize);
+  Teuchos::SerialSymDenseMatrix<int,double> topology;
+  topology.shape(systemsize);
   for (int i = 0; i < systemsize; i++)
   {
     topology(i, i) = 2;
