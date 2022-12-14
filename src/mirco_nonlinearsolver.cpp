@@ -5,9 +5,9 @@
 #include <vector>
 #include "mirco_linearsolver.h"
 
-void MIRCO::NonLinearSolver::NonlinearSolve(Teuchos::SerialDenseMatrix<int,double>& matrix,
-    Teuchos::SerialDenseMatrix<int,double>& b0, Teuchos::SerialDenseMatrix<int,double>& y0, Teuchos::SerialDenseMatrix<int,double>& w,
-    Teuchos::SerialDenseVector<int,double>& y)
+void MIRCO::NonLinearSolver::NonlinearSolve(Teuchos::SerialDenseMatrix<int, double>& matrix,
+    Teuchos::SerialDenseMatrix<int, double>& b0, Teuchos::SerialDenseMatrix<int, double>& y0,
+    Teuchos::SerialDenseMatrix<int, double>& w, Teuchos::SerialDenseVector<int, double>& y)
 {
   double nnlstol = 1.0000e-08;
   double maxiter = 10000;
@@ -19,10 +19,10 @@ void MIRCO::NonLinearSolver::NonlinearSolve(Teuchos::SerialDenseMatrix<int,doubl
   int n0 = b0.numRows();
   y.size(n0);
   y.putScalar(0.0);
-  Teuchos::SerialDenseMatrix<int,double> s0;
+  Teuchos::SerialDenseMatrix<int, double> s0;
   std::vector<int> P(n0);
-  Teuchos::SerialDenseVector<int,double> vector_x, vector_b;
-  Teuchos::SerialSymDenseMatrix<int,double> solverMatrix;
+  Teuchos::SerialDenseVector<int, double> vector_x, vector_b;
+  Teuchos::SerialSymDenseMatrix<int, double> solverMatrix;
 
   // Initialize active set
   std::vector<int> positions;
@@ -218,8 +218,7 @@ void MIRCO::NonLinearSolver::NonlinearSolve(Teuchos::SerialDenseMatrix<int,doubl
 
         // TODO: WHAT BELONGS TO THIS LOOP?????????????????????
 #pragma omp parallel for schedule(guided, 16)
-        for (int a = 0; a < counter; a++)
-          y(P[a]) = y(P[a]) + alpha * (s0(P[a], 0) - y(P[a]));
+        for (int a = 0; a < counter; a++) y(P[a]) = y(P[a]) + alpha * (s0(P[a], 0) - y(P[a]));
         if (j > 0)
         {
           // jth entry in P leaves active set

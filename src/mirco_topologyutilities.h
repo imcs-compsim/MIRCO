@@ -1,8 +1,8 @@
 #ifndef SRC_TOPOLOGYUTILITIES_H_
 #define SRC_TOPOLOGYUTILITIES_H_
 
-#include <Teuchos_SerialDenseMatrix.hpp>
 #include <Teuchos_RCP.hpp>
+#include <Teuchos_SerialDenseMatrix.hpp>
 #include <cmath>
 #include <memory>
 #include <string>
@@ -55,7 +55,8 @@ namespace MIRCO
    * @param zmax Maximum height
    * @param zmean Mean height
    */
-  void ComputeMaxAndMean(Teuchos::SerialDenseMatrix<int,double> topology, double& zmax, double& zmean);
+  void ComputeMaxAndMean(
+      Teuchos::SerialDenseMatrix<int, double> topology, double& zmax, double& zmean);
 }  // namespace MIRCO
 
 #endif  // SRC_TOPOLOGYUTILITIES_H_

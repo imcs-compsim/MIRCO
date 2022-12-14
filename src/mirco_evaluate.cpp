@@ -1,9 +1,9 @@
 #include "mirco_evaluate.h"
-#include <Teuchos_SerialDenseSolver.hpp>
-#include <Teuchos_SerialDenseMatrix.hpp>
 #include <omp.h>
 #include <unistd.h>
 #include <Teuchos_Assert.hpp>
+#include <Teuchos_SerialDenseMatrix.hpp>
+#include <Teuchos_SerialDenseSolver.hpp>
 #include <cmath>
 #include <cstdio>
 #include <ctime>
@@ -20,8 +20,8 @@
 
 void MIRCO::Evaluate(double& pressure, double Delta, double LateralLength, double GridSize,
     double Tolerance, int MaxIteration, double CompositeYoungs, bool WarmStartingFlag,
-    double ElasticComplianceCorrection, Teuchos::SerialDenseMatrix<int,double>& topology, double zmax,
-    std::vector<double>& meshgrid)
+    double ElasticComplianceCorrection, Teuchos::SerialDenseMatrix<int, double>& topology,
+    double zmax, std::vector<double>& meshgrid)
 {
   omp_set_num_threads(6);  // 6 seems to be optimal
 
@@ -47,15 +47,15 @@ void MIRCO::Evaluate(double& pressure, double Delta, double LateralLength, doubl
   // x0 --> contact forces at (xvf,yvf) predicted in the previous iteration but
   // are a part of currect predicted contact set. x0 is calculated in the
   // Warmstart function to be used in the NNLS to accelerate the simulation.
-  Teuchos::SerialDenseMatrix<int,double> x0;
+  Teuchos::SerialDenseMatrix<int, double> x0;
 
   // The number of nodes in contact in the previous iteration.
   int nf = 0;
 
   // The influence coefficient matrix (Discrete version of Green Function)
-  Teuchos::SerialDenseMatrix<int,double> A;
+  Teuchos::SerialDenseMatrix<int, double> A;
   // Solution containing force
-  Teuchos::SerialDenseVector<int,double> y;
+  Teuchos::SerialDenseVector<int, double> y;
 
   // Initialise the error in force
   double ErrorForce = std::numeric_limits<double>::max();
@@ -77,7 +77,7 @@ void MIRCO::Evaluate(double& pressure, double Delta, double LateralLength, doubl
     // }
 
     // {
-    Teuchos::SerialDenseMatrix<int,double> b0new;
+    Teuchos::SerialDenseMatrix<int, double> b0new;
     b0new.shape(b0.size(), 1);
     // } Parallel region makes around this makes program slower
 #pragma omp parallel for schedule(static, 16)  // Always same workload -> Static!
@@ -88,7 +88,7 @@ void MIRCO::Evaluate(double& pressure, double Delta, double LateralLength, doubl
 
     // Defined as (u - u(bar)) in (Bemporad & Paggi, 2015)
     // Gap between the point on the topology and the half space
-    Teuchos::SerialDenseMatrix<int,double> w;
+    Teuchos::SerialDenseMatrix<int, double> w;
 
     // use Nonlinear solver --> Non-Negative Least Squares (NNLS) as in
     // (Bemporad & Paggi, 2015)

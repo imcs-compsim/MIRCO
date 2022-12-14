@@ -18,7 +18,7 @@ TEST(linearsolver, solves)
   int systemsize = 2;
 
   // Build the matrix
-  Teuchos::SerialSymDenseMatrix<int,double> topology;
+  Teuchos::SerialSymDenseMatrix<int, double> topology;
   topology.shape(systemsize);
   for (int i = 0; i < systemsize; i++)
   {
@@ -31,8 +31,8 @@ TEST(linearsolver, solves)
   }
 
   // Build the vectors
-  Teuchos::SerialDenseVector<int,double> vector_x;
-  Teuchos::SerialDenseVector<int,double> vector_b;
+  Teuchos::SerialDenseVector<int, double> vector_x;
+  Teuchos::SerialDenseVector<int, double> vector_b;
 
   // Bring matrices in correct form
   vector_x.size(systemsize);
@@ -106,7 +106,7 @@ TEST(readtopology, RMG)
   float HurstExponent = 0.1;
   bool RandomSeedFlag = false;
   int RandomGeneratorSeed = 95;
-  Teuchos::SerialDenseMatrix<int,double> outsurf;
+  Teuchos::SerialDenseMatrix<int, double> outsurf;
   int N = pow(2, Resolution);
   outsurf.shape(N + 1, N + 1);
   double InitialTopologyStdDeviation = 20.0;
@@ -144,7 +144,7 @@ TEST(readtopology, RMG)
 
 TEST(warmstarting, warmstart)
 {
-  Teuchos::SerialDenseMatrix<int,double> xv0, yv0, xvf, yvf, pf, x0;
+  Teuchos::SerialDenseMatrix<int, double> xv0, yv0, xvf, yvf, pf, x0;
 
   xv0.shape(1, 3);
   yv0.shape(1, 3);

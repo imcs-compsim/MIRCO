@@ -20,7 +20,7 @@ namespace MIRCO
      * @param z Initialised topology matrix containing heights
      * @param zmax Maximum height of the topology
      */
-    virtual void GetSurface(Teuchos::SerialDenseMatrix<int,double> &z) = 0;
+    virtual void GetSurface(Teuchos::SerialDenseMatrix<int, double> &z) = 0;
     TopologyGeneration(int nn) { resolution = nn; }
   };
 
@@ -29,7 +29,7 @@ namespace MIRCO
    public:
     std::string TopologyFilePath;
 
-    void GetSurface(Teuchos::SerialDenseMatrix<int,double> &z) override;
+    void GetSurface(Teuchos::SerialDenseMatrix<int, double> &z) override;
 
     /**
      * @brief Construct a Surface object by reading topology from an input file.
@@ -52,7 +52,7 @@ namespace MIRCO
     bool RandomSeedFlag;
     int RandomGeneratorSeed;
 
-    void GetSurface(Teuchos::SerialDenseMatrix<int,double> &z) override;
+    void GetSurface(Teuchos::SerialDenseMatrix<int, double> &z) override;
 
     /**
      * @brief Construct a Surface object using Random Midpoint Generator
