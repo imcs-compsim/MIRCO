@@ -9,7 +9,7 @@
 #include <vector>
 #include "mirco_topologyutilities.h"
 
-void MIRCO::ReadFile::GetSurface(Teuchos::SerialDenseMatrix<int,double> &z)
+void MIRCO::ReadFile::GetSurface(Teuchos::SerialDenseMatrix<int, double> &z)
 {
   std::ifstream reader(TopologyFilePath);
   std::string blaLine;
@@ -41,7 +41,7 @@ void MIRCO::ReadFile::GetSurface(Teuchos::SerialDenseMatrix<int,double> &z)
   stream.close();
 }
 
-void MIRCO::Rmg::GetSurface(Teuchos::SerialDenseMatrix<int,double> &z)
+void MIRCO::Rmg::GetSurface(Teuchos::SerialDenseMatrix<int, double> &z)
 {
   srand(time(NULL));
 

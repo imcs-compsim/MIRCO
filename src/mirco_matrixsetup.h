@@ -20,8 +20,8 @@ namespace MIRCO
      * @param CompositeYoungs The composite Young's modulus
      * @param systemsize Number of nodes predicted to be in contact
      */
-    void SetUpMatrix(Teuchos::SerialDenseMatrix<int,double>& A, std::vector<double> xv0, std::vector<double> yv0,
-        double GridSize, double CompositeYoungs, int systemsize);
+    void SetUpMatrix(Teuchos::SerialDenseMatrix<int, double>& A, std::vector<double> xv0,
+        std::vector<double> yv0, double GridSize, double CompositeYoungs, int systemsize);
     MatrixGeneration() = default;
   };
 }  // namespace MIRCO

@@ -5,7 +5,7 @@
 
 void MIRCO::ContactSetPredictor(int &n0, std::vector<double> &xv0, std::vector<double> &yv0,
     std::vector<double> &b0, double zmax, double Delta, double w_el, std::vector<double> &meshgrid,
-    Teuchos::SerialDenseMatrix<int,double> &topology)
+    Teuchos::SerialDenseMatrix<int, double> &topology)
 {
   std::vector<int> col, row;
   double value = zmax - Delta - w_el;
@@ -75,10 +75,11 @@ void MIRCO::ContactSetPredictor(int &n0, std::vector<double> &xv0, std::vector<d
 
 void MIRCO::InitialGuessPredictor(bool WarmStartingFlag, int k, int n0, int nf,
     std::vector<double> xv0, std::vector<double> yv0, std::vector<double> pf,
-    Teuchos::SerialDenseMatrix<int,double> &x0, std::vector<double> &b0, std::vector<double> xvf,
+    Teuchos::SerialDenseMatrix<int, double> &x0, std::vector<double> &b0, std::vector<double> xvf,
     std::vector<double> yvf)
 {
-  Teuchos::SerialDenseMatrix<int,double> xv0t, yv0t, xvft, yvft, pft;  // Temporary variables for warmup
+  Teuchos::SerialDenseMatrix<int, double> xv0t, yv0t, xvft, yvft,
+      pft;  // Temporary variables for warmup
   if (WarmStartingFlag == 1 && k > 0)
   {
     xv0t.shape(1, n0);

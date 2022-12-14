@@ -3,8 +3,9 @@
 
 #include "mirco_matrixsetup.h"
 
-void MIRCO::MatrixGeneration::SetUpMatrix(Teuchos::SerialDenseMatrix<int,double>& A, std::vector<double> xv0,
-    std::vector<double> yv0, double GridSize, double CompositeYoungs, int systemsize)
+void MIRCO::MatrixGeneration::SetUpMatrix(Teuchos::SerialDenseMatrix<int, double>& A,
+    std::vector<double> xv0, std::vector<double> yv0, double GridSize, double CompositeYoungs,
+    int systemsize)
 {
   double r, pi = atan(1) * 4, raggio = GridSize / 2;
   double C = 1 / (CompositeYoungs * pi * raggio);

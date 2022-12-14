@@ -41,7 +41,7 @@ int main(int argc, char* argv[])
   MIRCO::CreateMeshgrid(meshgrid, ngrid, GridSize);
 
   // Setup Topology
-  Teuchos::SerialDenseMatrix<int,double> topology;
+  Teuchos::SerialDenseMatrix<int, double> topology;
   int N = pow(2, Resolution);
   topology.shape(N + 1, N + 1);
 

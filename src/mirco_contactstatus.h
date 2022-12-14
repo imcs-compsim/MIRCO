@@ -19,8 +19,8 @@ namespace MIRCO
    * @param yv0 y-coordinates of the points in contact in the previous iteration.
    */
   void ComputeContactNodes(std::vector<double> &xvf, std::vector<double> &yvf,
-      std::vector<double> &pf, int &nf, Teuchos::SerialDenseMatrix<int,double> y, std::vector<double> xv0,
-      std::vector<double> yv0);
+      std::vector<double> &pf, int &nf, Teuchos::SerialDenseMatrix<int, double> y,
+      std::vector<double> xv0, std::vector<double> yv0);
 
   /**
    * @brief The aim of this function is to calulate the contact force and contact area for the

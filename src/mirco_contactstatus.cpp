@@ -6,8 +6,8 @@
 #include <vector>
 
 void MIRCO::ComputeContactNodes(std::vector<double> &xvf, std::vector<double> &yvf,
-    std::vector<double> &pf, int &nf, Teuchos::SerialDenseMatrix<int,double> y, std::vector<double> xv0,
-    std::vector<double> yv0)
+    std::vector<double> &pf, int &nf, Teuchos::SerialDenseMatrix<int, double> y,
+    std::vector<double> xv0, std::vector<double> yv0)
 {
   xvf.clear();
   xvf.resize(y.numRows());
