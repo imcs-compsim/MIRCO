@@ -1,8 +1,10 @@
 #include "mirco_nonlinearsolver.h"
+
 #include <Teuchos_SerialDenseMatrix.hpp>
 #include <Teuchos_SerialDenseVector.hpp>
 #include <Teuchos_SerialSymDenseMatrix.hpp>
 #include <vector>
+
 #include "mirco_linearsolver.h"
 
 void MIRCO::NonLinearSolver::NonlinearSolve(Teuchos::SerialDenseMatrix<int, double>& matrix,

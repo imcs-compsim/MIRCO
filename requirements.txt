@@ -1,0 +1,2 @@
+# Python modules that will be installed into the MIRCO python virtual environment
+clang-format==14.0.0

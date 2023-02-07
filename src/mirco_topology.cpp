@@ -1,4 +1,5 @@
 #include "mirco_topology.h"
+
 #include <Teuchos_SerialDenseMatrix.hpp>
 #include <cmath>
 #include <ctime>
@@ -7,6 +8,7 @@
 #include <random>
 #include <string>
 #include <vector>
+
 #include "mirco_topologyutilities.h"
 
 void MIRCO::ReadFile::GetSurface(Teuchos::SerialDenseMatrix<int, double> &z)

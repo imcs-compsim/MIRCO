@@ -1,13 +1,13 @@
 
-#include <string>
-#include <vector>
+#include "mirco_setparameters.h"
 
 #include <Teuchos_ParameterList.hpp>
 #include <Teuchos_RCP.hpp>
 #include <Teuchos_XMLParameterListHelpers.hpp>
+#include <string>
+#include <vector>
 
 #include "mirco_filesystem_utils.h"
-#include "mirco_setparameters.h"
 
 void MIRCO::SetParameters(double& E1, double& E2, double& LateralLength, double& nu1, double& nu2,
     double& CompositeYoungs, double& alpha, double& ElasticComplianceCorrection, double& GridSize,

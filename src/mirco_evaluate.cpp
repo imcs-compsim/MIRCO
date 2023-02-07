@@ -1,6 +1,8 @@
 #include "mirco_evaluate.h"
+
 #include <omp.h>
 #include <unistd.h>
+
 #include <Teuchos_Assert.hpp>
 #include <Teuchos_SerialDenseMatrix.hpp>
 #include <Teuchos_SerialDenseSolver.hpp>
@@ -12,6 +14,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+
 #include "mirco_contactpredictors.h"
 #include "mirco_contactstatus.h"
 #include "mirco_matrixsetup.h"

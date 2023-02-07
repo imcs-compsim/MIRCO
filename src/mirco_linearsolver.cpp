@@ -1,10 +1,10 @@
+#include "mirco_linearsolver.h"
+
 #include <Teuchos_RCP.hpp>
 #include <Teuchos_SerialDenseMatrix.hpp>
 #include <Teuchos_SerialDenseVector.hpp>
 #include <Teuchos_SerialSpdDenseSolver.hpp>
 #include <Teuchos_SerialSymDenseMatrix.hpp>
-
-#include "mirco_linearsolver.h"
 
 void MIRCO::LinearSolver::Solve(Teuchos::SerialSymDenseMatrix<int, double>& matrix,
     Teuchos::SerialDenseVector<int, double>& vector_x,

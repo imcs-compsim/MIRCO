@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Path to the python virtual environment.
+PYTHON_VENV="`dirname "$0"`/utilities/mirco-python-venv"
+
+# If the virtual environment already exists, delete it.
+if [ -d "$PYTHON_VENV" ]; then rm -Rf $PYTHON_VENV; fi
+
+# Setup the virtual environment and source it.
+python3 -m venv "${PYTHON_VENV}"
+source "${PYTHON_VENV}"/bin/activate
+
+# Install all the modules defined in requirements.txt.
+pip install --upgrade pip
+pip install wheel
+pip install -r requirements.txt

@@ -1,6 +1,8 @@
 #include "mirco_contactpredictors.h"
+
 #include <Teuchos_SerialDenseMatrix.hpp>
 #include <vector>
+
 #include "mirco_warmstart.h"
 
 void MIRCO::ContactSetPredictor(int &n0, std::vector<double> &xv0, std::vector<double> &yv0,

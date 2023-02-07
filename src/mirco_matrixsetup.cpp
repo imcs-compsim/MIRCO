@@ -1,7 +1,7 @@
+#include "mirco_matrixsetup.h"
+
 #include <Teuchos_SerialDenseMatrix.hpp>
 #include <vector>
-
-#include "mirco_matrixsetup.h"
 
 void MIRCO::MatrixGeneration::SetUpMatrix(Teuchos::SerialDenseMatrix<int, double>& A,
     std::vector<double> xv0, std::vector<double> yv0, double GridSize, double CompositeYoungs,
