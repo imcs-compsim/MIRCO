@@ -1,7 +1,6 @@
 #include "mirco_contactstatus.h"
 
 #include <Teuchos_SerialDenseMatrix.hpp>
-
 #include <cmath>
 #include <vector>
 

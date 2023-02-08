@@ -1,9 +1,11 @@
 #include "mirco_topologyutilities.h"
+
 #include <Teuchos_SerialDenseMatrix.hpp>
 #include <cmath>
 #include <memory>
 #include <string>
 #include <vector>
+
 #include "mirco_topology.h"
 
 void MIRCO::CreateMeshgrid(std::vector<double>& meshgrid, int ngrid, double GridSize)

@@ -9,6 +9,24 @@ on:
   workflow_dispatch:
 
 jobs:
+  code-check:
+    name: code_check
+    runs-on: self-hosted
+    env:
+      CTEST_FAIL_ON_WARNING: "1"
+      TEST_DIRECTORY: "/home_local/github-runner/actions-runner/_work/MIRCO"
+    steps:
+      - uses: actions/checkout@v3
+      - name: Check code.
+        run: |
+          source create-mirco-python-venv
+          find src/ tests/ -iname *.h -o -iname *.c -o -iname *.cpp -o -iname *.hpp | xargs clang-format -style=file -i -fallback-style=none
+          git diff > clang_format.patch
+          if [ -s clang_format.patch ]
+          then
+            echo "Formatting incorrect. Run 'find src/ tests/ -iname *.h -o -iname *.c -o -iname *.cpp -o -iname *.hpp | xargs clang-format -style=file -i -fallback-style=none' in your local source directory and push it."
+            exit 1
+          fi
   mirco-test:
     name: mirco_test_full
     runs-on: self-hosted

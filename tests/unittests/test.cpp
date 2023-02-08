@@ -1,9 +1,9 @@
+#include <gtest/gtest.h>
+#include <stdlib.h>
+
 #include <Teuchos_SerialDenseMatrix.hpp>
 #include <Teuchos_SerialDenseVector.hpp>
 #include <Teuchos_SerialSymDenseMatrix.hpp>
-
-#include <gtest/gtest.h>
-#include <stdlib.h>
 #include <vector>
 
 #include "../../src/mirco_filesystem_utils.h"

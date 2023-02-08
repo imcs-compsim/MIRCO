@@ -2,6 +2,7 @@
 #define NONLINEAR_SOLVER_TEST_H_
 
 #include <gtest/gtest.h>
+
 #include <Teuchos_SerialDenseMatrix.hpp>
 #include <Teuchos_SerialDenseVector.hpp>
 #include <vector>
