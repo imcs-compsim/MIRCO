@@ -12,10 +12,14 @@ endif()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -Wall -Wextra -O3 -std=c++17")
 
 # Add libraries
-add_subdirectory("extern/googletest")
+if(GTEST_IN_MIRCO)
+  add_subdirectory("extern/googletest")
+endif()
 
-set(CMAKE_PREFIX_PATH ${TRILINOS_PATH} ${CMAKE_PREFIX_PATH})
-find_package(Trilinos REQUIRED COMPONENTS Teuchos)
+if(TRILINOS_IN_MIRCO)
+  set(CMAKE_PREFIX_PATH ${TRILINOS_PATH} ${CMAKE_PREFIX_PATH})
+  find_package(Trilinos REQUIRED COMPONENTS Teuchos)
+endif()
 
 # Print details on the Trilinos configuration
 if(Trilinos_FOUND)
