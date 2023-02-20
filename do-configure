@@ -10,6 +10,8 @@ echo "-- Path to source code:    " $SOURCE_DIRECTORY
 echo "-- Path to build directory:" $BUILD_DIRECTORY
 
 cmake \
+  -D TRILINOS_IN_MIRCO:BOOL="ON" \
+  -D GTEST_IN_MIRCO:BOOL="ON" \
   -D TRILINOS_PATH:PATH="${Trilinos_DIR}" \
   -D CMAKE_INSTALL_PREFIX:PATH="${BUILD_DIRECTORY}" \
   "${SOURCE_DIRECTORY}"

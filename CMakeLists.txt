@@ -12,10 +12,14 @@ endif()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -Wall -Wextra -O3 -std=c++17")
 
 # Add libraries
-add_subdirectory("extern/googletest")
+if(GTEST_IN_MIRCO)
+  add_subdirectory("extern/googletest")
+endif()
 
-set(CMAKE_PREFIX_PATH ${TRILINOS_PATH} ${CMAKE_PREFIX_PATH})
-find_package(Trilinos REQUIRED COMPONENTS Teuchos)
+if(TRILINOS_IN_MIRCO)
+  set(CMAKE_PREFIX_PATH ${TRILINOS_PATH} ${CMAKE_PREFIX_PATH})
+  find_package(Trilinos REQUIRED COMPONENTS Teuchos)
+endif()
 
 # Print details on the Trilinos configuration
 if(Trilinos_FOUND)
@@ -100,27 +104,30 @@ target_link_libraries(mirco
   ${MPI_LIBRARIES}
   )
 
-enable_testing()
-include(GoogleTest)
-
 # Compile unittest executable
-add_executable(tests
-  tests/unittests/test.cpp
-  tests/unittests/nonlinear_solver_test.cpp
-)
+if(GTEST_IN_MIRCO)
+  enable_testing()
+  include(GoogleTest)
 
-target_link_libraries(tests
-  PUBLIC OpenMP::OpenMP_CXX
-  mirco_library
-  mirco_io
-  mirco_utils
-  gtest
-  ${Trilinos_LIBRARIES}
-  ${Trilinos_TPL_LIBRARIES}
-  ${MPI_LIBRARIES}
+  add_executable(tests
+    tests/unittests/test.cpp
+    tests/unittests/nonlinear_solver_test.cpp
   )
 
-include(GoogleTest)
-gtest_discover_tests(tests)
+  target_link_libraries(tests
+    PUBLIC OpenMP::OpenMP_CXX
+    mirco_library
+    mirco_io
+    mirco_utils
+    gtest
+    ${Trilinos_LIBRARIES}
+    ${Trilinos_TPL_LIBRARIES}
+    ${MPI_LIBRARIES}
+  )
 
-include(TestingFramework.cmake)
+  include(GoogleTest)
+  gtest_discover_tests(tests)
+
+  include(TestingFramework.cmake)
+endif()
+
