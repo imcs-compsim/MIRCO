@@ -123,9 +123,8 @@ void MIRCO::Evaluate(double& pressure, double Delta, double LateralLength, doubl
       "The solution did not converge in the maximum number of iternations defined");
   // @{
 
-  // Calculate the final force and area value at the end of the iteration.
+  // Calculate the final force value at the end of the iteration.
   const double force = force0[k - 1];
-  const double area = area0[k - 1];
 
   // Mean pressure
   double sigmaz = force / pow(LateralLength, 2);
