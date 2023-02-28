@@ -110,6 +110,7 @@ target_include_directories(mirco PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/>
 )
 
+# Create mirco executable of the same name as mirco library
 add_executable(mirco-bin src/main.cpp)
 target_link_libraries(mirco-bin mirco)
 set_target_properties(mirco-bin PROPERTIES OUTPUT_NAME mirco)
