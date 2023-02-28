@@ -88,11 +88,13 @@ find_package(MPI REQUIRED)
 include_directories(${MPI_INCLUDE_PATH})
 
 # Compile mirco itself
-add_executable(mirco src/main.cpp)
+add_library(mirco src/main.cpp)
 
 # Install mirco (to be used as a library by other codes)
 install(TARGETS mirco DESTINATION lib)
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/ DESTINATION include/mirco FILES_MATCHING PATTERN "*.h*")
+
+add_library(mirco::mirco ALIAS mirco)
 
 target_link_libraries(mirco
   PUBLIC OpenMP::OpenMP_CXX
@@ -102,7 +104,15 @@ target_link_libraries(mirco
   ${Trilinos_LIBRARIES}
   ${Trilinos_TPL_LIBRARIES}
   ${MPI_LIBRARIES}
-  )
+)
+
+target_include_directories(mirco PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/>
+)
+
+add_executable(mirco-bin src/main.cpp)
+target_link_libraries(mirco-bin mirco)
+set_target_properties(mirco-bin PROPERTIES OUTPUT_NAME mirco)
 
 # Compile unittest executable
 if(GTEST_IN_MIRCO)
