@@ -59,7 +59,7 @@ link_directories(${Trilinos_TPL_LIBRARY_DIRS})
 link_directories(${Trilinos_LIBRARY_DIRS})
 
 # Compile mirco library
-add_library(mirco_library
+add_library(mirco_library SHARED
   src/mirco_topology.cpp
   src/mirco_linearsolver.cpp
   src/mirco_nonlinearsolver.cpp
@@ -71,11 +71,11 @@ add_library(mirco_library
   src/mirco_contactstatus.cpp
 )
 
-add_library(mirco_io
+add_library(mirco_io SHARED
   src/mirco_setparameters.cpp
 )
 
-add_library(mirco_utils
+add_library(mirco_utils SHARED
   src/mirco_filesystem_utils.cpp
 )
 
@@ -109,6 +109,8 @@ target_link_libraries(mirco
 target_include_directories(mirco PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/>
 )
+
+target_link_libraries(mirco_library PUBLIC OpenMP::OpenMP_CXX)
 
 # Create mirco executable of the same name as mirco library
 add_executable(mirco-bin src/main.cpp)
