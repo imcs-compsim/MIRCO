@@ -50,29 +50,31 @@ else()
 endif()
 
 # Print details on the Trilinos configuration
-if(Trilinos_FOUND)
-  message("\nFound Trilinos!  Here are the details: ")
-  message("   Trilinos_DIR = ${Trilinos_DIR}")
-  message("   Trilinos_VERSION = ${Trilinos_VERSION}")
-  message("   Trilinos_PACKAGE_LIST = ${Trilinos_PACKAGE_LIST}")
-  message("   Trilinos_LIBRARIES = ${Trilinos_LIBRARIES}")
-  message("   Trilinos_INCLUDE_DIRS = ${Trilinos_INCLUDE_DIRS}")
-  message("   Trilinos_TPL_LIST = ${Trilinos_TPL_LIST}")
-  message("   Trilinos_TPL_INCLUDE_DIRS = ${Trilinos_TPL_INCLUDE_DIRS}")
-  message("   Trilinos_TPL_LIBRARIES = ${Trilinos_TPL_LIBRARIES}")
-  message("   Trilinos_BUILD_SHARED_LIBS = ${Trilinos_BUILD_SHARED_LIBS}")
-  message("   Trilinos_CXX_COMPILER = ${Trilinos_CXX_COMPILER}")
-  message("   Trilinos_C_COMPILER = ${Trilinos_C_COMPILER}")
-  message("   Trilinos_Fortran_COMPILER = ${Trilinos_Fortran_COMPILER}")
-  message("   Trilinos_CXX_COMPILER_FLAGS = ${Trilinos_CXX_COMPILER_FLAGS}")
-  message("   Trilinos_C_COMPILER_FLAGS = ${Trilinos_C_COMPILER_FLAGS}")
-  message("   Trilinos_Fortran_COMPILER_FLAGS = ${Trilinos_Fortran_COMPILER_FLAGS}")
-  message("   Trilinos_LINKER = ${Trilinos_LINKER}")
-  message("   Trilinos_EXTRA_LD_FLAGS = ${Trilinos_EXTRA_LD_FLAGS}")
-  message("   Trilinos_AR = ${Trilinos_AR}")
-  message("End of Trilinos details\n")
-else()
-  message(FATAL_ERROR "Could not find Trilinos!")
+if(TRILINOS_IN_MIRCO)
+  if(Trilinos_FOUND)
+    message("\nFound Trilinos!  Here are the details: ")
+    message("   Trilinos_DIR = ${Trilinos_DIR}")
+    message("   Trilinos_VERSION = ${Trilinos_VERSION}")
+    message("   Trilinos_PACKAGE_LIST = ${Trilinos_PACKAGE_LIST}")
+    message("   Trilinos_LIBRARIES = ${Trilinos_LIBRARIES}")
+    message("   Trilinos_INCLUDE_DIRS = ${Trilinos_INCLUDE_DIRS}")
+    message("   Trilinos_TPL_LIST = ${Trilinos_TPL_LIST}")
+    message("   Trilinos_TPL_INCLUDE_DIRS = ${Trilinos_TPL_INCLUDE_DIRS}")
+    message("   Trilinos_TPL_LIBRARIES = ${Trilinos_TPL_LIBRARIES}")
+    message("   Trilinos_BUILD_SHARED_LIBS = ${Trilinos_BUILD_SHARED_LIBS}")
+    message("   Trilinos_CXX_COMPILER = ${Trilinos_CXX_COMPILER}")
+    message("   Trilinos_C_COMPILER = ${Trilinos_C_COMPILER}")
+    message("   Trilinos_Fortran_COMPILER = ${Trilinos_Fortran_COMPILER}")
+    message("   Trilinos_CXX_COMPILER_FLAGS = ${Trilinos_CXX_COMPILER_FLAGS}")
+    message("   Trilinos_C_COMPILER_FLAGS = ${Trilinos_C_COMPILER_FLAGS}")
+    message("   Trilinos_Fortran_COMPILER_FLAGS = ${Trilinos_Fortran_COMPILER_FLAGS}")
+    message("   Trilinos_LINKER = ${Trilinos_LINKER}")
+    message("   Trilinos_EXTRA_LD_FLAGS = ${Trilinos_EXTRA_LD_FLAGS}")
+    message("   Trilinos_AR = ${Trilinos_AR}")
+    message("End of Trilinos details\n")
+  else()
+    message(FATAL_ERROR "Could not find Trilinos!")
+  endif()
 endif()
 
 # Find OpenMP
@@ -82,7 +84,7 @@ find_package(OpenMP REQUIRED)
 find_package(MPI REQUIRED)
 
 # Compile mirco library
-add_library(mirco_library
+add_library(mirco_core
   src/mirco_topology.cpp
   src/mirco_linearsolver.cpp
   src/mirco_nonlinearsolver.cpp
@@ -93,7 +95,7 @@ add_library(mirco_library
   src/mirco_contactpredictors.cpp
   src/mirco_contactstatus.cpp
   )
-target_link_libraries(mirco_library PUBLIC Trilinos::all_selected_libs OpenMP::OpenMP_CXX)
+target_link_libraries(mirco_core PUBLIC Trilinos::all_selected_libs OpenMP::OpenMP_CXX)
 
 add_library(mirco_io
   src/mirco_setparameters.cpp
@@ -105,21 +107,35 @@ add_library(mirco_utils
   )
 
 add_library(mirco_lib INTERFACE)
-target_link_libraries(mirco_lib INTERFACE mirco_library mirco_io mirco_utils)
+target_link_libraries(mirco_lib INTERFACE mirco_core mirco_io mirco_utils)
 target_link_libraries(mirco_lib
   INTERFACE OpenMP::OpenMP_CXX
   Trilinos::all_selected_libs
   MPI::MPI_CXX
   )
 
-add_library(mirco::mirco ALIAS mirco_lib)
+target_include_directories(mirco_lib INTERFACE
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/>
+  $<INSTALL_INTERFACE:include/mirco/>
+  )
+
+add_library(mirco::mirco_lib ALIAS mirco_lib)
 
 # Compile mirco itself
 add_executable(mirco src/main.cpp)
-target_link_libraries(mirco PUBLIC mirco::mirco)
+target_link_libraries(mirco PUBLIC mirco::mirco_lib)
 
 # Install mirco (to be used as a library by other codes)
-install(TARGETS mirco DESTINATION lib)
+install(TARGETS mirco_lib mirco_core mirco_io mirco_utils _Trilinos_all_selected_libs
+  EXPORT mirco_libConfig
+  ARCHIVE LIBRARY PUBLIC_HEADER
+  )
+
+install(EXPORT mirco_libConfig
+  NAMESPACE mirco::
+  DESTINATION lib/cmake/mirco
+  )
+
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/ DESTINATION include/mirco FILES_MATCHING PATTERN "*.h*")
 
 option(GTEST_IN_MIRCO "Enable GoogleTest in MIRCO" ON)
@@ -133,7 +149,7 @@ if(GTEST_IN_MIRCO)
     tests/unittests/nonlinear_solver_test.cpp
     )
 
-  target_link_libraries(tests PUBLIC mirco::mirco gtest)
+  target_link_libraries(tests PUBLIC mirco::mirco_lib gtest)
 
   include(GoogleTest)
   gtest_discover_tests(tests)
