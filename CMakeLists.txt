@@ -127,13 +127,24 @@ target_link_libraries(mirco PUBLIC mirco::mirco_lib)
 
 # Install mirco (to be used as a library by other codes)
 install(TARGETS mirco_lib mirco_core mirco_io mirco_utils _Trilinos_all_selected_libs
-  EXPORT mirco_libConfig
+  EXPORT mirco_libTargets
   ARCHIVE LIBRARY PUBLIC_HEADER
   )
 
-install(EXPORT mirco_libConfig
+install(EXPORT mirco_libTargets
   NAMESPACE mirco::
   DESTINATION lib/cmake/mirco
+  )
+
+include(CMakePackageConfigHelpers)
+configure_package_config_file(cmake/mirco_libConfig.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/mirco_libConfig.cmake
+  INSTALL_DESTINATION lib/cmake/mirco
+  )
+
+install(FILES
+  ${CMAKE_CURRENT_BINARY_DIR}/mirco_libConfig.cmake
+  DESTINATION lib/cmake/mirco 
   )
 
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/ DESTINATION include/mirco FILES_MATCHING PATTERN "*.h*")
@@ -156,4 +167,3 @@ if(GTEST_IN_MIRCO)
 
   include(TestingFramework.cmake)
 endif()
-
