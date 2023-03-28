@@ -20,7 +20,6 @@ int main(int argc, char* argv[])
 
   bool WarmStartingFlag = false;
   int Resolution = 0;
-  double MaxTopologyHeight = 0.0;
   double nu1 = 0.0, nu2 = 0.0, CompositeYoungs = 0.0, alpha = 0.0,
          ElasticComplianceCorrection = 0.0, GridSize = 0.0, Tolerance = 0.0, E1 = 0.0, E2 = 0.0,
          LateralLength = 0.0, Delta = 0.0;
@@ -54,14 +53,13 @@ int main(int argc, char* argv[])
 
   surfacegenerator->GetSurface(topology);
 
-  double MeanTopologyHeight = 0.0;
-  MIRCO::ComputeMaxAndMean(topology, MaxTopologyHeight, MeanTopologyHeight);
+  auto max_and_mean = MIRCO::ComputeMaxAndMean(topology);
 
   // Initialise Pressure
   double pressure = 0.0;
 
   MIRCO::Evaluate(pressure, Delta, LateralLength, GridSize, Tolerance, MaxIteration,
-      CompositeYoungs, WarmStartingFlag, ElasticComplianceCorrection, topology, MaxTopologyHeight,
+      CompositeYoungs, WarmStartingFlag, ElasticComplianceCorrection, topology, max_and_mean.max_,
       meshgrid);
 
   std::cout << "Mean pressure is: " << std::to_string(pressure) << std::endl;

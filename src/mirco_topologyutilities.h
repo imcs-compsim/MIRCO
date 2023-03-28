@@ -49,14 +49,21 @@ namespace MIRCO
       int RandomGeneratorSeed, Teuchos::RCP<TopologyGeneration>& surfacegenerator);
 
   /**
-   * @brief Compute the maximum height (zmax) and the mean height (zmean) of the topology.
+   * @brief Store maximum and mean height of the topology
+   *
+   */
+  struct TopologyMaxAndMean
+  {
+    double max_;  /*!< Maximum height of the topology */
+    double mean_; /*!< Mean height of the topology */
+  };
+
+  /**
+   * @brief Compute the maximum height and the mean height of the topology.
    *
    * @param topology Topology matrix containing heights
-   * @param zmax Maximum height
-   * @param zmean Mean height
    */
-  void ComputeMaxAndMean(
-      Teuchos::SerialDenseMatrix<int, double> topology, double& zmax, double& zmean);
+  TopologyMaxAndMean ComputeMaxAndMean(const Teuchos::SerialDenseMatrix<int, double>& topology);
 }  // namespace MIRCO
 
 #endif  // SRC_TOPOLOGYUTILITIES_H_
