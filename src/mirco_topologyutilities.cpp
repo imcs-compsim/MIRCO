@@ -32,9 +32,11 @@ void MIRCO::CreateSurfaceObject(int Resolution, double InitialTopologyStdDeviati
   }
 }
 
-void MIRCO::ComputeMaxAndMean(
-    Teuchos::SerialDenseMatrix<int, double> topology, double& zmax, double& zmean)
+MIRCO::TopologyMaxAndMean MIRCO::ComputeMaxAndMean(
+    const Teuchos::SerialDenseMatrix<int, double>& topology)
 {
+  double zmax = -1.0;
+  double zmean = 0.0;
 #pragma omp parallel for schedule(guided, 16) reduction(+ : zmean) reduction(max : zmax)
   // Static and Guided seem even but Guided makes more sense
   for (int i = 0; i < topology.numRows(); i++)
@@ -50,4 +52,5 @@ void MIRCO::ComputeMaxAndMean(
   }
 
   zmean = zmean / (topology.numCols() * topology.numRows());
+  return TopologyMaxAndMean{zmax, zmean};
 }
