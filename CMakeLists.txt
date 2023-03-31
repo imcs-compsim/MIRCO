@@ -28,26 +28,21 @@ if(TRILINOS_IN_MIRCO)
   if(Trilinos_FOUND AND NOT TARGET Trilinos::all_selected_libs)
     # In preparation for newer Trilinos releases, create a target
     # Trilinos::all_selected_libs with the correct dependencies
-    add_library(_Trilinos_all_selected_libs INTERFACE)
+    add_library(Trilinos::all_selected_libs IMPORTED INTERFACE)
     target_include_directories(
-      _Trilinos_all_selected_libs
+      Trilinos::all_selected_libs
       SYSTEM
       INTERFACE ${Trilinos_INCLUDE_DIRS}
       INTERFACE ${Trilinos_TPL_INCLUDE_DIRS}
     )
     target_link_libraries(
-      _Trilinos_all_selected_libs INTERFACE ${Trilinos_LIBRARIES} ${Trilinos_TPL_LIBRARIES}
+      Trilinos::all_selected_libs INTERFACE ${Trilinos_LIBRARIES} ${Trilinos_TPL_LIBRARIES}
     )
-    add_library(Trilinos::all_selected_libs ALIAS _Trilinos_all_selected_libs)
   endif()
 else()
   # Use a Trilinos which has been found in an upstream project. This mechanism only supports the interface target.
   if(TARGET Trilinos::all_selected_libs)
     message(STATUS "Trilinos included from upstream project.")
-    add_library(_Trilinos_all_selected_libs INTERFACE)
-    target_link_libraries(
-      _Trilinos_all_selected_libs INTERFACE Trilinos::all_selected_libs
-    )
   else()
     message(FATAL_ERROR "TRILINOS_IN_MIRCO=OFF but no Trilinos target was available in the upstream project.")
   endif()
@@ -130,7 +125,7 @@ add_executable(mirco src/main.cpp)
 target_link_libraries(mirco PUBLIC mirco::mirco_lib)
 
 # Install mirco (to be used as a library by other codes)
-install(TARGETS mirco_lib mirco_core mirco_io mirco_utils _Trilinos_all_selected_libs
+install(TARGETS mirco_lib mirco_core mirco_io mirco_utils
   EXPORT mirco_libTargets
   ARCHIVE LIBRARY PUBLIC_HEADER
   )
