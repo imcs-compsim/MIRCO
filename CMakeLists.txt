@@ -46,8 +46,7 @@ else()
     message(STATUS "Trilinos included from upstream project.")
     add_library(_Trilinos_all_selected_libs INTERFACE)
     target_link_libraries(
-      _Trilinos_all_selected_libs 
-      Trilinos::all_selected_libs
+      _Trilinos_all_selected_libs INTERFACE Trilinos::all_selected_libs
     )
   else()
     message(FATAL_ERROR "TRILINOS_IN_MIRCO=OFF but no Trilinos target was available in the upstream project.")
