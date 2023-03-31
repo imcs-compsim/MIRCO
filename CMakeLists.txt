@@ -44,6 +44,11 @@ else()
   # Use a Trilinos which has been found in an upstream project. This mechanism only supports the interface target.
   if(TARGET Trilinos::all_selected_libs)
     message(STATUS "Trilinos included from upstream project.")
+    add_library(_Trilinos_all_selected_libs INTERFACE)
+    target_link_libraries(
+      _Trilinos_all_selected_libs 
+      Trilinos::all_selected_libs
+    )
   else()
     message(FATAL_ERROR "TRILINOS_IN_MIRCO=OFF but no Trilinos target was available in the upstream project.")
   endif()
