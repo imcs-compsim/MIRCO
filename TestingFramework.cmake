@@ -2,7 +2,7 @@
 macro(mirco_framework_test name_of_input_file)
   set (input_location ${PROJECT_SOURCE_DIR}/Input/${name_of_input_file})
   add_test(NAME ${name_of_input_file}
-  COMMAND ./mirco ${input_location})
+  COMMAND ./mirco ${input_location} nametest)
   
 endmacro(mirco_framework_test)
 
