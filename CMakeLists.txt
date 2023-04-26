@@ -98,6 +98,7 @@ target_link_libraries(mirco_core PUBLIC Trilinos::all_selected_libs OpenMP::Open
 
 add_library(mirco_io
   src/mirco_setparameters.cpp
+  src/mirco_postprocess.cpp
   )
 target_link_libraries(mirco_io PUBLIC Trilinos::all_selected_libs)
 
