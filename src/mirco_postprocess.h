@@ -20,8 +20,8 @@ namespace MIRCO
    * @param elapsedTimeString Number of contact points
    * @param outputFileName Output file to store results
    */
-  void PostProcess(std::vector<double> xvf, std::vector<double> yvf, std::vector<double> pf,
-      int nf, double GridSize, int ngrid, std::vector<double>& meshgrid, double LateralLength,
+  void PostProcess(std::vector<double> xvf, std::vector<double> yvf, std::vector<double> pf, int nf,
+      double GridSize, int ngrid, std::vector<double>& meshgrid, double LateralLength,
       double elapsedTime, std::string outputFileName);
 }  // namespace MIRCO
 

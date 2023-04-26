@@ -21,11 +21,11 @@
 #include "mirco_nonlinearsolver.h"
 
 
-void MIRCO::Evaluate(double Delta, double LateralLength, double GridSize,
-    double Tolerance, int MaxIteration, double CompositeYoungs, bool WarmStartingFlag,
+void MIRCO::Evaluate(double Delta, double LateralLength, double GridSize, double Tolerance,
+    int MaxIteration, double CompositeYoungs, bool WarmStartingFlag,
     double ElasticComplianceCorrection, Teuchos::SerialDenseMatrix<int, double>& topology,
-    double zmax, std::vector<double>& meshgrid, std::vector<double>& xvf,
-    std::vector<double>& yvf, std::vector<double>& pf, int& nf)
+    double zmax, std::vector<double>& meshgrid, std::vector<double>& xvf, std::vector<double>& yvf,
+    std::vector<double>& pf, int& nf)
 {
   omp_set_num_threads(6);  // 6 seems to be optimal
 
