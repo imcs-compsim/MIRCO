@@ -62,7 +62,7 @@ int main(int argc, char* argv[])
   int nf = 0;
   // Coordinates of the points in contact in the last iteration.
   std::vector<double> xvf, yvf;
-  // Contact force at (xLast,yLast) calculated in the last iteration.
+  // Contact force at (xvf,yvf) calculated in the last iteration.
   std::vector<double> pf;
 
   // Set start time
