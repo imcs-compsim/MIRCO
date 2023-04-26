@@ -13,7 +13,7 @@
 int main(int argc, char* argv[])
 {
   TEUCHOS_TEST_FOR_EXCEPTION(argc != 3, std::invalid_argument,
-      "The code expects input and output file as arguments. Full paths must be given");
+      "The code expects input file with a full path and a prefix for output files.");
   // reading the input file name from the command line
   std::string inputFileName = argv[1];
   std::string outputFileName = argv[2];
