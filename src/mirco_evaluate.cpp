@@ -26,8 +26,6 @@ void MIRCO::Evaluate(double& pressure, double Delta, double LateralLength, doubl
     double ElasticComplianceCorrection, Teuchos::SerialDenseMatrix<int, double>& topology,
     double zmax, std::vector<double>& meshgrid)
 {
-  omp_set_num_threads(6);  // 6 seems to be optimal
-
   // Initialise the area vector and force vector. Each element containing the
   // area and force calculated at every iteration.
   std::vector<double> area0;
