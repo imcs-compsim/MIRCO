@@ -39,7 +39,7 @@ void MIRCO::PostProcess(std::vector<double> xvf, std::vector<double> yvf, std::v
   {
     ix = findClosestIndex(meshgrid, xvf[i]);
     iy = findClosestIndex(meshgrid, yvf[i]);
-    forceArray[ix][iy] = pf[i];
+    forceArray[ix][ngrid-1-iy] = pf[i];
     // std::cout << ix << "\t" << iy  << std::endl;
     // std::cout << xvf[i] << "\t" << yvf[i] << "\t" << pf[i] << std::endl;
   }
