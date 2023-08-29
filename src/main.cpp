@@ -4,19 +4,22 @@
 #include <string>
 
 #include "mirco_evaluate.h"
+#include "mirco_filesystem_utils.h"
+#include "mirco_postprocess.h"
 #include "mirco_setparameters.h"
 #include "mirco_topology.h"
 #include "mirco_topologyutilities.h"
 
-
 int main(int argc, char* argv[])
 {
-  TEUCHOS_TEST_FOR_EXCEPTION(
-      argc != 2, std::invalid_argument, "The code expects (only) an input file as argument");
+  TEUCHOS_TEST_FOR_EXCEPTION(argc != 3, std::invalid_argument,
+      "The code expects input file with a full path and a prefix for output files.");
   // reading the input file name from the command line
   std::string inputFileName = argv[1];
+  std::string outputFileName = argv[2];
 
-  const auto start = std::chrono::high_resolution_clock::now();
+  // following function generates the actual path of the output file.
+  UTILS::ChangeRelativePath(outputFileName, inputFileName);
 
   bool WarmStartingFlag = false;
   int Resolution = 0;
@@ -55,17 +58,25 @@ int main(int argc, char* argv[])
 
   auto max_and_mean = MIRCO::ComputeMaxAndMean(topology);
 
-  // Initialise Pressure
-  double pressure = 0.0;
+  // Number of contact points
+  int nf = 0;
+  // Coordinates of the points in contact in the last iteration.
+  std::vector<double> xvf, yvf;
+  // Contact force at (xvf,yvf) calculated in the last iteration.
+  std::vector<double> pf;
 
-  MIRCO::Evaluate(pressure, Delta, LateralLength, GridSize, Tolerance, MaxIteration,
-      CompositeYoungs, WarmStartingFlag, ElasticComplianceCorrection, topology, max_and_mean.max_,
-      meshgrid);
+  // Set start time
+  const auto start = std::chrono::high_resolution_clock::now();
 
-  std::cout << "Mean pressure is: " << std::to_string(pressure) << std::endl;
+  MIRCO::Evaluate(Delta, LateralLength, GridSize, Tolerance, MaxIteration, CompositeYoungs,
+      WarmStartingFlag, ElasticComplianceCorrection, topology, max_and_mean.max_, meshgrid, xvf,
+      yvf, pf, nf);
 
+  // Total MIRCO simulation time
   const auto finish = std::chrono::high_resolution_clock::now();
   const double elapsedTime =
       std::chrono::duration_cast<std::chrono::seconds>(finish - start).count();
-  std::cout << "Elapsed time is: " + std::to_string(elapsedTime) + "s." << std::endl;
+
+  MIRCO::PostProcess(
+      xvf, yvf, pf, nf, GridSize, ngrid, meshgrid, LateralLength, elapsedTime, outputFileName);
 }

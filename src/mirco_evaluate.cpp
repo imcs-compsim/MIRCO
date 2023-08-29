@@ -21,10 +21,11 @@
 #include "mirco_nonlinearsolver.h"
 
 
-void MIRCO::Evaluate(double& pressure, double Delta, double LateralLength, double GridSize,
-    double Tolerance, int MaxIteration, double CompositeYoungs, bool WarmStartingFlag,
+void MIRCO::Evaluate(double Delta, double LateralLength, double GridSize, double Tolerance,
+    int MaxIteration, double CompositeYoungs, bool WarmStartingFlag,
     double ElasticComplianceCorrection, Teuchos::SerialDenseMatrix<int, double>& topology,
-    double zmax, std::vector<double>& meshgrid)
+    double zmax, std::vector<double>& meshgrid, std::vector<double>& xvf, std::vector<double>& yvf,
+    std::vector<double>& pf, int& nf)
 {
   // Initialise the area vector and force vector. Each element containing the
   // area and force calculated at every iteration.
@@ -38,20 +39,13 @@ void MIRCO::Evaluate(double& pressure, double Delta, double LateralLength, doubl
 
   // Coordinates of the points predicted to be in contact.
   std::vector<double> xv0, yv0;
-  // Coordinates of the points in contact in the previous iteration.
-  std::vector<double> xvf, yvf;
   // Indentation value of the half space at the predicted points of contact.
   std::vector<double> b0;
-  // Contact force at (xvf,yvf) predicted in the previous iteration.
-  std::vector<double> pf;
 
   // x0 --> contact forces at (xvf,yvf) predicted in the previous iteration but
   // are a part of currect predicted contact set. x0 is calculated in the
   // Warmstart function to be used in the NNLS to accelerate the simulation.
   Teuchos::SerialDenseMatrix<int, double> x0;
-
-  // The number of nodes in contact in the previous iteration.
-  int nf = 0;
 
   // The influence coefficient matrix (Discrete version of Green Function)
   Teuchos::SerialDenseMatrix<int, double> A;
@@ -119,12 +113,4 @@ void MIRCO::Evaluate(double& pressure, double Delta, double LateralLength, doubl
 
   TEUCHOS_TEST_FOR_EXCEPTION(ErrorForce > Tolerance, std::out_of_range,
       "The solution did not converge in the maximum number of iternations defined");
-  // @{
-
-  // Calculate the final force value at the end of the iteration.
-  const double force = force0[k - 1];
-
-  // Mean pressure
-  double sigmaz = force / pow(LateralLength, 2);
-  pressure = sigmaz;
 }
