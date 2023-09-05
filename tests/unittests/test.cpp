@@ -144,31 +144,32 @@ TEST(readtopology, RMG)
 
 TEST(warmstarting, warmstart)
 {
-  Teuchos::SerialDenseMatrix<int, double> xv0, yv0, xvf, yvf, pf, x0;
+  Teuchos::SerialDenseMatrix<int, double> x0;
+  std::vector<double> xv0, yv0, xvf, yvf, pf;
 
-  xv0.shape(1, 3);
-  yv0.shape(1, 3);
+  xv0.resize(3);
+  yv0.resize(3);
   x0.shape(3, 1);
-  xvf.shape(1, 2);
-  yvf.shape(1, 2);
-  pf.shape(1, 2);
+  xvf.resize(2);
+  yvf.resize(2);
+  pf.resize(2);
 
-  xv0(0, 0) = 1;
-  xv0(0, 1) = 3;
-  xv0(0, 2) = 5;
+  xv0[0] = 1;
+  xv0[1] = 3;
+  xv0[2] = 5;
 
-  yv0(0, 0) = 2;
-  yv0(0, 1) = 4;
-  yv0(0, 2) = 6;
+  yv0[0] = 2;
+  yv0[1] = 4;
+  yv0[2] = 6;
 
-  xvf(0, 0) = 1;
-  xvf(0, 1) = 5;
+  xvf[0] = 1;
+  xvf[1] = 5;
 
-  yvf(0, 0) = 2;
-  yvf(0, 1) = 6;
+  yvf[0] = 2;
+  yvf[1] = 6;
 
-  pf(0, 0) = 10;
-  pf(0, 1) = 30;
+  pf[0] = 10;
+  pf[1] = 30;
 
   MIRCO::Warmstart(x0, xv0, yv0, xvf, yvf, pf);
 

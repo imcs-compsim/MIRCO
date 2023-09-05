@@ -74,7 +74,7 @@ void MIRCO::Evaluate(double& pressure, double Delta, double LateralLength, doubl
 
     // Second predictor for contact set
     // @{
-    MIRCO::InitialGuessPredictor(WarmStartingFlag, k, n0, nf, xv0, yv0, pf, x0, b0, xvf, yvf);
+    MIRCO::InitialGuessPredictor(WarmStartingFlag, k, n0, xv0, yv0, pf, x0, b0, xvf, yvf);
     // }
 
     // {

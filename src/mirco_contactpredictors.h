@@ -33,7 +33,6 @@ namespace MIRCO
    * @param WarmStartingFlag Warm-Starter flag
    * @param k Iteration number
    * @param n0 Number of nodes predicted to be in contact
-   * @param nf Number of nodes in contact in the previous iteration
    * @param xv0 x-coordinates of the points in contact in the previous iteration.
    * @param yv0 y-coordinates of the points in contact in the previous iteration.
    * @param pf Contact force at (xvf,yvf) predicted in the previous iteration.
@@ -43,7 +42,7 @@ namespace MIRCO
    * @param xvf x-coordinates of the points in contact in the previous iteration.
    * @param yvf y-coordinates of the points in contact in the previous iteration.
    */
-  void InitialGuessPredictor(bool WarmStartingFlag, int k, int n0, int nf, std::vector<double> xv0,
+  void InitialGuessPredictor(bool WarmStartingFlag, int k, int n0, std::vector<double> xv0,
       std::vector<double> yv0, std::vector<double> pf, Teuchos::SerialDenseMatrix<int, double> &x0,
       std::vector<double> &b0, std::vector<double> xvf, std::vector<double> yvf);
 }  // namespace MIRCO
