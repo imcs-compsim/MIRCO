@@ -75,12 +75,10 @@ void MIRCO::ContactSetPredictor(int &n0, std::vector<double> &xv0, std::vector<d
   }
 }
 
-void MIRCO::InitialGuessPredictor(bool WarmStartingFlag, int k, int n0, std::vector<double> xv0,
-    std::vector<double> yv0, std::vector<double> pf, Teuchos::SerialDenseMatrix<int, double> &x0,
-    std::vector<double> &b0, std::vector<double> xvf, std::vector<double> yvf)
+void MIRCO::InitialGuessPredictor(bool WarmStartingFlag, int k, int n0, std::vector<double> &xv0,
+    std::vector<double> &yv0, std::vector<double> &pf, Teuchos::SerialDenseMatrix<int, double> &x0,
+    std::vector<double> &b0, std::vector<double> &xvf, std::vector<double> &yvf)
 {
-  Teuchos::SerialDenseMatrix<int, double> xv0t, yv0t, xvft, yvft,
-      pft;  // Temporary variables for warmup
   if (WarmStartingFlag == 1 && k > 0)
   {
     MIRCO::Warmstart(x0, xv0, yv0, xvf, yvf, pf);

@@ -42,9 +42,10 @@ namespace MIRCO
    * @param xvf x-coordinates of the points in contact in the previous iteration.
    * @param yvf y-coordinates of the points in contact in the previous iteration.
    */
-  void InitialGuessPredictor(bool WarmStartingFlag, int k, int n0, std::vector<double> xv0,
-      std::vector<double> yv0, std::vector<double> pf, Teuchos::SerialDenseMatrix<int, double> &x0,
-      std::vector<double> &b0, std::vector<double> xvf, std::vector<double> yvf);
+  void InitialGuessPredictor(bool WarmStartingFlag, int k, int n0, std::vector<double> &xv0,
+      std::vector<double> &yv0, std::vector<double> &pf,
+      Teuchos::SerialDenseMatrix<int, double> &x0, std::vector<double> &b0,
+      std::vector<double> &xvf, std::vector<double> &yvf);
 }  // namespace MIRCO
 
 #endif  // SRC_CONTACTPREDICTORS_H_
