@@ -78,15 +78,6 @@ void MIRCO::Evaluate(double& pressure, double Delta, double LateralLength, doubl
     // }
 
     // {
-    Teuchos::SerialDenseMatrix<int, double> b0new;
-    b0new.shape(b0.size(), 1);
-    // } Parallel region makes around this makes program slower
-#pragma omp parallel for schedule(static, 16)  // Always same workload -> Static!
-    for (long unsigned int i = 0; i < b0.size(); i++)
-    {
-      b0new(i, 0) = b0[i];
-    }
-
     // Defined as (u - u(bar)) in (Bemporad & Paggi, 2015)
     // Gap between the point on the topology and the half space
     Teuchos::SerialDenseMatrix<int, double> w;
@@ -94,7 +85,7 @@ void MIRCO::Evaluate(double& pressure, double Delta, double LateralLength, doubl
     // use Nonlinear solver --> Non-Negative Least Squares (NNLS) as in
     // (Bemporad & Paggi, 2015)
     MIRCO::NonLinearSolver solution2;
-    solution2.NonlinearSolve(A, b0new, x0, w, y);
+    solution2.NonlinearSolve(A, b0, x0, w, y);
 
     // Compute number of contact node
     // @{

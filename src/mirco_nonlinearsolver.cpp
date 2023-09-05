@@ -8,7 +8,7 @@
 #include "mirco_linearsolver.h"
 
 void MIRCO::NonLinearSolver::NonlinearSolve(Teuchos::SerialDenseMatrix<int, double>& matrix,
-    Teuchos::SerialDenseMatrix<int, double>& b0, Teuchos::SerialDenseMatrix<int, double>& y0,
+    std::vector<double>& b0, Teuchos::SerialDenseMatrix<int, double>& y0,
     Teuchos::SerialDenseMatrix<int, double>& w, Teuchos::SerialDenseVector<int, double>& y)
 {
   double nnlstol = 1.0000e-08;
@@ -18,7 +18,7 @@ void MIRCO::NonLinearSolver::NonlinearSolve(Teuchos::SerialDenseMatrix<int, doub
   double alpha = 100000000;
   int iter = 0;
   bool init = false;
-  int n0 = b0.numRows();
+  int n0 = b0.size();
   y.size(n0);
   y.putScalar(0.0);
   Teuchos::SerialDenseMatrix<int, double> s0;
@@ -38,15 +38,15 @@ void MIRCO::NonLinearSolver::NonlinearSolve(Teuchos::SerialDenseMatrix<int, doub
 
   int counter = 0;
   counter = positions.size();
-  w.reshape(b0.numRows(), b0.numCols());
+  w.reshape(n0, 1);
   w.putScalar(0.0);
 
   if (counter == 0)
   {
 #pragma omp parallel for schedule(static, 16)  // Always same workload -> static
-    for (int x = 0; x < b0.numRows(); x++)
+    for (int x = 0; x < n0; x++)
     {
-      w(x, 0) = -b0(x, 0);
+      w(x, 0) = -b0[x];
     }
 
     init = false;
@@ -138,7 +138,7 @@ void MIRCO::NonLinearSolver::NonlinearSolve(Teuchos::SerialDenseMatrix<int, doub
 #pragma omp parallel for schedule(static, 16)  // Always same workload -> Static!
       for (int x = 0; x < counter; x++)
       {
-        vector_b(x) = b0(P[x], 0);
+        vector_b(x) = b0[P[x]];
 
         for (int z = 0; z < counter; z++)
         {
@@ -185,7 +185,7 @@ void MIRCO::NonLinearSolver::NonlinearSolve(Teuchos::SerialDenseMatrix<int, doub
           {
             w(a, 0) += (matrix(a, P[b]) * y(P[b]));
           }
-          w(a, 0) -= b0(a, 0);
+          w(a, 0) -= b0[a];
         }
       }
       else
