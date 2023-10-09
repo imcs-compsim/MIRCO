@@ -18,9 +18,9 @@ namespace MIRCO
    * @param yvf y-coordinates of the points in contact in the previous iteration.
    * @param pf Contact force at (xvf,yvf) predicted in the previous iteration.
    */
-  void Warmstart(Teuchos::SerialDenseMatrix<int, double>& x0, std::vector<double>& xv0,
-      std::vector<double>& yv0, std::vector<double>& xvf, std::vector<double>& yvf,
-      std::vector<double>& pf);
+  void Warmstart(Teuchos::SerialDenseMatrix<int, double>& x0, const std::vector<double>& xv0,
+      const std::vector<double>& yv0, const std::vector<double>& xvf,
+      const std::vector<double>& yvf, const std::vector<double>& pf);
 }  // namespace MIRCO
 
 #endif  // SRC_WARMSTART_H_

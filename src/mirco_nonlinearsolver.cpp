@@ -7,8 +7,8 @@
 
 #include "mirco_linearsolver.h"
 
-void MIRCO::NonLinearSolver::NonlinearSolve(Teuchos::SerialDenseMatrix<int, double>& matrix,
-    std::vector<double>& b0, Teuchos::SerialDenseMatrix<int, double>& y0,
+void MIRCO::NonLinearSolver::NonlinearSolve(const Teuchos::SerialDenseMatrix<int, double>& matrix,
+    const std::vector<double>& b0, const Teuchos::SerialDenseMatrix<int, double>& y0,
     Teuchos::SerialDenseMatrix<int, double>& w, Teuchos::SerialDenseVector<int, double>& y)
 {
   double nnlstol = 1.0000e-08;

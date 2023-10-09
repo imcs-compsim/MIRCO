@@ -23,7 +23,7 @@ namespace MIRCO
    */
   void ContactSetPredictor(int &n0, std::vector<double> &xv0, std::vector<double> &yv0,
       std::vector<double> &b0, double zmax, double Delta, double w_el,
-      std::vector<double> &meshgrid, Teuchos::SerialDenseMatrix<int, double> &topology);
+      const std::vector<double> &meshgrid, const Teuchos::SerialDenseMatrix<int, double> &topology);
 
   /**
    * @brief The aim of this function is to guess the set of nodes in contact among the nodes
@@ -42,10 +42,10 @@ namespace MIRCO
    * @param xvf x-coordinates of the points in contact in the previous iteration.
    * @param yvf y-coordinates of the points in contact in the previous iteration.
    */
-  void InitialGuessPredictor(bool WarmStartingFlag, int k, int n0, std::vector<double> &xv0,
-      std::vector<double> &yv0, std::vector<double> &pf,
-      Teuchos::SerialDenseMatrix<int, double> &x0, std::vector<double> &b0,
-      std::vector<double> &xvf, std::vector<double> &yvf);
+  void InitialGuessPredictor(bool WarmStartingFlag, int k, int n0, const std::vector<double> &xv0,
+      const std::vector<double> &yv0, const std::vector<double> &pf,
+      Teuchos::SerialDenseMatrix<int, double> &x0, const std::vector<double> &b0,
+      const std::vector<double> &xvf, const std::vector<double> &yvf);
 }  // namespace MIRCO
 
 #endif  // SRC_CONTACTPREDICTORS_H_

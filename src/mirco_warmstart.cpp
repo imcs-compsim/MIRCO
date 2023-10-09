@@ -3,9 +3,9 @@
 #include <Teuchos_SerialDenseMatrix.hpp>
 #include <vector>
 
-void MIRCO::Warmstart(Teuchos::SerialDenseMatrix<int, double>& x0, std::vector<double>& xv0,
-    std::vector<double>& yv0, std::vector<double>& xvf, std::vector<double>& yvf,
-    std::vector<double>& pf)
+void MIRCO::Warmstart(Teuchos::SerialDenseMatrix<int, double>& x0, const std::vector<double>& xv0,
+    const std::vector<double>& yv0, const std::vector<double>& xvf, const std::vector<double>& yvf,
+    const std::vector<double>& pf)
 {
   x0.shape(xv0.size(), 1);
 
