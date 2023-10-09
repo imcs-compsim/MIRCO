@@ -9,14 +9,16 @@ void MIRCO::Warmstart(Teuchos::SerialDenseMatrix<int, double>& x0, const std::ve
 {
   x0.shape(xv0.size(), 1);
 
-  for (long unsigned int i = 0; i < xv0.size(); i++)
+  for (size_t i = 0; i < xv0.size(); i++)
   {
-    for (long unsigned int j = 0; j < xvf.size(); j++)
+    auto it_x = std::find(xvf.begin(), xvf.end(), xv0[i]);
+    auto it_y = std::find(yvf.begin(), yvf.end(), yv0[i]);
+
+    if (it_x != xvf.end() && it_y != yvf.end() &&
+        std::distance(xvf.begin(), it_x) == std::distance(yvf.begin(), it_y))
     {
-      if (xvf[j] == xv0[i] && yvf[j] == yv0[i])
-      {
-        x0(i, 0) = pf[j];
-      }
+      size_t j = std::distance(xvf.begin(), it_x);
+      x0(i, 0) = pf[j];
     }
   }
 }

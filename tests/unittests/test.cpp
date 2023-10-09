@@ -178,6 +178,49 @@ TEST(warmstarting, warmstart)
   EXPECT_EQ(x0(2, 0), 30);
 }
 
+TEST(warmstarting, warmstart2)
+{
+  Teuchos::SerialDenseMatrix<int, double> x0;
+  std::vector<double> xv0, yv0, xvf, yvf, pf;
+
+  xv0.resize(3);
+  yv0.resize(3);
+  x0.shape(3, 1);
+  xvf.resize(4);
+  yvf.resize(4);
+  pf.resize(4);
+
+  xv0[0] = 1;
+  xv0[1] = 3;
+  xv0[2] = 5;
+
+  yv0[0] = 2;
+  yv0[1] = 4;
+  yv0[2] = 6;
+
+  xvf[0] = 1;
+  xvf[1] = 7;
+  xvf[2] = 9;
+  xvf[3] = 5;
+
+
+  yvf[0] = 2;
+  yvf[1] = 8;
+  yvf[2] = 10;
+  yvf[3] = 6;
+
+  pf[0] = 10;
+  pf[1] = 50;
+  pf[2] = 70;
+  pf[3] = 30;
+
+  MIRCO::Warmstart(x0, xv0, yv0, xvf, yvf, pf);
+
+  EXPECT_EQ(x0(0, 0), 10);
+  EXPECT_EQ(x0(1, 0), 0);
+  EXPECT_EQ(x0(2, 0), 30);
+}
+
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);
