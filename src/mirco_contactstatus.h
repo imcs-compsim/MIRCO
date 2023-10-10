@@ -35,10 +35,12 @@ namespace MIRCO
    * @param GridSize Grid size
    * @param LateralLength Lateral side of the surface [micrometers]
    * @param ElasticComplianceCorrection Elastic compliance correction
+   * @param PressureGreenFunFlag Flag to use Green function based on uniform pressure instead of
+   * point force
    */
   void ComputeContactForceAndArea(std::vector<double> &force0, std::vector<double> &area0,
       double &w_el, int nf, std::vector<double> pf, int k, double GridSize, double LateralLength,
-      double ElasticComplianceCorrection);
+      double ElasticComplianceCorrection, bool PressureGreenFunFlag);
 }  // namespace MIRCO
 
 #endif  // SRC_CONTACTSTATUS_H_

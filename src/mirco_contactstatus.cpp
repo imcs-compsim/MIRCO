@@ -36,14 +36,21 @@ void MIRCO::ComputeContactNodes(std::vector<double> &xvf, std::vector<double> &y
 
 void MIRCO::ComputeContactForceAndArea(std::vector<double> &force0, std::vector<double> &area0,
     double &w_el, int nf, std::vector<double> pf, int k, double GridSize, double LateralLength,
-    double ElasticComplianceCorrection)
+    double ElasticComplianceCorrection, bool PressureGreenFunFlag)
 {
   force0.push_back(0);
   double sum = 0;
 #pragma omp parallel for schedule(static, 16) reduction(+ : sum)  // Always same workload -> Static!
   for (int i = 0; i < nf; i++)
   {
-    sum += pf[i];
+    if (PressureGreenFunFlag)
+    {
+      sum += pf[i] * pow(GridSize, 2);
+    }
+    else
+    {
+      sum += pf[i];
+    }
   }
   force0[k] += sum;
   area0.push_back(nf * (pow(GridSize, 2) / pow(LateralLength, 2)) * 100);
