@@ -13,7 +13,8 @@ class NonlinearSolverTest : public ::testing::Test
   NonlinearSolverTest();
 
   Teuchos::SerialDenseMatrix<int, double> matrix_, w_;
-  Teuchos::SerialDenseVector<int, double> x_vector_, b_vector_, y_;
+  Teuchos::SerialDenseVector<int, double> x_vector_, y_;
+  std::vector<double> b_vector_;
 };
 
 #endif /* NONLINEAR_SOLVER_TEST_H_ */

@@ -21,8 +21,8 @@ namespace MIRCO
      * @param w Gap between the point on the topology and the half space
      * @param y Solution containing force
      */
-    void NonlinearSolve(Teuchos::SerialDenseMatrix<int, double>& matrix,
-        Teuchos::SerialDenseMatrix<int, double>& b0, Teuchos::SerialDenseMatrix<int, double>& y0,
+    void NonlinearSolve(const Teuchos::SerialDenseMatrix<int, double>& matrix,
+        const std::vector<double>& b0, const Teuchos::SerialDenseMatrix<int, double>& y0,
         Teuchos::SerialDenseMatrix<int, double>& w, Teuchos::SerialDenseVector<int, double>& y);
     NonLinearSolver() = default;
   };
