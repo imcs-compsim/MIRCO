@@ -53,6 +53,6 @@ void MIRCO::ComputeContactForceAndArea(std::vector<double> &force0, std::vector<
     }
   }
   force0[k] += sum;
-  area0.push_back(nf * (pow(GridSize, 2) / pow(LateralLength, 2)) * 100);
+  area0.push_back(nf * (pow(GridSize, 2) / pow(LateralLength, 2)));
   w_el = force0[k] / ElasticComplianceCorrection;
 }
