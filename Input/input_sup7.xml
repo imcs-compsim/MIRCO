@@ -5,7 +5,7 @@
   <Parameter name="RandomGeneratorSeed" type="int" value="95"/>
   <Parameter name="TopologyFilePath" type="string" value="sup2.dat"/>
   <Parameter name="MaxIteration" type="int" value="100"/>
-  <Parameter name="PressureGreenFunFlag" type="bool" value="false"/>
+  <Parameter name="PressureGreenFunFlag" type="bool" value="true"/>
 
   <ParameterList name="parameters">
     <ParameterList name="material_parameters">
@@ -17,7 +17,7 @@
 
     <ParameterList name="geometrical_parameters">
       <Parameter name="LateralLength" type="double" value="1000.0"/>
-      <Parameter name="Resolution" type="int" value="6"/>
+      <Parameter name="Resolution" type="int" value="7"/>
       <Parameter name="HurstExponent" type="double" value="0.7"/>
       <Parameter name="InitialTopologyStdDeviation" type="double" value="20.0"/>
       <Parameter name="Delta" type="double" value="10.0"/>
