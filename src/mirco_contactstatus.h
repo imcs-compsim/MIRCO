@@ -32,7 +32,7 @@ namespace MIRCO
    * @param nf Number of nodes in contact in the previous iteration
    * @param pf Contact force at (xvf,yvf) predicted in the previous iteration.
    * @param k Iteration number
-   * @param GridSize Grid size
+   * @param GridSize Grid size (length of each cell)
    * @param LateralLength Lateral side of the surface [micrometers]
    * @param ElasticComplianceCorrection Elastic compliance correction
    * @param PressureGreenFunFlag Flag to use Green function based on uniform pressure instead of

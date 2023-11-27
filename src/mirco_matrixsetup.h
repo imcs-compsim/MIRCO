@@ -16,7 +16,7 @@ namespace MIRCO
      * @param A Influence coefficient matrix (Discrete version of Green Function)
      * @param xv0 x-coordinates of the points in contact in the previous iteration.
      * @param yv0 y-coordinates of the points in contact in the previous iteration.
-     * @param GridSize Grid size
+     * @param GridSize Grid size (length of each cell)
      * @param CompositeYoungs The composite Young's modulus
      * @param CompositePoissonsRatio The composite Poisson's ratio
      * @param systemsize Number of nodes predicted to be in contact

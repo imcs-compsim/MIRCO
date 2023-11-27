@@ -19,7 +19,7 @@ namespace MIRCO
    * @param CompositePoissonsRatio The composite Poisson's ratio
    * @param alpha Correction factor for this problem. Depends on the resolution.
    * @param ElasticComplianceCorrection Elastic compliance correction
-   * @param GridSize Grid size
+   * @param GridSize Grid size (length of each cell)
    * @param Tolerance Tolerance for the convergence of force.
    * @param Delta Far-field displacement (Gap).
    * @param TopologyFilePath Path of the input file containing the topology.

@@ -18,7 +18,7 @@ namespace MIRCO
    *
    * @param meshgrid Meshgrid vector
    * @param ngrid Number of grid points in one direction
-   * @param GridSize Grid size
+   * @param GridSize Grid size (length of each cell)
    */
   void CreateMeshgrid(std::vector<double>& meshgrid, int ngrid, double GridSize);
 

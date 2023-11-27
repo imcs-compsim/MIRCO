@@ -12,7 +12,7 @@ namespace MIRCO
    * @param pressure Pressure
    * @param Delta Far-field displacement (Gap)
    * @param LateralLength Lateral side of the surface [micrometers]
-   * @param GridSize Grid size
+   * @param GridSize Grid size (length of each cell)
    * @param Tolerance Tolerance for the convergence of force
    * @param MaxIteration Maximum number of iterations for the force to converge
    * @param CompositeYoungs Composite Young's modulus
