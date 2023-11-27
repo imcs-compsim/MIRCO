@@ -1,5 +1,7 @@
 #include "mirco_matrixsetup.h"
 
+#include <math.h>
+
 #include <Teuchos_SerialDenseMatrix.hpp>
 #include <vector>
 
@@ -7,7 +9,7 @@ void MIRCO::MatrixGeneration::SetUpMatrix(Teuchos::SerialDenseMatrix<int, double
     std::vector<double> xv0, std::vector<double> yv0, double GridSize, double CompositeYoungs,
     double CompositePoissonsRatio, int systemsize, bool PressureGreenFunFlag)
 {
-  double pi = atan(1) * 4;
+  double pi = M_PI;
   if (PressureGreenFunFlag)
   {
     for (int i = 0; i < systemsize; i++)
