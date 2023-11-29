@@ -16,9 +16,10 @@ namespace MIRCO
    * @param nu1 Poisson's ratio of body 1
    * @param nu2 Poisson's ratio of body 2
    * @param CompositeYoungs The composite Young's modulus
+   * @param CompositePoissonsRatio The composite Poisson's ratio
    * @param alpha Correction factor for this problem. Depends on the resolution.
    * @param ElasticComplianceCorrection Elastic compliance correction
-   * @param GridSize Grid size
+   * @param GridSize Grid size (length of each cell)
    * @param Tolerance Tolerance for the convergence of force.
    * @param Delta Far-field displacement (Gap).
    * @param TopologyFilePath Path of the input file containing the topology.
@@ -35,13 +36,16 @@ namespace MIRCO
    * @param WarmStartingFlag Set `true` for using the warm starter. It predicts the nodes coming
    * into contact in the next iteration and hence speeds up the computation.
    * @param MaxIteration Maximum number of iterations for the force to converge.
+   * @param PressureGreenFunFlag Flag to use Green function based on uniform pressure instead of
+   * point force
    */
   void SetParameters(double& E1, double& E2, double& LateralLength, double& nu1, double& nu2,
-      double& CompositeYoungs, double& alpha, double& ElasticComplianceCorrection, double& GridSize,
-      double& Tolerance, double& Delta, std::string& TopologyFilePath, int& Resolution,
-      double& InitialTopologyStdDeviation, const std::string& inputFileName,
-      bool& RandomTopologyFlag, double& Hurst, bool& RandomSeedFlag, int& RandomGeneratorSeed,
-      bool& WarmStartingFlag, int& MaxIteration);
+      double& CompositeYoungs, double& CompositePoissonsRatio, double& alpha,
+      double& ElasticComplianceCorrection, double& GridSize, double& Tolerance, double& Delta,
+      std::string& TopologyFilePath, int& Resolution, double& InitialTopologyStdDeviation,
+      const std::string& inputFileName, bool& RandomTopologyFlag, double& Hurst,
+      bool& RandomSeedFlag, int& RandomGeneratorSeed, bool& WarmStartingFlag, int& MaxIteration,
+      bool& PressureGreenFunFlag);
 }  // namespace MIRCO
 
 #endif  // SRC_SETPARAMETERS_H_

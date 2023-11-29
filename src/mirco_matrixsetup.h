@@ -16,12 +16,16 @@ namespace MIRCO
      * @param A Influence coefficient matrix (Discrete version of Green Function)
      * @param xv0 x-coordinates of the points in contact in the previous iteration.
      * @param yv0 y-coordinates of the points in contact in the previous iteration.
-     * @param GridSize Grid size
+     * @param GridSize Grid size (length of each cell)
      * @param CompositeYoungs The composite Young's modulus
+     * @param CompositePoissonsRatio The composite Poisson's ratio
      * @param systemsize Number of nodes predicted to be in contact
+     * @param PressureGreenFunFlag Flag to use Green function based on uniform pressure instead of
+     * point force
      */
     void SetUpMatrix(Teuchos::SerialDenseMatrix<int, double>& A, std::vector<double> xv0,
-        std::vector<double> yv0, double GridSize, double CompositeYoungs, int systemsize);
+        std::vector<double> yv0, double GridSize, double CompositeYoungs,
+        double CompositePoissonsRatio, int systemsize, bool PressureGreenFunFlag);
     MatrixGeneration() = default;
   };
 }  // namespace MIRCO

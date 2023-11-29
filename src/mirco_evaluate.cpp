@@ -22,9 +22,10 @@
 
 
 void MIRCO::Evaluate(double& pressure, double Delta, double LateralLength, double GridSize,
-    double Tolerance, int MaxIteration, double CompositeYoungs, bool WarmStartingFlag,
-    double ElasticComplianceCorrection, Teuchos::SerialDenseMatrix<int, double>& topology,
-    double zmax, std::vector<double>& meshgrid)
+    double Tolerance, int MaxIteration, double CompositeYoungs, double CompositePoissonsRatio,
+    bool WarmStartingFlag, double ElasticComplianceCorrection,
+    Teuchos::SerialDenseMatrix<int, double>& topology, double zmax, std::vector<double>& meshgrid,
+    bool PressureGreenFunFlag)
 {
   // Initialise the area vector and force vector. Each element containing the
   // area and force calculated at every iteration.
@@ -70,7 +71,8 @@ void MIRCO::Evaluate(double& pressure, double Delta, double LateralLength, doubl
 
     // Construction of the Matrix A
     MIRCO::MatrixGeneration matrix1;
-    matrix1.SetUpMatrix(A, xv0, yv0, GridSize, CompositeYoungs, n0);
+    matrix1.SetUpMatrix(
+        A, xv0, yv0, GridSize, CompositeYoungs, CompositePoissonsRatio, n0, PressureGreenFunFlag);
 
     // Second predictor for contact set
     // @{
@@ -94,8 +96,8 @@ void MIRCO::Evaluate(double& pressure, double Delta, double LateralLength, doubl
 
     // Compute contact force and contact area
     // @{
-    MIRCO::ComputeContactForceAndArea(
-        force0, area0, w_el, nf, pf, k, GridSize, LateralLength, ElasticComplianceCorrection);
+    MIRCO::ComputeContactForceAndArea(force0, area0, w_el, nf, pf, k, GridSize, LateralLength,
+        ElasticComplianceCorrection, PressureGreenFunFlag);
     // }
 
     // Compute error due to nonlinear correction

@@ -10,11 +10,11 @@
 #include "mirco_filesystem_utils.h"
 
 void MIRCO::SetParameters(double& E1, double& E2, double& LateralLength, double& nu1, double& nu2,
-    double& CompositeYoungs, double& alpha, double& ElasticComplianceCorrection, double& GridSize,
-    double& Tolerance, double& Delta, std::string& TopologyFilePath, int& Resolution,
-    double& InitialTopologyStdDeviation, const std::string& inputFileName, bool& RandomTopologyFlag,
-    double& Hurst, bool& RandomSeedFlag, int& RandomGeneratorSeed, bool& WarmStartingFlag,
-    int& MaxIteration)
+    double& CompositeYoungs, double& CompositePoissonsRatio, double& alpha,
+    double& ElasticComplianceCorrection, double& GridSize, double& Tolerance, double& Delta,
+    std::string& TopologyFilePath, int& Resolution, double& InitialTopologyStdDeviation,
+    const std::string& inputFileName, bool& RandomTopologyFlag, double& Hurst, bool& RandomSeedFlag,
+    int& RandomGeneratorSeed, bool& WarmStartingFlag, int& MaxIteration, bool& PressureGreenFunFlag)
 {
   Teuchos::RCP<Teuchos::ParameterList> parameterList = Teuchos::rcp(new Teuchos::ParameterList());
   Teuchos::updateParametersFromXmlFile(inputFileName, parameterList.ptr());
@@ -26,6 +26,7 @@ void MIRCO::SetParameters(double& E1, double& E2, double& LateralLength, double&
   RandomGeneratorSeed = parameterList->get<int>("RandomGeneratorSeed");
   TopologyFilePath = parameterList->get<std::string>("TopologyFilePath");
   MaxIteration = parameterList->get<int>("MaxIteration");
+  PressureGreenFunFlag = parameterList->get<bool>("PressureGreenFunFlag");
 
   // following function generates the actual path of the topology file.
   UTILS::ChangeRelativePath(TopologyFilePath, inputFileName);
@@ -41,6 +42,14 @@ void MIRCO::SetParameters(double& E1, double& E2, double& LateralLength, double&
 
   // Composite Young's modulus.
   CompositeYoungs = pow(((1 - pow(nu1, 2)) / E1 + (1 - pow(nu2, 2)) / E2), -1);
+
+  // Composite Shear modulus
+  double G1 = E1 / (2 * (1 + nu1));
+  double G2 = E2 / (2 * (1 + nu2));
+  double CompositeShear = pow(((2 - nu1) / (4 * G1) + (2 - nu2) / (4 * G2)), -1);
+
+  // Composite Poisson's ratio
+  CompositePoissonsRatio = CompositeYoungs / (2 * CompositeShear) - 1;
 
   // Correction factor vector
   std::vector<double> alpha_con{0.778958541513360, 0.805513388666376, 0.826126871395416,
