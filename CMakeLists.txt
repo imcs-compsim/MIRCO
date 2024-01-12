@@ -10,9 +10,6 @@ endif()
 
 set(CMAKE_CXX_STANDARD 17)
 
-# Compiler flags
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -O3")
-
 # Add libraries
 if(GTEST_IN_MIRCO)
   add_subdirectory("extern/googletest")
@@ -81,6 +78,10 @@ find_package(OpenMP REQUIRED)
 
 # Find OpenMPI
 find_package(MPI REQUIRED)
+
+# Compiler flags: delay this modification after MPI was found. Otherwise,
+# trying to compile with MPI can give warnings.
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -O3")
 
 # Compile mirco library
 add_library(mirco_core
