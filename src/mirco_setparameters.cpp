@@ -55,7 +55,7 @@ void MIRCO::SetParameters(double& E1, double& E2, double& LateralLength, double&
   // Shape factors (See section 3.3 of https://doi.org/10.1007/s00466-019-01791-3)
   // These are the shape factors to calculate the elastic compliance correction of the micro-scale
   // contact constitutive law for various resolutions.
-  // NOTE: Currently MIRCO works for resouluion of 1 to 8. The following vectors store the shape
+  // NOTE: Currently MIRCO works for resouluion of 1 to 8. The following map store the shape
   // factors for resolution of 1 to 8.
 
   // The following pressure based constants are calculated by solving a flat indentor problem using
