@@ -51,8 +51,18 @@ void MIRCO::SetParameters(double& E1, double& E2, double& LateralLength, double&
   // Composite Poisson's ratio
   CompositePoissonsRatio = CompositeYoungs / (2 * CompositeShear) - 1;
 
-  // Correction factor vector
-  std::vector<double> alpha_con{0.778958541513360, 0.805513388666376, 0.826126871395416,
+  // Correction factor vectors
+  // These are the correction factors to calculate the elastic compliance of the micro-scale contact
+  // constitutive law for various resolutions.
+  // The following pressure based constants are calculated by solving a flat indentor problem using
+  // the pressure based Green function described in Pohrt and Li (2014).
+  // http://dx.doi.org/10.1134/s1029959914040109
+  std::vector<double> alpha_con_pressure{0.961389237917602, 0.924715342432435, 0.899837531880697,
+      0.884976751041942, 0.876753783192863, 0.872397956576882, 0.871958228537090,
+      0.882669916668780};
+  // The following force based constants are taken from Table 1 of Bonari et al. (2020).
+  // https://doi.org/10.1007/s00466-019-01791-3
+  std::vector<double> alpha_con_force{0.778958541513360, 0.805513388666376, 0.826126871395416,
       0.841369158110513, 0.851733020725652, 0.858342234203154, 0.862368243479785,
       0.864741597831785};
 
@@ -66,7 +76,16 @@ void MIRCO::SetParameters(double& E1, double& E2, double& LateralLength, double&
   InitialTopologyStdDeviation = geoParams.get<double>("InitialTopologyStdDeviation");
   Tolerance = geoParams.get<double>("Tolerance");
   Delta = geoParams.get<double>("Delta");
-  alpha = alpha_con[Resolution - 1];
+
+  if (PressureGreenFunFlag)
+  {
+    alpha = alpha_con_pressure[Resolution - 1];
+  }
+  else
+  {
+    alpha = alpha_con_force[Resolution - 1];
+  }
+
   ElasticComplianceCorrection = LateralLength * CompositeYoungs / alpha;
   GridSize = LateralLength / (pow(2, Resolution) + 1);
 }
