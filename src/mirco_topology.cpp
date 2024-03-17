@@ -22,7 +22,7 @@ void MIRCO::ReadFile::GetSurface(Teuchos::SerialDenseMatrix<int, double> &z)
   }
   reader.close();
   z.shape(dimension, dimension);
-  int position = 0, separatorPosition, lineCounter = 0;
+  int separatorPosition, lineCounter = 0;
   std::ifstream stream(TopologyFilePath);
   std::string line, container;
   double value;
@@ -34,7 +34,6 @@ void MIRCO::ReadFile::GetSurface(Teuchos::SerialDenseMatrix<int, double> &z)
     {
       separatorPosition = line.find_first_of(';');
       container = line.substr(0, separatorPosition);
-      position += 1;
       line = line.substr(separatorPosition + 1, line.length());
       value = stod(container);
       z(lineCounter - 1, i) = value;
