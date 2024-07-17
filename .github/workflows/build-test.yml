@@ -14,7 +14,6 @@ jobs:
     runs-on: self-hosted
     env:
       CTEST_FAIL_ON_WARNING: "1"
-      TEST_DIRECTORY: "/home_local/github-runner/actions-runner/_work/MIRCO"
     steps:
       - uses: actions/checkout@v3
       - name: Check code.
@@ -32,7 +31,7 @@ jobs:
     runs-on: self-hosted
     env:
       CTEST_FAIL_ON_WARNING: "1"
-      TEST_DIRECTORY: "/home_local/github-runner/actions-runner/_work/MIRCO"
+      TEST_DIRECTORY: "$(pwd)"
     steps:
       - uses: actions/checkout@v3
         with:
@@ -42,4 +41,4 @@ jobs:
       - name: Clear ccache cache.
         run: 'if [ -x "$(command -v ccache)" ]; then ccache -C -z; echo "ccache cache cleared"; fi'
       - name: Run build and ctest
-        run: 'ctest -S ${{env.TEST_DIRECTORY}}/MIRCO/tests/testconfig/test_release.cmake -VV || tee ../buildtest.log'
+        run: 'ctest -S ${{env.TEST_DIRECTORY}}/tests/testconfig/test_release.cmake -VV || tee ../buildtest.log'
