@@ -147,7 +147,7 @@ install(FILES
   DESTINATION lib/cmake/mirco 
   )
 
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/ DESTINATION include/mirco FILES_MATCHING PATTERN "*.h*")
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/src/ DESTINATION include/mirco FILES_MATCHING PATTERN "*.h")
 
 option(GTEST_IN_MIRCO "Enable GoogleTest in MIRCO" ON)
 # Compile unittest executable
