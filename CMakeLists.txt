@@ -100,6 +100,7 @@ target_link_libraries(mirco_core PUBLIC Trilinos::all_selected_libs OpenMP::Open
 add_library(mirco_io
   src/mirco_setparameters.cpp
   )
+target_link_libraries(mirco_io PRIVATE mirco_utils)
 target_link_libraries(mirco_io PUBLIC Trilinos::all_selected_libs)
 
 add_library(mirco_utils
