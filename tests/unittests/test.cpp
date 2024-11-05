@@ -88,7 +88,7 @@ TEST(FilesystemUtils, createrelativepath)
 {
   std::string targetfilename = "input.dat";
   std::string sourcefilename = "../inputfiles/sourceinput.json";
-  UTILS::ChangeRelativePath(targetfilename, sourcefilename);
+  MIRCO::UTILS::ChangeRelativePath(targetfilename, sourcefilename);
   EXPECT_EQ(targetfilename, "../inputfiles/input.dat");
 }
 
@@ -96,7 +96,7 @@ TEST(FilesystemUtils, keepabsolutpath)
 {
   std::string targetfilename = "/root_dir/home/user/Input/input.dat";
   std::string sourcefilename = "../inputfiles/sourceinput.json";
-  UTILS::ChangeRelativePath(targetfilename, sourcefilename);
+  MIRCO::UTILS::ChangeRelativePath(targetfilename, sourcefilename);
   EXPECT_EQ(targetfilename, "/root_dir/home/user/Input/input.dat");
 }
 

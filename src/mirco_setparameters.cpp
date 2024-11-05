@@ -30,7 +30,7 @@ void MIRCO::SetParameters(double& E1, double& E2, double& LateralLength, double&
   PressureGreenFunFlag = parameterList->get<bool>("PressureGreenFunFlag");
 
   // following function generates the actual path of the topology file.
-  UTILS::ChangeRelativePath(TopologyFilePath, inputFileName);
+  MIRCO::UTILS::ChangeRelativePath(TopologyFilePath, inputFileName);
 
   // Setting up the material parameters.
   Teuchos::ParameterList& matParams =

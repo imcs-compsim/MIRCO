@@ -100,6 +100,7 @@ target_link_libraries(mirco_core PUBLIC Trilinos::all_selected_libs OpenMP::Open
 add_library(mirco_io
   src/mirco_setparameters.cpp
   )
+target_link_libraries(mirco_io PRIVATE mirco_utils)
 target_link_libraries(mirco_io PUBLIC Trilinos::all_selected_libs)
 
 add_library(mirco_utils
@@ -147,7 +148,7 @@ install(FILES
   DESTINATION lib/cmake/mirco 
   )
 
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/ DESTINATION include/mirco FILES_MATCHING PATTERN "*.h*")
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/src/ DESTINATION include/mirco FILES_MATCHING PATTERN "*.h")
 
 option(GTEST_IN_MIRCO "Enable GoogleTest in MIRCO" ON)
 # Compile unittest executable
