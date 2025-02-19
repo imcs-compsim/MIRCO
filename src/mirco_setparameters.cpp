@@ -11,11 +11,11 @@
 #include "mirco_filesystem_utils.h"
 
 void MIRCO::SetParameters(double& E1, double& E2, double& LateralLength, double& nu1, double& nu2,
-    double& CompositeYoungs, double& CompositePoissonsRatio, double& ShapeFactor,
-    double& ElasticComplianceCorrection, double& GridSize, double& Tolerance, double& Delta,
-    std::string& TopologyFilePath, int& Resolution, double& InitialTopologyStdDeviation,
-    const std::string& inputFileName, bool& RandomTopologyFlag, double& Hurst, bool& RandomSeedFlag,
-    int& RandomGeneratorSeed, bool& WarmStartingFlag, int& MaxIteration, bool& PressureGreenFunFlag)
+    double& CompositeYoungs, double& ShapeFactor, double& ElasticComplianceCorrection,
+    double& GridSize, double& Tolerance, double& Delta, std::string& TopologyFilePath,
+    int& Resolution, double& InitialTopologyStdDeviation, const std::string& inputFileName,
+    bool& RandomTopologyFlag, double& Hurst, bool& RandomSeedFlag, int& RandomGeneratorSeed,
+    bool& WarmStartingFlag, int& MaxIteration, bool& PressureGreenFunFlag)
 {
   Teuchos::RCP<Teuchos::ParameterList> parameterList = Teuchos::rcp(new Teuchos::ParameterList());
   Teuchos::updateParametersFromXmlFile(inputFileName, parameterList.ptr());
@@ -44,14 +44,6 @@ void MIRCO::SetParameters(double& E1, double& E2, double& LateralLength, double&
   // Composite Young's modulus.
   CompositeYoungs = pow(((1 - pow(nu1, 2)) / E1 + (1 - pow(nu2, 2)) / E2), -1);
 
-  // Composite Shear modulus
-  double G1 = E1 / (2 * (1 + nu1));
-  double G2 = E2 / (2 * (1 + nu2));
-  double CompositeShear = pow(((2 - nu1) / (4 * G1) + (2 - nu2) / (4 * G2)), -1);
-
-  // Composite Poisson's ratio
-  CompositePoissonsRatio = CompositeYoungs / (2 * CompositeShear) - 1;
-
   // Shape factors (See section 3.3 of https://doi.org/10.1007/s00466-019-01791-3)
   // These are the shape factors to calculate the elastic compliance correction of the micro-scale
   // contact constitutive law for various resolutions.
@@ -63,7 +55,7 @@ void MIRCO::SetParameters(double& E1, double& E2, double& LateralLength, double&
   // http://dx.doi.org/10.1134/s1029959914040109
   const std::map<int, double> shape_factors_pressure{{1, 0.961389237917602}, {2, 0.924715342432435},
       {3, 0.899837531880697}, {4, 0.884976751041942}, {5, 0.876753783192863},
-      {6, 0.872397956576882}, {7, 0.871958228537090}, {8, 0.882669916668780}};
+      {6, 0.872397956576882}, {7, 0.871958228537090}, {8, 0.8689982669426167}};
 
   // The following force based constants are taken from Table 1 of Bonari et al. (2020).
   // https://doi.org/10.1007/s00466-019-01791-3
