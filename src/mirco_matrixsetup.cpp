@@ -7,11 +7,17 @@
 
 void MIRCO::MatrixGeneration::SetUpMatrix(Teuchos::SerialDenseMatrix<int, double>& A,
     std::vector<double> xv0, std::vector<double> yv0, double GridSize, double CompositeYoungs,
-    double CompositePoissonsRatio, int systemsize, bool PressureGreenFunFlag)
+    int systemsize, bool PressureGreenFunFlag)
 {
   double pi = M_PI;
   if (PressureGreenFunFlag)
   {
+    // The pressure-based Green's function is based on the work of Pohrt and Li (2014)
+    // https://doi.org/10.1134/S1029959914040109
+    // Please look at equation 12 of the paper mentioned above.
+    // ((1-nu)/2*pi*G) from the equation is replaced with (1/pi*CompositeYoungs) here.
+    // The paper uses a decoupled shear modulus and Poisson's ratio. We use a composite Young's
+    // modulus here, instead.
     for (int i = 0; i < systemsize; i++)
     {
       for (int j = 0; j < systemsize; j++)
@@ -27,7 +33,7 @@ void MIRCO::MatrixGeneration::SetUpMatrix(Teuchos::SerialDenseMatrix<int, double
                    n * log((sqrt(n * n + l * l) + l) / (sqrt(n * n + k * k) + k)));
       }
     }
-    A.scale((1 - pow(CompositePoissonsRatio, 2)) / (pi * CompositeYoungs));
+    A.scale(1 / (pi * CompositeYoungs));
   }
   else
   {

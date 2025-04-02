@@ -16,7 +16,6 @@ namespace MIRCO
    * @param Tolerance Tolerance for the convergence of force
    * @param MaxIteration Maximum number of iterations for the force to converge
    * @param CompositeYoungs Composite Young's modulus
-   * @param CompositePoissonsRatio Composite Poisson's ratio
    * @param WarmStartingFlag Warm-Starter Flag
    * @param ElasticComplianceCorrection Elastic compliance correction
    * @param topology Topology matrix containing heights
@@ -26,10 +25,9 @@ namespace MIRCO
    * point force
    */
   void Evaluate(double& pressure, double Delta, double LateralLength, double GridSize,
-      double Tolerance, int MaxIteration, double CompositeYoungs, double CompositePoissonsRatio,
-      bool WarmStartingFlag, double ElasticComplianceCorrection,
-      Teuchos::SerialDenseMatrix<int, double>& topology, double zmax, std::vector<double>& meshgrid,
-      bool PressureGreenFunFlag);
+      double Tolerance, int MaxIteration, double CompositeYoungs, bool WarmStartingFlag,
+      double ElasticComplianceCorrection, Teuchos::SerialDenseMatrix<int, double>& topology,
+      double zmax, std::vector<double>& meshgrid, bool PressureGreenFunFlag);
 }  // namespace MIRCO
 
 
