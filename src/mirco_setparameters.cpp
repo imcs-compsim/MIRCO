@@ -55,7 +55,7 @@ void MIRCO::SetParameters(double& E1, double& E2, double& LateralLength, double&
   // http://dx.doi.org/10.1134/s1029959914040109
   const std::map<int, double> shape_factors_pressure{{1, 0.961389237917602}, {2, 0.924715342432435},
       {3, 0.899837531880697}, {4, 0.884976751041942}, {5, 0.876753783192863},
-      {6, 0.872397956576882}, {7, 0.871958228537090}, {8, 0.8689982669426167}};
+      {6, 0.872397956576882}, {7, 0.8701463093314326}, {8, 0.8689982669426167}};
 
   // The following force based constants are taken from Table 1 of Bonari et al. (2020).
   // https://doi.org/10.1007/s00466-019-01791-3
