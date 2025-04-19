@@ -1,14 +1,38 @@
 cmake_minimum_required(VERSION 3.14)
 
-# Project name
-project(mirco VERSION 0.1.0)
-
-# Check for out-of-source build
-if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
-  message(FATAL_ERROR "\nIn-source builds not allowed. Please make a new directory (called a build directory) and run CMake from there.\n\nTo clean-up, you may need to remove CMakeCache.txt and CMakeFiles from your source directory.")
+# try to prevent modification of source directory
+# note: some files may still be written before CMake can abort and need to be removed manually
+if(${CMAKE_CURRENT_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_BINARY_DIR})
+  message(
+    FATAL_ERROR
+      "In-source build not allowed. "
+      "Please create a new directory, preferably next to the source directory, and run CMake from there. "
+      "You may want to remove CMakeCache.txt and CMakeFiles/ which were created in the source directory."
+    )
 endif()
 
+project(mirco VERSION 0.1.0)
+
+# Print CMake version to screen
+message(STATUS "Using CMake ${CMAKE_VERSION}")
+
+# Enforce the C++ standard we are using and turn off compiler-specific extensions
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+# We do not use C++ modules (yet). Turn off scanning to avoid issues with clang-tidy.
+# If you want to add module support, this problem needs to be revisited. Our hope
+# is that CMake and/or clang-tidy will be updated to handle modules better.
+set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
+
+# Ensure cmake setup the correct runtime path when installing
+# see here for more information: https://gitlab.kitware.com/cmake/community/-/wikis/doc/cmake/RPATH-handling
+include(GNUInstallDirs)
+set(CMAKE_SKIP_BUILD_RPATH FALSE)
+set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 # Add libraries
 if(GTEST_IN_MIRCO)
@@ -145,7 +169,7 @@ configure_package_config_file(cmake/mirco_libConfig.cmake.in
 
 install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/mirco_libConfig.cmake
-  DESTINATION lib/cmake/mirco 
+  DESTINATION lib/cmake/mirco
   )
 
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/src/ DESTINATION include/mirco FILES_MATCHING PATTERN "*.h")
