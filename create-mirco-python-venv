@@ -1,13 +1,30 @@
 #!/bin/bash
 
+# Exit the script at the first failure
+set -e
+
+if [ ! -f "./create-mirco-python-venv" ]; then
+    echo "Please run this script from the root directory of the repository."
+    exit 1
+fi
+
 # Path to the python virtual environment.
 PYTHON_VENV="`dirname "$0"`/utilities/mirco-python-venv"
 
 # If the virtual environment already exists, delete it.
 if [ -d "$PYTHON_VENV" ]; then rm -Rf $PYTHON_VENV; fi
 
+# Path to python
+PYTHON_PATH=${1:-python3}
+
+if ! $PYTHON_PATH -c "import sys; exit(sys.version_info < (3, 9))"; then
+    echo "Provided Python version ${PYTHON_PATH} does not meet the minimum requirement (>=3.9)."
+    echo "Please provide a compatible Python executable as an argument to this script."
+    exit 1
+fi
+
 # Setup the virtual environment and source it.
-python3 -m venv "${PYTHON_VENV}"
+$PYTHON_PATH -m venv "${PYTHON_VENV}"
 source "${PYTHON_VENV}"/bin/activate
 
 # Install all the modules defined in requirements.txt.
