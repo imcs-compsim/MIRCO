@@ -22,18 +22,24 @@ cd <someBaseDir>
 mkdir <sourceDir>
 git clone --recursive https://github.com/imcs-compsim/MIRCO.git <sourceDir>
 ```
+
 where `<someBaseDir>` is some directory in your machine and `<sourceDir>` will contain the `MIRCO` source code.
 
 If you have already cloned the repository using:
+
 ```bash
 git clone https://github.com/imcs-compsim/MIRCO.git <sourceDir>
 ```
+
 you can pull the submodules using:
+
 ```bash
 cd <sourceDir>
 git submodule update --init --recursive
 ```
+
 To update the submodules, you can use the following command from your source directory:
+
 ```bash
 git submodule update --recursive --remote
 ```
@@ -41,33 +47,46 @@ git submodule update --recursive --remote
 ### Configure and build the code
 
 To create an out-of-source build, first create a build directory using:
+
 ```bash
 cd <someBaseDir>
 mkdir <buildDir>
 ```
+
 where `<buildDir>` is the build directory.
 
 > Note: The exact location of `<buildDir>` is arbitrary, as long as it is _not_ a subdirectory of `<sourceDir>`.
 
 Now, you have to navigate to the build directory and call the `do-configure` script in order to invoke `cmake`:
+
 ```bash
 cd <buildDir>
 <sourceDir>/do-configure
 ```
 
+Alternatively, you can use CMake presets:
+
+```bash
+cd <buildDir>
+cmake --preset=<name_of_your_preset> <sourceDir>
+```
+
 > **IMPORTANT** Make sure to set `Trilinos_DIR` to point to you Trilinos installation.
 
 Build the `mirco` executable in the build directory using:
+
 ```bash
 cd <buildDir>
 make -j <numProc>
 ```
+
 with `<numProc>` specifying the number of processes used for compilation.
 The `mirco` executable will be created in the build directory.
 
 ### Run all tests
 
 You can run the tests from the build directory using:
+
 ```bash
 ctest
 ```
@@ -75,9 +94,11 @@ ctest
 ### Run the code
 
 To run the code with an input file, use the following command in your build directory:
+
 ```bash
 ./mirco <sourceDir>/Input/<someInputFile.xml>
 ```
+
 where `<someInputFile.xml>` is any input file in the prescribed format.
 
 ## How to cite MIRCO?
