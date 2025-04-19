@@ -17,12 +17,6 @@ if [ -d "$PYTHON_VENV" ]; then rm -Rf $PYTHON_VENV; fi
 # Path to python
 PYTHON_PATH=${1:-python3}
 
-if ! $PYTHON_PATH -c "import sys; exit(sys.version_info < (3, 9))"; then
-    echo "Provided Python version ${PYTHON_PATH} does not meet the minimum requirement (>=3.9)."
-    echo "Please provide a compatible Python executable as an argument to this script."
-    exit 1
-fi
-
 # Setup the virtual environment and source it.
 $PYTHON_PATH -m venv "${PYTHON_VENV}"
 source "${PYTHON_VENV}"/bin/activate
@@ -31,3 +25,6 @@ source "${PYTHON_VENV}"/bin/activate
 pip install --upgrade pip
 pip install wheel
 pip install -r requirements.txt
+
+# Install the pre-commit hooks.
+pre-commit install
