@@ -18,7 +18,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Check code.
         run: |
-          source create-mirco-python-venv
+          source create-mirco-python-venv.sh
           find src/ tests/ -iname *.h -o -iname *.c -o -iname *.cpp -o -iname *.hpp | xargs clang-format -style=file -i -fallback-style=none
           git diff > clang_format.patch
           if [ -s clang_format.patch ]
