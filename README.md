@@ -101,7 +101,7 @@ To develop MIRCO,
 make sure to setup a proper development environment by running
 
 ```
-./setup_development_environment.sh
+./create-mirco-python-venv.sh
 ```
 
 in the <sourceDir>.
