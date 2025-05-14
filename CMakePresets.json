@@ -23,6 +23,16 @@
       "inherits": [
         ".imcs_workstation_base"
       ]
+    },
+    {
+      "name": "imcs_workstation_RELWITHDEBINFO",
+      "displayName": "Release build for an IMCS workstation",
+      "inherits": [
+        ".imcs_workstation_base"
+      ],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RELWITHDEBINFO"
+      }
     }
   ]
 }
