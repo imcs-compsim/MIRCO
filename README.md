@@ -1,6 +1,7 @@
 # MIRCO (MUSAM-IMCS Rough Contact cOde)
 
-`MIRCO` is a Boundary element algorithm for simulating linear elastic frictionless normal contact between a rigid rough indentor and an elastic half-space. The research code is implemented throughout in object-oriented programming (C++) and is parallelized with OpenMP for shared memory hardware architectures.
+`MIRCO` is a Boundary element algorithm for simulating linear elastic frictionless normal contact between a rigid rough indentor and an elastic half-space.
+The research code is implemented throughout in object-oriented programming (C++) and is parallelized with OpenMP for shared memory hardware architectures.
 
 ## Getting up and running
 
@@ -55,16 +56,9 @@ mkdir <buildDir>
 
 where `<buildDir>` is the build directory.
 
-> Note: The exact location of `<buildDir>` is arbitrary, as long as it is _not_ a subdirectory of `<sourceDir>`.
+> Note: The exact location of `<buildDir>` is arbitrary, as long as it is _not_ the same directory than `<sourceDir>`.
 
-Now, you have to navigate to the build directory and call the `do-configure` script in order to invoke `cmake`:
-
-```bash
-cd <buildDir>
-<sourceDir>/do-configure
-```
-
-Alternatively, you can use CMake presets:
+Now, you have to navigate to the build directory and invoke `CMake`. We use CMake Presets for defining build configurations.
 
 ```bash
 cd <buildDir>

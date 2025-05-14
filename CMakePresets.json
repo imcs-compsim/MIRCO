@@ -1,0 +1,28 @@
+{
+  "version": 5,
+  "configurePresets": [
+    {
+      "name": ".imcs_workstation_base",
+      "hidden": true,
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RELEASE",
+        "CMAKE_CXX_COMPILER": "mpicxx",
+        "CMAKE_CXX_COMPILER_LAUNCHER": "ccache",
+        "CMAKE_C_COMPILER": "gcc",
+        "CMAKE_C_COMPILER_LAUNCHER": "ccache",
+        "CMAKE_CXX_FLAGS": "-msse3",
+        "TRILINOS_PATH": "/imcs/public/compsim/lib/2022_2/build/lib/cmake/Trilinos",
+        "TRILINOS_IN_MIRCO": "ON",
+        "GTEST_IN_MIRCO": "ON"
+      }
+    },
+    {
+      "name": "imcs_workstation",
+      "displayName": "Release build for an IMCS workstation",
+      "inherits": [
+        ".imcs_workstation_base"
+      ]
+    }
+  ]
+}
