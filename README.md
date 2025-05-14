@@ -95,6 +95,18 @@ To run the code with an input file, use the following command in your build dire
 
 where `<someInputFile.xml>` is any input file in the prescribed format.
 
+### Developing MIRCO
+
+To develop MIRCO,
+make sure to setup a proper development environment by running
+
+```
+./setup_development_environment.sh
+```
+
+in the <sourceDir>.
+This will install all required packages such as a code formatter and commit hooks.
+
 ## How to cite MIRCO?
 
 If you are using this code, please cite the following paper:
