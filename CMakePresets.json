@@ -26,7 +26,7 @@
     },
     {
       "name": "imcs_workstation_RELWITHDEBINFO",
-      "displayName": "Release build for an IMCS workstation",
+      "displayName": "Release build with debug information for an IMCS workstation",
       "inherits": [
         ".imcs_workstation_base"
       ],

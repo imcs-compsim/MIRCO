@@ -71,7 +71,7 @@ Build the `mirco` executable in the build directory using:
 
 ```bash
 cd <buildDir>
-make -j <numProc>
+ninja -j <numProc>
 ```
 
 with `<numProc>` specifying the number of processes used for compilation.
