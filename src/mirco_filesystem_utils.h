@@ -8,8 +8,8 @@ namespace MIRCO
   namespace UTILS
   {
     /*
-     * \brief Creates a file path relative to the current directory by concatenating
-     * 2 relative paths
+     * \brief Create a file path relative to the current directory by concatenating
+     * two relative paths
      *
      * This function takes a sourcefilename to a file relative to the current
      * directory, and a targetfilename, that is relative to the sourcefilepath and

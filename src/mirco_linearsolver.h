@@ -11,7 +11,7 @@ namespace MIRCO
   {
    public:
     /**
-     * @brief A linear solver to solve matrix*vector_x=vector_b
+     * @brief Solver the linear system matrix * vector_x = vector_b
      *
      * @param matrix Influence coefficient matrix (Discrete version of Green Function)
      * @param vector_x Solution
@@ -20,7 +20,6 @@ namespace MIRCO
     void Solve(Teuchos::SerialSymDenseMatrix<int, double>& matrix,
         Teuchos::SerialDenseVector<int, double>& vector_x,
         Teuchos::SerialDenseVector<int, double>& vector_b);
-    LinearSolver() = default;
   };
 }  // namespace MIRCO
 

@@ -8,7 +8,7 @@
 
 #include "mirco_topology.h"
 
-void MIRCO::CreateMeshgrid(std::vector<double>& meshgrid, int ngrid, double GridSize)
+void MIRCO::CreateMeshgrid(std::vector<double>& meshgrid, const int ngrid, const double GridSize)
 {
 #pragma omp parallel for schedule(static, 16)  // Same amount of work -> static
   for (int i = 0; i < ngrid; i++)
@@ -17,9 +17,10 @@ void MIRCO::CreateMeshgrid(std::vector<double>& meshgrid, int ngrid, double Grid
   }
 }
 
-void MIRCO::CreateSurfaceObject(int Resolution, double InitialTopologyStdDeviation, double Hurst,
-    bool RandomSeedFlag, std::string TopologyFilePath, bool RandomTopologyFlag,
-    int RandomGeneratorSeed, Teuchos::RCP<MIRCO::TopologyGeneration>& surfacegenerator)
+void MIRCO::CreateSurfaceObject(const int Resolution, const double InitialTopologyStdDeviation,
+    const double Hurst, const bool RandomSeedFlag, const std::string TopologyFilePath,
+    const bool RandomTopologyFlag, const int RandomGeneratorSeed,
+    Teuchos::RCP<MIRCO::TopologyGeneration>& surfacegenerator)
 {
   if (RandomTopologyFlag)
   {

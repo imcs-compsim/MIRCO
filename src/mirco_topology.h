@@ -22,8 +22,6 @@ namespace MIRCO
      */
     virtual void GetSurface(Teuchos::SerialDenseMatrix<int, double> &z) = 0;
     TopologyGeneration(int nn) { resolution = nn; }
-
-    virtual ~TopologyGeneration() = default;
   };
 
   class ReadFile : public TopologyGeneration

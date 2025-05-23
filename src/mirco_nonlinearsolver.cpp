@@ -18,7 +18,7 @@ void MIRCO::NonLinearSolver::NonlinearSolve(const Teuchos::SerialDenseMatrix<int
   double alpha = 100000000;
   int iter = 0;
   bool init = false;
-  int n0 = b0.size();
+  const int n0 = b0.size();
   y.size(n0);
   y.putScalar(0.0);
   Teuchos::SerialDenseMatrix<int, double> s0;

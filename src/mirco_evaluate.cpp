@@ -21,10 +21,12 @@
 #include "mirco_nonlinearsolver.h"
 
 
-void MIRCO::Evaluate(double& pressure, double Delta, double LateralLength, double GridSize,
-    double Tolerance, int MaxIteration, double CompositeYoungs, bool WarmStartingFlag,
-    double ElasticComplianceCorrection, Teuchos::SerialDenseMatrix<int, double>& topology,
-    double zmax, std::vector<double>& meshgrid, bool PressureGreenFunFlag)
+void MIRCO::Evaluate(double& pressure, const double Delta, const double LateralLength,
+    const double GridSize, const double Tolerance, const int MaxIteration,
+    const double CompositeYoungs, const bool WarmStartingFlag,
+    const double ElasticComplianceCorrection,
+    const Teuchos::SerialDenseMatrix<int, double>& topology, const double zmax,
+    const std::vector<double>& meshgrid, const bool PressureGreenFunFlag)
 {
   // Initialise the area vector and force vector. Each element containing the
   // area and force calculated at every iteration.
@@ -63,7 +65,6 @@ void MIRCO::Evaluate(double& pressure, double Delta, double LateralLength, doubl
   while (ErrorForce > Tolerance && k < MaxIteration)
   {
     // First predictor for contact set
-    // @{
     MIRCO::ContactSetPredictor(n0, xv0, yv0, b0, zmax, Delta, w_el, meshgrid, topology);
 
     A.shape(xv0.size(), xv0.size());
@@ -88,34 +89,27 @@ void MIRCO::Evaluate(double& pressure, double Delta, double LateralLength, doubl
     solution2.NonlinearSolve(A, b0, x0, w, y);
 
     // Compute number of contact node
-    // @{
     MIRCO::ComputeContactNodes(xvf, yvf, pf, nf, y, xv0, yv0);
-    // }
 
     // Compute contact force and contact area
-    // @{
     MIRCO::ComputeContactForceAndArea(force0, area0, w_el, nf, pf, k, GridSize, LateralLength,
         ElasticComplianceCorrection, PressureGreenFunFlag);
-    // }
 
     // Compute error due to nonlinear correction
-    // @{
     if (k > 0)
     {
       ErrorForce = abs(force0[k] - force0[k - 1]) / force0[k];
     }
     k += 1;
-    // }
   }
 
   TEUCHOS_TEST_FOR_EXCEPTION(ErrorForce > Tolerance, std::out_of_range,
       "The solution did not converge in the maximum number of iternations defined");
-  // @{
 
   // Calculate the final force value at the end of the iteration.
   const double force = force0[k - 1];
 
   // Mean pressure
-  double sigmaz = force / pow(LateralLength, 2);
+  double sigmaz = force / (LateralLength * LateralLength);
   pressure = sigmaz;
 }
