@@ -20,7 +20,6 @@ namespace MIRCO
     void Solve(Teuchos::SerialSymDenseMatrix<int, double>& matrix,
         Teuchos::SerialDenseVector<int, double>& vector_x,
         Teuchos::SerialDenseVector<int, double>& vector_b);
-    LinearSolver() = default;
   };
 }  // namespace MIRCO
 
