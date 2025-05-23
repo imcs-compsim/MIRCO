@@ -116,6 +116,6 @@ void MIRCO::Evaluate(double& pressure, double Delta, double LateralLength, doubl
   const double force = force0[k - 1];
 
   // Mean pressure
-  double sigmaz = force / pow(LateralLength, 2);
+  double sigmaz = force / (LateralLength * LateralLength);
   pressure = sigmaz;
 }
