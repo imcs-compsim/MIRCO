@@ -43,7 +43,7 @@ void MIRCO::MatrixGeneration::SetUpMatrix(Teuchos::SerialDenseMatrix<int, double
 #pragma omp parallel for schedule(static, 16)  // Always same workload -> static
     for (int i = 0; i < systemsize; i++)
     {
-      A(i, i) = 1 * C;
+      A(i, i) = C;
     }
 
 #pragma omp parallel for schedule(static, 16) private(r)  // Always same workload -> static
