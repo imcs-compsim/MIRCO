@@ -11,7 +11,7 @@ namespace MIRCO
   {
    public:
     /**
-     * @brief A linear solver to solve matrix*vector_x=vector_b
+     * @brief Solver the linear system matrix * vector_x = vector_b
      *
      * @param matrix Influence coefficient matrix (Discrete version of Green Function)
      * @param vector_x Solution
