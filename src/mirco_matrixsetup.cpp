@@ -6,8 +6,8 @@
 #include <vector>
 
 void MIRCO::MatrixGeneration::SetUpMatrix(Teuchos::SerialDenseMatrix<int, double>& A,
-    std::vector<double> xv0, std::vector<double> yv0, double GridSize, double CompositeYoungs,
-    int systemsize, bool PressureGreenFunFlag)
+    const std::vector<double>& xv0, const std::vector<double>& yv0, const double GridSize,
+    const double CompositeYoungs, const int systemsize, const bool PressureGreenFunFlag)
 {
   double pi = M_PI;
   if (PressureGreenFunFlag)
