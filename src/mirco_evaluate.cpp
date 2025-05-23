@@ -21,10 +21,12 @@
 #include "mirco_nonlinearsolver.h"
 
 
-void MIRCO::Evaluate(double& pressure, double Delta, double LateralLength, double GridSize,
-    double Tolerance, int MaxIteration, double CompositeYoungs, bool WarmStartingFlag,
-    double ElasticComplianceCorrection, Teuchos::SerialDenseMatrix<int, double>& topology,
-    double zmax, std::vector<double>& meshgrid, bool PressureGreenFunFlag)
+void MIRCO::Evaluate(double& pressure, const double Delta, const double LateralLength,
+    const double GridSize, const double Tolerance, const int MaxIteration,
+    const double CompositeYoungs, const bool WarmStartingFlag,
+    const double ElasticComplianceCorrection,
+    const Teuchos::SerialDenseMatrix<int, double>& topology, const double zmax,
+    const std::vector<double>& meshgrid, const bool PressureGreenFunFlag)
 {
   // Initialise the area vector and force vector. Each element containing the
   // area and force calculated at every iteration.
