@@ -22,10 +22,9 @@ namespace MIRCO
      * @param PressureGreenFunFlag Flag to use Green function based on uniform pressure instead of
      * point force
      */
-    void SetUpMatrix(Teuchos::SerialDenseMatrix<int, double>& A, std::vector<double> xv0,
-        std::vector<double> yv0, double GridSize, double CompositeYoungs, int systemsize,
-        bool PressureGreenFunFlag);
-    MatrixGeneration() = default;
+    void SetUpMatrix(Teuchos::SerialDenseMatrix<int, double>& A, const std::vector<double>& xv0,
+        const std::vector<double>& yv0, const double GridSize, const double CompositeYoungs,
+        const int systemsize, const bool PressureGreenFunFlag);
   };
 }  // namespace MIRCO
 

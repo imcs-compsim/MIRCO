@@ -6,8 +6,8 @@
 #include <vector>
 
 void MIRCO::MatrixGeneration::SetUpMatrix(Teuchos::SerialDenseMatrix<int, double>& A,
-    std::vector<double> xv0, std::vector<double> yv0, double GridSize, double CompositeYoungs,
-    int systemsize, bool PressureGreenFunFlag)
+    const std::vector<double>& xv0, const std::vector<double>& yv0, const double GridSize,
+    const double CompositeYoungs, const int systemsize, const bool PressureGreenFunFlag)
 {
   double pi = M_PI;
   if (PressureGreenFunFlag)
@@ -43,7 +43,7 @@ void MIRCO::MatrixGeneration::SetUpMatrix(Teuchos::SerialDenseMatrix<int, double
 #pragma omp parallel for schedule(static, 16)  // Always same workload -> static
     for (int i = 0; i < systemsize; i++)
     {
-      A(i, i) = 1 * C;
+      A(i, i) = C;
     }
 
 #pragma omp parallel for schedule(static, 16) private(r)  // Always same workload -> static

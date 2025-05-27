@@ -20,7 +20,7 @@ namespace MIRCO
    * @param ngrid Number of grid points in one direction
    * @param GridSize Grid size (length of each cell)
    */
-  void CreateMeshgrid(std::vector<double>& meshgrid, int ngrid, double GridSize);
+  void CreateMeshgrid(std::vector<double>& meshgrid, const int ngrid, const double GridSize);
 
   // forward declaration
   class TopologyGeneration;
@@ -44,9 +44,10 @@ namespace MIRCO
    * @param RandomGeneratorSeed Seed for the random mid-point generator
    * @param surfacegenerator Surface object
    */
-  void CreateSurfaceObject(int Resolution, double InitialTopologyStdDeviation, double Hurst,
-      bool RandomSeedFlag, std::string TopologyFilePath, bool RandomTopologyFlag,
-      int RandomGeneratorSeed, Teuchos::RCP<TopologyGeneration>& surfacegenerator);
+  void CreateSurfaceObject(const int Resolution, const double InitialTopologyStdDeviation,
+      const double Hurst, const bool RandomSeedFlag, const std::string TopologyFilePath,
+      const bool RandomTopologyFlag, const int RandomGeneratorSeed,
+      Teuchos::RCP<TopologyGeneration>& surfacegenerator);
 
   /**
    * @brief Store maximum and mean height of the topology

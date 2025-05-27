@@ -61,14 +61,15 @@ void MIRCO::Rmg::GetSurface(Teuchos::SerialDenseMatrix<int, double> &z)
       0.0, 1.0);  // normal distribution: mean = 0.0, standard deviation = 1.0
 
   int N = pow(2, resolution);
-  double alpha = InitialTopologyStdDeviation * (pow(sqrt(2), Hurst));
+  const double scaling_factor = pow(sqrt(2), Hurst);
+  double alpha = InitialTopologyStdDeviation * scaling_factor;
 
   int D = N;
   int d = N / 2;
 
   for (int i = 0; i < resolution; i++)
   {
-    alpha = alpha / (pow(sqrt(2), Hurst));
+    alpha = alpha / scaling_factor;
 
     for (int j = d; j < N - d + 1; j = j + D)
     {
@@ -79,7 +80,7 @@ void MIRCO::Rmg::GetSurface(Teuchos::SerialDenseMatrix<int, double> &z)
       }
     }
 
-    alpha = alpha / (pow(sqrt(2), Hurst));
+    alpha = alpha / scaling_factor;
 
     for (int j = d; j < N - d + 1; j = j + D)
     {
