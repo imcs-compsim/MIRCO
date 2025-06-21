@@ -7,7 +7,7 @@
 
 #include "mirco_linearsolver.h"
 
-void MIRCO::NonLinearSolver::NonlinearSolve(const Teuchos::SerialDenseMatrix<int, double>& matrix,
+void MIRCO::NonLinearSolver::Solve(const Teuchos::SerialDenseMatrix<int, double>& matrix,
     const std::vector<double>& b0, const Teuchos::SerialDenseMatrix<int, double>& y0,
     Teuchos::SerialDenseMatrix<int, double>& w, Teuchos::SerialDenseVector<int, double>& y)
 {
@@ -149,8 +149,7 @@ void MIRCO::NonLinearSolver::NonlinearSolve(const Teuchos::SerialDenseMatrix<int
         }
       }
       // Solving solverMatrix*vector_x=vector_b
-      MIRCO::LinearSolver solution;
-      solution.Solve(solverMatrix, vector_x, vector_b);
+      MIRCO::LinearSolver::Solve(solverMatrix, vector_x, vector_b);
 
 #pragma omp parallel for schedule(static, 16)  // Always same workload -> Static!
       for (int x = 0; x < counter; x++)

@@ -7,9 +7,8 @@
 
 namespace MIRCO
 {
-  class NonLinearSolver
+  namespace NonLinearSolver
   {
-   public:
     /**
      * @brief Solve the non-linear set of equations using Non-Negative Least Squares (NNLS) method.
      *
@@ -20,7 +19,7 @@ namespace MIRCO
      * @param w Gap between the point on the topology and the half space
      * @param y Solution containing force
      */
-    void NonlinearSolve(const Teuchos::SerialDenseMatrix<int, double>& matrix,
+    void Solve(const Teuchos::SerialDenseMatrix<int, double>& matrix,
         const std::vector<double>& b0, const Teuchos::SerialDenseMatrix<int, double>& y0,
         Teuchos::SerialDenseMatrix<int, double>& w, Teuchos::SerialDenseVector<int, double>& y);
   };

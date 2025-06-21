@@ -45,8 +45,7 @@ TEST(linearsolver, solves)
   }
 
   // Call linear solver
-  MIRCO::LinearSolver linearsolver;
-  linearsolver.Solve(topology, vector_x, vector_b);
+  MIRCO::LinearSolver::Solve(topology, vector_x, vector_b);
 
   EXPECT_NEAR(vector_x(0), 0.333333333333333, 1e-06);
   EXPECT_NEAR(vector_x(1), 0.333333333333333, 1e-06);
@@ -54,8 +53,7 @@ TEST(linearsolver, solves)
 
 TEST_F(NonlinearSolverTest, primalvariable)
 {
-  MIRCO::NonLinearSolver nonlinearsolver;
-  nonlinearsolver.NonlinearSolve(matrix_, b_vector_, x_vector_, w_, y_);
+  MIRCO::NonLinearSolver::Solve(matrix_, b_vector_, x_vector_, w_, y_);
 
   EXPECT_NEAR(y_(0), 163213.374921086, 1e-06);
   EXPECT_NEAR(y_(1), 43877.9231473546, 1e-06);
@@ -70,8 +68,7 @@ TEST_F(NonlinearSolverTest, primalvariable)
 
 TEST_F(NonlinearSolverTest, dualvariable)
 {
-  MIRCO::NonLinearSolver nonlinearsolver;
-  nonlinearsolver.NonlinearSolve(matrix_, b_vector_, x_vector_, w_, y_);
+  MIRCO::NonLinearSolver::Solve(matrix_, b_vector_, x_vector_, w_, y_);
 
   EXPECT_NEAR(w_(0, 0), 0, 1e-06);
   EXPECT_NEAR(w_(1, 0), 0, 1e-06);

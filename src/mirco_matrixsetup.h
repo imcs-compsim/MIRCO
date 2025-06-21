@@ -6,9 +6,8 @@
 
 namespace MIRCO
 {
-  class MatrixGeneration
+  namespace MatrixGeneration
   {
-   public:
     /**
      * @brief The aim of this function is to create the influence coefficient matrix (Discrete
      * version of Green function)
