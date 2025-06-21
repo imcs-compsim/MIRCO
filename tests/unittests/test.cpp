@@ -45,8 +45,7 @@ TEST(linearsolver, solves)
   }
 
   // Call linear solver
-  MIRCO::LinearSolver linearsolver;
-  linearsolver.Solve(topology, vector_x, vector_b);
+  MIRCO::LinearSolver::Solve(topology, vector_x, vector_b);
 
   EXPECT_NEAR(vector_x(0), 0.333333333333333, 1e-06);
   EXPECT_NEAR(vector_x(1), 0.333333333333333, 1e-06);

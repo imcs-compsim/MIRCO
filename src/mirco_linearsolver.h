@@ -7,9 +7,8 @@
 
 namespace MIRCO
 {
-  class LinearSolver
+  namespace LinearSolver
   {
-   public:
     /**
      * @brief Solver the linear system matrix * vector_x = vector_b
      *
