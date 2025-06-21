@@ -7,7 +7,7 @@
 
 #include "mirco_linearsolver.h"
 
-void MIRCO::NonLinearSolver::NonlinearSolve(const Teuchos::SerialDenseMatrix<int, double>& matrix,
+void MIRCO::NonLinearSolver::Solve(const Teuchos::SerialDenseMatrix<int, double>& matrix,
     const std::vector<double>& b0, const Teuchos::SerialDenseMatrix<int, double>& y0,
     Teuchos::SerialDenseMatrix<int, double>& w, Teuchos::SerialDenseVector<int, double>& y)
 {
