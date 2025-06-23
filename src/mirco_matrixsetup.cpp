@@ -10,6 +10,7 @@ void MIRCO::MatrixGeneration::SetUpMatrix(Teuchos::SerialDenseMatrix<int, double
     const double CompositeYoungs, const int systemsize, const bool PressureGreenFunFlag)
 {
   double pi = M_PI;
+  A.shape(xv0.size(), xv0.size());
   if (PressureGreenFunFlag)
   {
     // The pressure-based Green's function is based on the work of Pohrt and Li (2014)

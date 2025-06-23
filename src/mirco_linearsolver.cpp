@@ -6,8 +6,8 @@
 #include <Teuchos_SerialSpdDenseSolver.hpp>
 #include <Teuchos_SerialSymDenseMatrix.hpp>
 
-void MIRCO::LinearSolver::Solve(Teuchos::SerialSymDenseMatrix<int, double>& matrix,
-    Teuchos::SerialDenseVector<int, double>& vector_x,
+Teuchos::SerialDenseVector<int, double> MIRCO::LinearSolver::Solve(
+    Teuchos::SerialSymDenseMatrix<int, double>& matrix,
     Teuchos::SerialDenseVector<int, double>& vector_b)
 {
   Teuchos::SerialSpdDenseSolver<int, double> solver;
@@ -16,6 +16,9 @@ void MIRCO::LinearSolver::Solve(Teuchos::SerialSymDenseMatrix<int, double>& matr
   {
     std::cout << "Error setting matrix for linear solver (1)";
   }
+
+  Teuchos::SerialDenseVector<int, double> vector_x;
+  vector_x.size(vector_b.length());
 
   err = solver.setVectors(Teuchos::rcpFromRef(vector_x), Teuchos::rcpFromRef(vector_b));
   if (err != 0)
@@ -29,4 +32,6 @@ void MIRCO::LinearSolver::Solve(Teuchos::SerialSymDenseMatrix<int, double>& matr
   {
     std::cout << "Error setting up solver (3)";
   }
+
+  return vector_x;
 }

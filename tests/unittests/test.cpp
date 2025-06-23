@@ -34,8 +34,7 @@ TEST(linearsolver, solves)
   Teuchos::SerialDenseVector<int, double> vector_x;
   Teuchos::SerialDenseVector<int, double> vector_b;
 
-  // Bring matrices in correct form
-  vector_x.size(systemsize);
+  // Bring right hand side into the correct form
   vector_b.size(systemsize);
 
   // Build right hand side
@@ -45,7 +44,7 @@ TEST(linearsolver, solves)
   }
 
   // Call linear solver
-  MIRCO::LinearSolver::Solve(topology, vector_x, vector_b);
+  vector_x = MIRCO::LinearSolver::Solve(topology, vector_b);
 
   EXPECT_NEAR(vector_x(0), 0.333333333333333, 1e-06);
   EXPECT_NEAR(vector_x(1), 0.333333333333333, 1e-06);
@@ -53,7 +52,7 @@ TEST(linearsolver, solves)
 
 TEST_F(NonlinearSolverTest, primalvariable)
 {
-  MIRCO::NonLinearSolver::Solve(matrix_, b_vector_, x_vector_, w_, y_);
+  y_ = MIRCO::NonLinearSolver::Solve(matrix_, b_vector_, x_vector_, w_);
 
   EXPECT_NEAR(y_(0), 163213.374921086, 1e-06);
   EXPECT_NEAR(y_(1), 43877.9231473546, 1e-06);
@@ -68,7 +67,7 @@ TEST_F(NonlinearSolverTest, primalvariable)
 
 TEST_F(NonlinearSolverTest, dualvariable)
 {
-  MIRCO::NonLinearSolver::Solve(matrix_, b_vector_, x_vector_, w_, y_);
+  MIRCO::NonLinearSolver::Solve(matrix_, b_vector_, x_vector_, w_);
 
   EXPECT_NEAR(w_(0, 0), 0, 1e-06);
   EXPECT_NEAR(w_(1, 0), 0, 1e-06);

@@ -7,9 +7,9 @@
 
 #include "mirco_linearsolver.h"
 
-void MIRCO::NonLinearSolver::Solve(const Teuchos::SerialDenseMatrix<int, double>& matrix,
-    const std::vector<double>& b0, const Teuchos::SerialDenseMatrix<int, double>& y0,
-    Teuchos::SerialDenseMatrix<int, double>& w, Teuchos::SerialDenseVector<int, double>& y)
+Teuchos::SerialDenseVector<int, double> MIRCO::NonLinearSolver::Solve(
+    const Teuchos::SerialDenseMatrix<int, double>& matrix, const std::vector<double>& b0,
+    const Teuchos::SerialDenseMatrix<int, double>& y0, Teuchos::SerialDenseMatrix<int, double>& w)
 {
   double nnlstol = 1.0000e-08;
   double maxiter = 10000;
@@ -19,12 +19,15 @@ void MIRCO::NonLinearSolver::Solve(const Teuchos::SerialDenseMatrix<int, double>
   int iter = 0;
   bool init = false;
   const int n0 = b0.size();
-  y.size(n0);
-  y.putScalar(0.0);
   Teuchos::SerialDenseMatrix<int, double> s0;
   std::vector<int> P(n0);
   Teuchos::SerialDenseVector<int, double> vector_x, vector_b;
   Teuchos::SerialSymDenseMatrix<int, double> solverMatrix;
+
+  // Initialize contact force solution
+  Teuchos::SerialDenseVector<int, double> y;
+  y.size(n0);
+  y.putScalar(0.0);
 
   // Initialize active set
   std::vector<int> positions;
@@ -131,7 +134,6 @@ void MIRCO::NonLinearSolver::Solve(const Teuchos::SerialDenseMatrix<int, double>
     while (aux2 == true)
     {
       iter++;
-      vector_x.size(counter);
       vector_b.size(counter);
       solverMatrix.shape(counter);
 
@@ -149,7 +151,7 @@ void MIRCO::NonLinearSolver::Solve(const Teuchos::SerialDenseMatrix<int, double>
         }
       }
       // Solving solverMatrix*vector_x=vector_b
-      MIRCO::LinearSolver::Solve(solverMatrix, vector_x, vector_b);
+      vector_x = MIRCO::LinearSolver::Solve(solverMatrix, vector_b);
 
 #pragma omp parallel for schedule(static, 16)  // Always same workload -> Static!
       for (int x = 0; x < counter; x++)
@@ -231,4 +233,5 @@ void MIRCO::NonLinearSolver::Solve(const Teuchos::SerialDenseMatrix<int, double>
       }
     }
   }
+  return y;
 }
