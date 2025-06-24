@@ -18,6 +18,8 @@ namespace MIRCO
      * @param y0 contact forces at (xvf,yvf) predicted in the previous iteration but are a part of
      * currect predicted contact set.
      * @param w Gap between the point on the topology and the half space
+     *
+     * @return y Solution containing force
      */
     Teuchos::SerialDenseVector<int, double> Solve(
         const Teuchos::SerialDenseMatrix<int, double>& matrix, const std::vector<double>& b0,
