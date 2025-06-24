@@ -24,7 +24,7 @@ namespace MIRCO
     void SetUpMatrix(Teuchos::SerialDenseMatrix<int, double>& A, const std::vector<double>& xv0,
         const std::vector<double>& yv0, const double GridSize, const double CompositeYoungs,
         const int systemsize, const bool PressureGreenFunFlag);
-  };
+  };  // namespace MatrixGeneration
 }  // namespace MIRCO
 
 #endif  // SRC_MATRIXSETUP_H_
