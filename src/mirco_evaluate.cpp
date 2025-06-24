@@ -67,11 +67,9 @@ void MIRCO::Evaluate(double& pressure, const double Delta, const double LateralL
     // First predictor for contact set
     MIRCO::ContactSetPredictor(n0, xv0, yv0, b0, zmax, Delta, w_el, meshgrid, topology);
 
-    A.shape(xv0.size(), xv0.size());
-
     // Construction of the Matrix A
-    MIRCO::MatrixGeneration matrix1;
-    matrix1.SetUpMatrix(A, xv0, yv0, GridSize, CompositeYoungs, n0, PressureGreenFunFlag);
+    MIRCO::MatrixGeneration::SetUpMatrix(
+        A, xv0, yv0, GridSize, CompositeYoungs, n0, PressureGreenFunFlag);
 
     // Second predictor for contact set
     // @{
@@ -85,8 +83,7 @@ void MIRCO::Evaluate(double& pressure, const double Delta, const double LateralL
 
     // use Nonlinear solver --> Non-Negative Least Squares (NNLS) as in
     // (Bemporad & Paggi, 2015)
-    MIRCO::NonLinearSolver solution2;
-    solution2.NonlinearSolve(A, b0, x0, w, y);
+    y = MIRCO::NonLinearSolver::Solve(A, b0, x0, w);
 
     // Compute number of contact node
     MIRCO::ComputeContactNodes(xvf, yvf, pf, nf, y, xv0, yv0);

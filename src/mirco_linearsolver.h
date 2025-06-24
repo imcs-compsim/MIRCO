@@ -7,20 +7,20 @@
 
 namespace MIRCO
 {
-  class LinearSolver
+  namespace LinearSolver
   {
-   public:
     /**
-     * @brief Solver the linear system matrix * vector_x = vector_b
+     * @brief Solve the linear system matrix * vector_x = vector_b
      *
      * @param matrix Influence coefficient matrix (Discrete version of Green Function)
-     * @param vector_x Solution
      * @param vector_b RHS
+     *
+     * @return vector_x Solution to the linear system
      */
-    void Solve(Teuchos::SerialSymDenseMatrix<int, double>& matrix,
-        Teuchos::SerialDenseVector<int, double>& vector_x,
+    Teuchos::SerialDenseVector<int, double> Solve(
+        Teuchos::SerialSymDenseMatrix<int, double>& matrix,
         Teuchos::SerialDenseVector<int, double>& vector_b);
-  };
+  };  // namespace LinearSolver
 }  // namespace MIRCO
 
 #endif  // SRC_LINEARSOLVER_H_

@@ -6,9 +6,8 @@
 
 namespace MIRCO
 {
-  class MatrixGeneration
+  namespace MatrixGeneration
   {
-   public:
     /**
      * @brief The aim of this function is to create the influence coefficient matrix (Discrete
      * version of Green function)
@@ -25,7 +24,7 @@ namespace MIRCO
     void SetUpMatrix(Teuchos::SerialDenseMatrix<int, double>& A, const std::vector<double>& xv0,
         const std::vector<double>& yv0, const double GridSize, const double CompositeYoungs,
         const int systemsize, const bool PressureGreenFunFlag);
-  };
+  };  // namespace MatrixGeneration
 }  // namespace MIRCO
 
 #endif  // SRC_MATRIXSETUP_H_
