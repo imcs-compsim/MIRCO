@@ -10,10 +10,12 @@ namespace MIRCO
   namespace LinearSolver
   {
     /**
-     * @brief Return the solution, vector_x, of the linear system matrix * vector_x = vector_b
+     * @brief Solve the linear system matrix * vector_x = vector_b
      *
      * @param matrix Influence coefficient matrix (Discrete version of Green Function)
      * @param vector_b RHS
+     *
+     * @return vector_x Solution to the linear system
      */
     Teuchos::SerialDenseVector<int, double> Solve(
         Teuchos::SerialSymDenseMatrix<int, double>& matrix,

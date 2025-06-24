@@ -10,8 +10,7 @@ namespace MIRCO
   namespace NonLinearSolver
   {
     /**
-     * @brief Solve the non-linear set of equations using Non-Negative Least Squares (NNLS) method
-     * and return the contact force solution y.
+     * @brief Solve the non-linear set of equations using Non-Negative Least Squares (NNLS) method.
      *
      * @param matrix Influence coefficient matrix (Discrete version of Green Function)
      * @param b0 Indentation value of the half space at the predicted points of contact.
