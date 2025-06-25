@@ -7,6 +7,7 @@ macro(mirco_framework_test name_of_input_file)
 endmacro(mirco_framework_test)
 
 # List of tests
+mirco_framework_test(input_sup2.xml)
 mirco_framework_test(input_sup5.xml)
 mirco_framework_test(input_sup6.xml)
 mirco_framework_test(input_sup7.xml)

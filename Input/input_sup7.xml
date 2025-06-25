@@ -23,6 +23,11 @@
       <Parameter name="Delta" type="double" value="10.0"/>
       <Parameter name="Tolerance" type="double" value="0.01"/>
     </ParameterList>
-
   </ParameterList>
+
+  <ParameterList name="result_description">
+    <Parameter name="ExpectedPressure" type="double" value="0.0004526213923013545"/>
+    <Parameter name="ExpectedPressureTolerance" type="double" value="1e-10"/>
+  </ParameterList>
+
 </ParameterList>

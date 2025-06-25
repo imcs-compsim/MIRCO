@@ -37,13 +37,16 @@ namespace MIRCO
    * @param MaxIteration Maximum number of iterations for the force to converge.
    * @param PressureGreenFunFlag Flag to use Green function based on uniform pressure instead of
    * point force
+   * @param ExpectedPressure Expected pressure output for framework test
+   * @param ExpectedPressureTolerance Tolerance to compare the output to the expected pressure
    */
   void SetParameters(double& E1, double& E2, double& LateralLength, double& nu1, double& nu2,
       double& CompositeYoungs, double& alpha, double& ElasticComplianceCorrection, double& GridSize,
       double& Tolerance, double& Delta, std::string& TopologyFilePath, int& Resolution,
       double& InitialTopologyStdDeviation, const std::string& inputFileName,
       bool& RandomTopologyFlag, double& Hurst, bool& RandomSeedFlag, int& RandomGeneratorSeed,
-      bool& WarmStartingFlag, int& MaxIteration, bool& PressureGreenFunFlag);
+      bool& WarmStartingFlag, int& MaxIteration, bool& PressureGreenFunFlag,
+      double& ExpectedPressure, double& ExpectedPressureTolerance);
 }  // namespace MIRCO
 
 #endif  // SRC_SETPARAMETERS_H_
