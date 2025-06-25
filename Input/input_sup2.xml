@@ -26,8 +26,8 @@
   </ParameterList>
 
   <ParameterList name="result_description">
-    <Parameter name="ExpectedPressure" type="double" value="0.0060690998"/>
-    <Parameter name="ExpectedPressureTolerance" type="double" value="1e-6"/>
+    <Parameter name="ExpectedPressure" type="double" value="0.006069099831252897"/>
+    <Parameter name="ExpectedPressureTolerance" type="double" value="1e-10"/>
   </ParameterList>
 
 </ParameterList>
