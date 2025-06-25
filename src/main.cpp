@@ -1,4 +1,3 @@
-#include <Teuchos_TestForException.hpp>
 #include <chrono>
 #include <iostream>
 #include <string>
@@ -75,9 +74,9 @@ int main(int argc, char* argv[])
   std::cout << "Elapsed time is: " + std::to_string(elapsedTime) + "s." << std::endl;
 
   // Test for correct output if the result_description is given in the input file
-  if (ExpectedPressure >= 0)
+  if (ExpectedPressure >= 0.0 && std::abs(pressure - ExpectedPressure) > ExpectedPressureTolerance)
   {
-    TEUCHOS_TEST_FOR_EXCEPTION(std::abs(pressure - ExpectedPressure) > ExpectedPressureTolerance,
-        std::runtime_error, "The output pressure is incorrect");
+    std::cerr << "The output pressure is incorrect" << std::endl;
+    return EXIT_FAILURE;
   }
 }
