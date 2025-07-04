@@ -27,18 +27,15 @@ const std::map<int, double> shape_factors_force{{1, 0.778958541513360}, {2, 0.80
     {3, 0.826126871395416}, {4, 0.841369158110513}, {5, 0.851733020725652}, {6, 0.858342234203154},
     {7, 0.862368243479785}, {8, 0.864741597831785}};
 
-inline int N_wrtResolution(int resolution)
-{
-  // TODO: Add checks
-  return (1 << resolution) + 1;  // 2^resolution + 1
-}
+inline int NFromResolution(int resolution) { return (1 << resolution) + 1; }
 // basic linear interpolation for now
-double InterpolatedShapeFactor_wrtN(const std::map<int, double>& shapeFactors, int N)
+double InterpolatedShapeFactor(const std::map<int, double>& shapeFactors, int N)
 {
   double resolution = log2(N - 1);
-  int floor = (int)std::floor(resolution);
-  double sfFloor = shapeFactors.at(floor);
-  return sfFloor + (resolution - floor) * (shapeFactors.at(floor + 1) - sfFloor);
+  int resfloor = (int)std::floor(resolution);
+  double sf_floor = shapeFactors.at(resfloor);
+  if (((N - 1) & (N - 2)) == 0) return sf_floor;
+  return sf_floor + (resolution - resfloor) * (shapeFactors.at(resfloor + 1) - sf_floor);
 }
 
 MIRCO::InputParameters::InputParameters(const std::string& inputFileName)
@@ -47,8 +44,9 @@ MIRCO::InputParameters::InputParameters(const std::string& inputFileName)
   Teuchos::updateParametersFromXmlFile(inputFileName, Teuchos::ptrFromRef(parameter_list));
 
   // Setting up the simulation specific parameters.
-  warm_starting_flag_ = parameter_list.get<bool>("WarmStartingFlag");
   max_iteration_ = parameter_list.get<int>("MaxIteration");
+  warm_starting_flag_ = parameter_list.get<bool>("WarmStartingFlag");
+  pressure_green_funct_flag_ = parameter_list.get<bool>("PressureGreenFunFlag");
 
   // Setting up the geometrical parameters.
   Teuchos::ParameterList& geo_params =
@@ -57,23 +55,20 @@ MIRCO::InputParameters::InputParameters(const std::string& inputFileName)
   tolerance_ = geo_params.get<double>("Tolerance");
   delta_ = geo_params.get<double>("Delta");
 
-  int N;
   // Set the surface generator based on RandomTopologyFlag
   if (parameter_list.get<bool>("RandomTopologyFlag"))
   {
     auto resolution = geo_params.get<int>("Resolution");
 
-    N = N_wrtResolution(resolution);
+    N_ = NFromResolution(resolution);
 
     topology_ =
         MIRCO::CreateRmgSurface(resolution, geo_params.get<double>("InitialTopologyStdDeviation"),
             geo_params.get<double>("HurstExponent"), parameter_list.get<bool>("RandomSeedFlag"),
             parameter_list.get<int>("RandomGeneratorSeed"));
 
-
-
-    // resolution is available; no interpolation needed
-    if (parameter_list.get<bool>("PressureGreenFunFlag"))
+    // Resolution is available; no interpolation required
+    if (pressure_green_funct_flag_)
     {
       shape_factor_ = shape_factors_pressure.at(resolution);
     }
@@ -85,22 +80,20 @@ MIRCO::InputParameters::InputParameters(const std::string& inputFileName)
   else
   {
     auto topology_file_path = parameter_list.get<std::string>("TopologyFilePath");
-    // following function generates the actual path of the topology file.
+    // The following function generates the actual path of the topology file
     MIRCO::UTILS::ChangeRelativePath(topology_file_path, inputFileName);
-    topology_ = MIRCO::CreateSurfaceFromFile(topology_file_path, N);
+    topology_ = MIRCO::CreateSurfaceFromFile(topology_file_path, N_);
 
-    // interpolation needed
-    if (parameter_list.get<bool>("PressureGreenFunFlag"))
+    // Interpolation required
+    if (pressure_green_funct_flag_)
     {
-      shape_factor_ = InterpolatedShapeFactor_wrtN(shape_factors_pressure, N);
+      shape_factor_ = InterpolatedShapeFactor(shape_factors_pressure, N_);
     }
     else
     {
-      shape_factor_ = InterpolatedShapeFactor_wrtN(shape_factors_force, N);
+      shape_factor_ = InterpolatedShapeFactor(shape_factors_force, N_);
     }
   }
-
-
 
   // Setting up the material parameters.
   Teuchos::ParameterList& matParams =
@@ -113,7 +106,7 @@ MIRCO::InputParameters::InputParameters(const std::string& inputFileName)
 
   composite_youngs_ = pow(((1 - pow(nu1, 2)) / E1 + (1 - pow(nu2, 2)) / E2), -1);
   elastic_compliance_correction_ = lateral_length_ * composite_youngs_ / shape_factor_;
-  grid_size_ = lateral_length_ / N;
+  grid_size_ = lateral_length_ / N_;
 }
 
 MIRCO::InputParameters::InputParameters(double E1, double E2, double nu1, double nu2,
@@ -142,7 +135,7 @@ MIRCO::InputParameters::InputParameters(double E1, double E2, double nu1, double
 
   composite_youngs_ = pow(((1 - pow(nu1, 2)) / E1 + (1 - pow(nu2, 2)) / E2), -1);
   elastic_compliance_correction_ = LateralLength * composite_youngs_ / shape_factor_;
-  grid_size_ = LateralLength / N_wrtResolution(Resolution);
+  grid_size_ = LateralLength / NFromResolution(Resolution);
 }
 
 MIRCO::InputParameters::InputParameters(double E1, double E2, double nu1, double nu2,
@@ -155,20 +148,19 @@ MIRCO::InputParameters::InputParameters(double E1, double E2, double nu1, double
       warm_starting_flag_(WarmStartingFlag),
       pressure_green_funct_flag_(PressureGreenFunFlag)
 {
-  int N;
-  topology_ = MIRCO::CreateSurfaceFromFile(TopologyFilePath, N);
+  topology_ = MIRCO::CreateSurfaceFromFile(TopologyFilePath, N_);
 
   // interpolation needed
   if (PressureGreenFunFlag)
   {
-    shape_factor_ = InterpolatedShapeFactor_wrtN(shape_factors_pressure, N);
+    shape_factor_ = InterpolatedShapeFactor(shape_factors_pressure, N_);
   }
   else
   {
-    shape_factor_ = InterpolatedShapeFactor_wrtN(shape_factors_force, N);
+    shape_factor_ = InterpolatedShapeFactor(shape_factors_force, N_);
   }
 
   composite_youngs_ = pow(((1 - pow(nu1, 2)) / E1 + (1 - pow(nu2, 2)) / E2), -1);
   elastic_compliance_correction_ = LateralLength * composite_youngs_ / shape_factor_;
-  grid_size_ = LateralLength / N;
+  grid_size_ = LateralLength / N_;
 }

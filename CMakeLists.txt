@@ -191,7 +191,14 @@ if(GTEST_IN_MIRCO)
 
   target_link_libraries(tests PUBLIC mirco::mirco_lib gtest)
 
-  include(GoogleTest)
+  # Copy tests/unittests/data folder to the build dir
+  add_custom_command(
+    TARGET tests POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${CMAKE_CURRENT_SOURCE_DIR}/tests/unittests/data
+            $<TARGET_FILE_DIR:tests>/data
+  )
+
   gtest_discover_tests(tests)
 
   include(TestingFramework.cmake)

@@ -10,11 +10,7 @@ namespace MIRCO
    * @brief This class stores the input parameters and topology
    *
    */
-  class InputParameters  // # at this point we should consider renaming to getTopology or something;
-                         // but yeah, the whole goal of the input procedure is to get the topology
-                         // anyways, so I think it is ok to have this all in a single class for
-                         // conciseness and clarity--you won't ever be using anything else anyways;
-                         // it is like impossible to separate it more while not having redundancies
+  class InputParameters
   {
    public:
     /**
@@ -76,10 +72,8 @@ namespace MIRCO
         double LateralLength, const std::string& TopologyFilePath, int MaxIteration,
         bool WarmStartingFlag, bool PressureGreenFunFlag);
 
-
-
-    // In my opinion, we do not need getters
    public:
+    int N_ = 0;
     double composite_youngs_ = 0.0, elastic_compliance_correction_ = 0.0, shape_factor_ = 0.0,
            tolerance_ = 0.0, delta_ = 0.0, lateral_length_ = 0.0, grid_size_ = 0.0;
     int max_iteration_ = 0;

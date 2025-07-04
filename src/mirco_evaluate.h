@@ -4,7 +4,7 @@
 #include <Teuchos_SerialDenseMatrix.hpp>
 #include <string>
 
-#include "mirco_inputparameters.h"  //# we could, if it is a problem, put the second Evaluate() overload into a separate file (and then include this file in that file for the calling)
+#include "mirco_inputparameters.h"
 
 namespace MIRCO
 {

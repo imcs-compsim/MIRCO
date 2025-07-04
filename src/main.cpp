@@ -18,11 +18,11 @@ int main(int argc, char* argv[])
   const auto start = std::chrono::high_resolution_clock::now();
 
   MIRCO::InputParameters inputParams(inputFileName);
-  auto topology = inputParams.topology_;
 
   // Identical Vectors/Matricies, therefore only created one here.
-  auto meshgrid = MIRCO::CreateMeshgrid(topology.numRows(), inputParams.grid_size_);  // #
+  auto meshgrid = MIRCO::CreateMeshgrid(inputParams.N_, inputParams.grid_size_);
 
+  auto& topology = inputParams.topology_;
   auto max_and_mean = MIRCO::ComputeMaxAndMean(topology);
 
   // Initialise Pressure

@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "../../src/mirco_filesystem_utils.h"
+#include "../../src/mirco_inputparameters.h"
 #include "../../src/mirco_linearsolver.h"
 #include "../../src/mirco_nonlinearsolver.h"
 #include "../../src/mirco_topology.h"
@@ -96,20 +97,16 @@ TEST(FilesystemUtils, keepabsolutpath)
   EXPECT_EQ(targetfilename, "/root_dir/home/user/Input/input.dat");
 }
 
-TEST(readtopology, RMG)
+TEST(topology, RMG)
 {
   int Resolution = 2;
   float HurstExponent = 0.1;
   bool RandomSeedFlag = false;
   int RandomGeneratorSeed = 95;
-  Teuchos::SerialDenseMatrix<int, double> outsurf;
-  int N = pow(2, Resolution);
-  outsurf.shape(N + 1, N + 1);
   double InitialTopologyStdDeviation = 20.0;
 
-  MIRCO::Rmg surface(
+  auto outsurf = MIRCO::CreateRmgSurface(
       Resolution, InitialTopologyStdDeviation, HurstExponent, RandomSeedFlag, RandomGeneratorSeed);
-  surface.GetSurface(outsurf);
 
   EXPECT_NEAR(outsurf(0, 0), 23.5435469989256, 1e-06);
   EXPECT_NEAR(outsurf(0, 1), 30.2624522170979, 1e-06);
@@ -136,6 +133,48 @@ TEST(readtopology, RMG)
   EXPECT_NEAR(outsurf(4, 2), 30.6777944575233, 1e-06);
   EXPECT_NEAR(outsurf(4, 3), 35.2191824993355, 1e-06);
   EXPECT_NEAR(outsurf(4, 4), 23.5435469989256, 1e-06);
+}
+TEST(topology, readFromFile)
+{
+  int N;
+  std::string topologyFilePath = "data/sup2.dat";
+  auto outsurf = MIRCO::CreateSurfaceFromFile(topologyFilePath, N);
+
+  EXPECT_EQ(outsurf.numRows(), 5);
+  EXPECT_EQ(outsurf.numCols(), 5);
+  EXPECT_NEAR(outsurf(0, 0), 5.7299175e+01, 1e-06);
+  EXPECT_NEAR(outsurf(4, 3), 9.8243100e+01, 1e-06);
+}
+
+TEST(inputParameters, readFromXmlFile_rmg)
+{
+  std::string inputFilePath = "data/input_sup2_rmg.xml";
+  MIRCO::InputParameters inputParams(inputFilePath);
+
+  EXPECT_EQ(inputParams.topology_.numRows(), 5);
+  EXPECT_EQ(inputParams.topology_.numCols(), 5);
+
+  EXPECT_EQ(inputParams.max_iteration_, 100);
+  EXPECT_NEAR(inputParams.tolerance_, 0.01, 1e-06);
+
+  EXPECT_NEAR(inputParams.grid_size_, 200, 1e-04);
+  EXPECT_NEAR(inputParams.composite_youngs_, 0.549451, 1e-04);
+}
+TEST(inputParameters, readFromXmlFile_topologyFile)
+{
+  std::string inputFilePath = "data/input_sup2_topologyfile.xml";
+  MIRCO::InputParameters inputParams(inputFilePath);
+
+  EXPECT_EQ(inputParams.topology_.numRows(), 5);
+  EXPECT_EQ(inputParams.topology_.numCols(), 5);
+  EXPECT_NEAR(inputParams.topology_(0, 0), 5.7299175e+01, 1e-06);
+  EXPECT_NEAR(inputParams.topology_(4, 3), 9.8243100e+01, 1e-06);
+
+  EXPECT_EQ(inputParams.max_iteration_, 100);
+  EXPECT_NEAR(inputParams.tolerance_, 0.01, 1e-06);
+
+  EXPECT_NEAR(inputParams.grid_size_, 200, 1e-04);
+  EXPECT_NEAR(inputParams.composite_youngs_, 0.549451, 1e-04);
 }
 
 TEST(warmstarting, warmstart)
