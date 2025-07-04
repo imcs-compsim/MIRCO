@@ -148,7 +148,7 @@ TEST(topology, readFromFile)
 
 TEST(inputParameters, readFromXmlFile_rmg)
 {
-  std::string inputFilePath = "data/input_sup2_rmg.xml";
+  std::string inputFilePath = "data/input_res2_rmg.xml";
   MIRCO::InputParameters inputParams(inputFilePath);
 
   EXPECT_EQ(inputParams.topology_.numRows(), 5);
@@ -160,9 +160,9 @@ TEST(inputParameters, readFromXmlFile_rmg)
   EXPECT_NEAR(inputParams.grid_size_, 200, 1e-04);
   EXPECT_NEAR(inputParams.composite_youngs_, 0.549451, 1e-04);
 }
-TEST(inputParameters, readFromXmlFile_topologyFile)
+TEST(inputParameters, readFromXmlFile_dat)
 {
-  std::string inputFilePath = "data/input_sup2_topologyfile.xml";
+  std::string inputFilePath = "data/input_withDat.xml";
   MIRCO::InputParameters inputParams(inputFilePath);
 
   EXPECT_EQ(inputParams.topology_.numRows(), 5);
@@ -175,6 +175,37 @@ TEST(inputParameters, readFromXmlFile_topologyFile)
 
   EXPECT_NEAR(inputParams.grid_size_, 200, 1e-04);
   EXPECT_NEAR(inputParams.composite_youngs_, 0.549451, 1e-04);
+}
+TEST(inputParameters, directInput_rmg)
+{
+  MIRCO::InputParameters inputParams(
+      1.0, 1.0, 0.2, 0.2, 0.005, 10.0, 1000, 2, 15.0, 0.15, false, 46, 100, false, true);
+
+  EXPECT_EQ(inputParams.topology_.numRows(), 5);
+  EXPECT_EQ(inputParams.topology_.numCols(), 5);
+
+  EXPECT_EQ(inputParams.max_iteration_, 100);
+  EXPECT_NEAR(inputParams.tolerance_, 0.005, 1e-06);
+
+  EXPECT_NEAR(inputParams.grid_size_, 200, 1e-04);
+  EXPECT_EQ(inputParams.N_, 5);
+}
+TEST(inputParameters, directInput_dat)
+{
+  std::string topologyFilePath = "data/topologyN5.dat";
+  MIRCO::InputParameters inputParams(
+      1.0, 1.0, 0.2, 0.2, 0.005, 10.0, 1000, topologyFilePath, 100, false, false);
+
+  EXPECT_EQ(inputParams.topology_.numRows(), 5);
+  EXPECT_EQ(inputParams.topology_.numCols(), 5);
+  EXPECT_NEAR(inputParams.topology_(0, 0), 5.7299175e+01, 1e-06);
+  EXPECT_NEAR(inputParams.topology_(4, 3), 9.8243100e+01, 1e-06);
+
+  EXPECT_EQ(inputParams.max_iteration_, 100);
+  EXPECT_NEAR(inputParams.tolerance_, 0.005, 1e-06);
+
+  EXPECT_NEAR(inputParams.grid_size_, 200, 1e-04);
+  EXPECT_EQ(inputParams.N_, 5);
 }
 
 TEST(warmstarting, warmstart)

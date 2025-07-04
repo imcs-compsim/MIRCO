@@ -110,7 +110,7 @@ MIRCO::InputParameters::InputParameters(const std::string& inputFileName)
 }
 
 MIRCO::InputParameters::InputParameters(double E1, double E2, double nu1, double nu2,
-    double Tolerance, double Delta, int Resolution, double LateralLength,
+    double Tolerance, double Delta, double LateralLength, int Resolution,
     double InitialTopologyStdDeviation, double Hurst, bool RandomSeedFlag, int RandomGeneratorSeed,
     int MaxIteration, bool WarmStartingFlag, bool PressureGreenFunFlag)
     : tolerance_(Tolerance),
@@ -135,7 +135,8 @@ MIRCO::InputParameters::InputParameters(double E1, double E2, double nu1, double
 
   composite_youngs_ = pow(((1 - pow(nu1, 2)) / E1 + (1 - pow(nu2, 2)) / E2), -1);
   elastic_compliance_correction_ = LateralLength * composite_youngs_ / shape_factor_;
-  grid_size_ = LateralLength / NFromResolution(Resolution);
+  N_ = NFromResolution(Resolution);
+  grid_size_ = LateralLength / N_;
 }
 
 MIRCO::InputParameters::InputParameters(double E1, double E2, double nu1, double nu2,

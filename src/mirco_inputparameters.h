@@ -31,8 +31,8 @@ namespace MIRCO
      * @param nu2 Poisson's ratio of body 2
      * @param Tolerance Tolerance for the convergence of force.
      * @param Delta Far-field displacement (Gap).
-     * @param Resolution Resolution parameter
      * @param LateralLength Lateral side of the surface [micrometers]
+     * @param Resolution Resolution parameter
      * @param InitialTopologyStdDeviation Initial Standard deviation for the random-midpoint
      * generator [micrometers]
      * @param Hurst Hurst Exponent (Used in random mid-point generator)
@@ -46,7 +46,7 @@ namespace MIRCO
      * point force
      */
     InputParameters(double E1, double E2, double nu1, double nu2, double Tolerance, double Delta,
-        int Resolution, double LateralLength, double InitialTopologyStdDeviation, double Hurst,
+        double LateralLength, int Resolution, double InitialTopologyStdDeviation, double Hurst,
         bool RandomSeedFlag, int RandomGeneratorSeed, int MaxIteration, bool WarmStartingFlag,
         bool PressureGreenFunFlag);
 
