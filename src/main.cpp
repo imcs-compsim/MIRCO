@@ -38,19 +38,23 @@ int main(int argc, char* argv[])
       RandomGeneratorSeed, WarmStartingFlag, MaxIteration, PressureGreenFunFlag);
 
   // Identical Vectors/Matricies, therefore only created one here.
-  int ngrid = int(ceil((LateralLength - (GridSize / 2)) / GridSize));
+  int ngrid =
+      int(ceil((LateralLength - (GridSize / 2)) /
+               GridSize));  // # wtf is this autism it is always something.5 and then we ceil
+  std::cout << "ngrid=" << ngrid << "\n";
   std::vector<double> meshgrid(ngrid);
-  MIRCO::CreateMeshgrid(meshgrid, ngrid, GridSize);
+  MIRCO::CreateMeshgrid(meshgrid, ngrid, GridSize);  // #
 
   // Setup Topology
   Teuchos::SerialDenseMatrix<int, double> topology;
-  int N = pow(2, Resolution);
-  topology.shape(N + 1, N + 1);
+  int N = pow(2, Resolution) + 1;
+  std::cout << "N=" << N << "\n";
+  topology.shape(N, N);  // #
 
   Teuchos::RCP<MIRCO::TopologyGeneration> surfacegenerator;
   // creating the correct surface object
   MIRCO::CreateSurfaceObject(Resolution, InitialTopologyStdDeviation, Hurst, RandomSeedFlag,
-      TopologyFilePath, RandomTopologyFlag, RandomGeneratorSeed, surfacegenerator);
+      TopologyFilePath, RandomTopologyFlag, RandomGeneratorSeed, surfacegenerator);  // #
 
   surfacegenerator->GetSurface(topology);
 
@@ -61,7 +65,9 @@ int main(int argc, char* argv[])
 
   MIRCO::Evaluate(pressure, Delta, LateralLength, GridSize, Tolerance, MaxIteration,
       CompositeYoungs, WarmStartingFlag, ElasticComplianceCorrection, topology, max_and_mean.max_,
-      meshgrid, PressureGreenFunFlag);
+      meshgrid, PressureGreenFunFlag);  // # make overloard constructor: either pass all these
+                                        // params in or pass in an InputParameters object as well as
+                                        // the necessary other params
 
   std::cout << "Mean pressure is: " << std::to_string(pressure) << std::endl;
 
