@@ -109,22 +109,25 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -O3")
 
 # Compile mirco library
 add_library(mirco_core
-  src/mirco_topology.cpp
   src/mirco_linearsolver.cpp
   src/mirco_nonlinearsolver.cpp
   src/mirco_matrixsetup.cpp
   src/mirco_warmstart.cpp
   src/mirco_evaluate.cpp
-  src/mirco_topologyutilities.cpp
   src/mirco_contactpredictors.cpp
   src/mirco_contactstatus.cpp
   )
 target_link_libraries(mirco_core PUBLIC Trilinos::all_selected_libs OpenMP::OpenMP_CXX)
 
-add_library(mirco_io
-  src/mirco_setparameters.cpp
+add_library(mirco_topology
+  src/mirco_topology.cpp
+  src/mirco_topologyutilities.cpp
   )
-target_link_libraries(mirco_io PRIVATE mirco_utils)
+
+add_library(mirco_io
+  src/mirco_inputparameters.cpp
+  )
+target_link_libraries(mirco_io PRIVATE mirco_utils mirco_topology)
 target_link_libraries(mirco_io PUBLIC Trilinos::all_selected_libs)
 
 add_library(mirco_utils

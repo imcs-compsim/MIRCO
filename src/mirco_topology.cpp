@@ -11,9 +11,10 @@
 
 #include "mirco_topologyutilities.h"
 
-void MIRCO::ReadFile::GetSurface(Teuchos::SerialDenseMatrix<int, double> &z)
+Teuchos::SerialDenseMatrix<int, double> MIRCO::CreateSurfaceFromFile(
+    const std::string& filepath, int& N)
 {
-  std::ifstream reader(TopologyFilePath);
+  std::ifstream reader(filepath);
   std::string blaLine;
   int dimension = 0;
   while (getline(reader, blaLine))
@@ -21,9 +22,9 @@ void MIRCO::ReadFile::GetSurface(Teuchos::SerialDenseMatrix<int, double> &z)
     dimension += 1;
   }
   reader.close();
-  z.shape(dimension, dimension);
+  Teuchos::SerialDenseMatrix<int, double> z(dimension, dimension);
   int separatorPosition, lineCounter = 0;
-  std::ifstream stream(TopologyFilePath);
+  std::ifstream stream(filepath);
   std::string line, container;
   double value;
   while (getline(stream, line))
@@ -40,9 +41,13 @@ void MIRCO::ReadFile::GetSurface(Teuchos::SerialDenseMatrix<int, double> &z)
     }
   }
   stream.close();
+
+  N = dimension;
+  return z;
 }
 
-void MIRCO::Rmg::GetSurface(Teuchos::SerialDenseMatrix<int, double> &z)
+Teuchos::SerialDenseMatrix<int, double> MIRCO::CreateRmgSurface(int resolution,
+    double InitialTopologyStdDeviation, double Hurst, bool RandomSeedFlag, int RandomGeneratorSeed)
 {
   srand(time(NULL));
 
@@ -61,6 +66,9 @@ void MIRCO::Rmg::GetSurface(Teuchos::SerialDenseMatrix<int, double> &z)
       0.0, 1.0);  // normal distribution: mean = 0.0, standard deviation = 1.0
 
   int N = pow(2, resolution);
+
+  Teuchos::SerialDenseMatrix<int, double> z(N, N);
+
   const double scaling_factor = pow(sqrt(2), Hurst);
   double alpha = InitialTopologyStdDeviation * scaling_factor;
 
@@ -130,4 +138,6 @@ void MIRCO::Rmg::GetSurface(Teuchos::SerialDenseMatrix<int, double> &z)
       z(i, j) = z(i, j) - zmin;
     }
   }
+
+  return z;
 }

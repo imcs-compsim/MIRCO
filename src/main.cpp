@@ -4,9 +4,7 @@
 #include <string>
 
 #include "mirco_evaluate.h"
-#include "mirco_setparameters.h"
-#include "mirco_topology.h"
-#include "mirco_topologyutilities.h"
+#include "mirco_inputparameters.h"
 
 
 int main(int argc, char* argv[])
@@ -18,45 +16,15 @@ int main(int argc, char* argv[])
 
   const auto start = std::chrono::high_resolution_clock::now();
 
-  bool WarmStartingFlag = false;
-  int Resolution = 0;
-  double nu1 = 0.0, nu2 = 0.0, CompositeYoungs = 0.0, ShapeFactor = 0.0,
-         ElasticComplianceCorrection = 0.0, GridSize = 0.0, Tolerance = 0.0, E1 = 0.0, E2 = 0.0,
-         LateralLength = 0.0, Delta = 0.0;
-  bool RandomTopologyFlag = false;
-  bool RandomSeedFlag = false;
-  double Hurst = 0.0;
-  double InitialTopologyStdDeviation = 0.0;
-  std::string TopologyFilePath = "";
-  int RandomGeneratorSeed = 0;
-  int MaxIteration = 0;
-  bool PressureGreenFunFlag = false;
-
-  MIRCO::SetParameters(E1, E2, LateralLength, nu1, nu2, CompositeYoungs, ShapeFactor,
-      ElasticComplianceCorrection, GridSize, Tolerance, Delta, TopologyFilePath, Resolution,
-      InitialTopologyStdDeviation, inputFileName, RandomTopologyFlag, Hurst, RandomSeedFlag,
-      RandomGeneratorSeed, WarmStartingFlag, MaxIteration, PressureGreenFunFlag);
-
   // Identical Vectors/Matricies, therefore only created one here.
   int ngrid =
       int(ceil((LateralLength - (GridSize / 2)) /
                GridSize));  // # wtf is this autism it is always something.5 and then we ceil
   std::cout << "ngrid=" << ngrid << "\n";
-  std::vector<double> meshgrid(ngrid);
+  MIRCO::InputParameters inputParams(inputFileName);
+  auto topology = inputParams.topology_;
+  std::vector<double> meshgrid(topology.numRows());
   MIRCO::CreateMeshgrid(meshgrid, ngrid, GridSize);  // #
-
-  // Setup Topology
-  Teuchos::SerialDenseMatrix<int, double> topology;
-  int N = pow(2, Resolution) + 1;
-  std::cout << "N=" << N << "\n";
-  topology.shape(N, N);  // #
-
-  Teuchos::RCP<MIRCO::TopologyGeneration> surfacegenerator;
-  // creating the correct surface object
-  MIRCO::CreateSurfaceObject(Resolution, InitialTopologyStdDeviation, Hurst, RandomSeedFlag,
-      TopologyFilePath, RandomTopologyFlag, RandomGeneratorSeed, surfacegenerator);  // #
-
-  surfacegenerator->GetSurface(topology);
 
   auto max_and_mean = MIRCO::ComputeMaxAndMean(topology);
 
