@@ -137,7 +137,7 @@ TEST(topology, RMG)
 TEST(topology, readFromFile)
 {
   int N;
-  std::string topologyFilePath = "data/sup2.dat";
+  std::string topologyFilePath = "test/data/topologyN5.dat";
   auto outsurf = MIRCO::CreateSurfaceFromFile(topologyFilePath, N);
 
   EXPECT_EQ(outsurf.numRows(), 5);
@@ -148,7 +148,7 @@ TEST(topology, readFromFile)
 
 TEST(inputParameters, readFromXmlFile_rmg)
 {
-  std::string inputFilePath = "data/input_res2_rmg.xml";
+  std::string inputFilePath = "test/data/input_res2_rmg.xml";
   MIRCO::InputParameters inputParams(inputFilePath);
 
   EXPECT_EQ(inputParams.topology_.numRows(), 5);
@@ -162,7 +162,7 @@ TEST(inputParameters, readFromXmlFile_rmg)
 }
 TEST(inputParameters, readFromXmlFile_dat)
 {
-  std::string inputFilePath = "data/input_withDat.xml";
+  std::string inputFilePath = "test/data/input_withDat.xml";
   MIRCO::InputParameters inputParams(inputFilePath);
 
   EXPECT_EQ(inputParams.topology_.numRows(), 5);
@@ -192,7 +192,7 @@ TEST(inputParameters, directInput_rmg)
 }
 TEST(inputParameters, directInput_dat)
 {
-  std::string topologyFilePath = "data/topologyN5.dat";
+  std::string topologyFilePath = "test/data/topologyN5.dat";
   MIRCO::InputParameters inputParams(
       1.0, 1.0, 0.2, 0.2, 0.005, 10.0, 1000, topologyFilePath, 100, false, false);
 

@@ -196,7 +196,7 @@ if(GTEST_IN_MIRCO)
     TARGET tests POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
             ${CMAKE_CURRENT_SOURCE_DIR}/tests/unittests/data
-            $<TARGET_FILE_DIR:tests>/data
+            $<TARGET_FILE_DIR:tests>/test/data
   )
 
   gtest_discover_tests(tests)
