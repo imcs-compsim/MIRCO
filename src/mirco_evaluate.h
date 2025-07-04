@@ -2,7 +2,6 @@
 #define SRC_EVALUATE_H_
 
 #include <Teuchos_SerialDenseMatrix.hpp>
-#include <string>
 
 #include "mirco_inputparameters.h"
 

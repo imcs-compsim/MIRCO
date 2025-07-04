@@ -4,8 +4,6 @@
 #include <Teuchos_RCP.hpp>
 #include <Teuchos_SerialDenseMatrix.hpp>
 #include <cmath>
-#include <memory>
-#include <string>
 #include <vector>
 
 namespace MIRCO

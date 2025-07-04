@@ -4,7 +4,6 @@
 #include <cmath>
 #include <ctime>
 #include <fstream>
-#include <iostream>
 #include <random>
 #include <string>
 
@@ -71,7 +70,6 @@ Teuchos::SerialDenseMatrix<int, double> MIRCO::CreateRmgSurface(int resolution,
   const int D_0 = N - 1;
   int D = D_0;
   int d = D_0 / 2;
-  std::cout << "resolution=" << resolution << "\n";
 
   for (int i = 0; i < resolution; i++)
   {
