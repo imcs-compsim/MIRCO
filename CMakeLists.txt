@@ -109,12 +109,12 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -O3")
 
 # Compile mirco library
 add_library(mirco_core
-  src/mirco_topologyutilities.cpp
   src/mirco_linearsolver.cpp
   src/mirco_nonlinearsolver.cpp
   src/mirco_matrixsetup.cpp
   src/mirco_warmstart.cpp
   src/mirco_evaluate.cpp
+  src/mirco_topologyutilities.cpp
   src/mirco_contactpredictors.cpp
   src/mirco_contactstatus.cpp
   )
