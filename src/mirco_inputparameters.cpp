@@ -1,15 +1,12 @@
 #include "mirco_inputparameters.h"
 
 #include <Teuchos_ParameterList.hpp>
-#include <Teuchos_RCP.hpp>
 #include <Teuchos_XMLParameterListHelpers.hpp>
 #include <map>
 #include <string>
-#include <vector>
 
 #include "mirco_filesystem_utils.h"
 #include "mirco_topology.h"
-#include "mirco_topologyutilities.h"
 
 // Shape factors (See section 3.3 of https://doi.org/10.1007/s00466-019-01791-3)
 // These are the shape factors to calculate the elastic compliance correction of the micro-scale
@@ -46,25 +43,23 @@ double InterpolatedShapeFactor_wrtN(const std::map<int, double>& shapeFactors, i
 
 MIRCO::InputParameters::InputParameters(const std::string& inputFileName)
 {
-  Teuchos::RCP<Teuchos::ParameterList> parameter_list = Teuchos::rcp(new Teuchos::ParameterList());
-  Teuchos::updateParametersFromXmlFile(inputFileName, parameter_list.ptr());
+  Teuchos::ParameterList parameter_list;
+  Teuchos::updateParametersFromXmlFile(inputFileName, Teuchos::ptrFromRef(parameter_list));
 
   // Setting up the simulation specific parameters.
-  warm_starting_flag_ = parameter_list->get<bool>("WarmStartingFlag");
-  max_iteration_ = parameter_list->get<int>("MaxIteration");
+  warm_starting_flag_ = parameter_list.get<bool>("WarmStartingFlag");
+  max_iteration_ = parameter_list.get<int>("MaxIteration");
 
   // Setting up the geometrical parameters.
   Teuchos::ParameterList& geo_params =
-      parameter_list->sublist("parameters").sublist("geometrical_parameters");
+      parameter_list.sublist("parameters").sublist("geometrical_parameters");
   lateral_length_ = geo_params.get<double>("LateralLength");
   tolerance_ = geo_params.get<double>("Tolerance");
   delta_ = geo_params.get<double>("Delta");
 
   int N;
-
   // Set the surface generator based on RandomTopologyFlag
-  bool random_topology_flag = parameter_list->get<bool>("RandomTopologyFlag");
-  if (random_topology_flag)
+  if (parameter_list.get<bool>("RandomTopologyFlag"))
   {
     auto resolution = geo_params.get<int>("Resolution");
 
@@ -72,13 +67,13 @@ MIRCO::InputParameters::InputParameters(const std::string& inputFileName)
 
     topology_ =
         MIRCO::CreateRmgSurface(resolution, geo_params.get<double>("InitialTopologyStdDeviation"),
-            geo_params.get<double>("HurstExponent"), parameter_list->get<bool>("RandomSeedFlag"),
-            parameter_list->get<int>("RandomGeneratorSeed"));
+            geo_params.get<double>("HurstExponent"), parameter_list.get<bool>("RandomSeedFlag"),
+            parameter_list.get<int>("RandomGeneratorSeed"));
 
 
 
     // resolution is available; no interpolation needed
-    if (parameter_list->get<bool>("PressureGreenFunFlag"))
+    if (parameter_list.get<bool>("PressureGreenFunFlag"))
     {
       shape_factor_ = shape_factors_pressure.at(resolution);
     }
@@ -89,13 +84,13 @@ MIRCO::InputParameters::InputParameters(const std::string& inputFileName)
   }
   else
   {
-    auto topology_file_path = parameter_list->get<std::string>("TopologyFilePath");
+    auto topology_file_path = parameter_list.get<std::string>("TopologyFilePath");
     // following function generates the actual path of the topology file.
     MIRCO::UTILS::ChangeRelativePath(topology_file_path, inputFileName);
     topology_ = MIRCO::CreateSurfaceFromFile(topology_file_path, N);
 
     // interpolation needed
-    if (parameter_list->get<bool>("PressureGreenFunFlag"))
+    if (parameter_list.get<bool>("PressureGreenFunFlag"))
     {
       shape_factor_ = InterpolatedShapeFactor_wrtN(shape_factors_pressure, N);
     }
@@ -109,7 +104,7 @@ MIRCO::InputParameters::InputParameters(const std::string& inputFileName)
 
   // Setting up the material parameters.
   Teuchos::ParameterList& matParams =
-      parameter_list->sublist("parameters").sublist("material_parameters");
+      parameter_list.sublist("parameters").sublist("material_parameters");
 
   double E1 = matParams.get<double>("E1");
   double E2 = matParams.get<double>("E2");
@@ -130,7 +125,7 @@ MIRCO::InputParameters::InputParameters(double E1, double E2, double nu1, double
       lateral_length_(LateralLength),
       max_iteration_(MaxIteration),
       warm_starting_flag_(WarmStartingFlag),
-      pressure_greenfun_flag_(PressureGreenFunFlag)
+      pressure_green_funct_flag_(PressureGreenFunFlag)
 {
   topology_ = MIRCO::CreateRmgSurface(
       Resolution, InitialTopologyStdDeviation, Hurst, RandomSeedFlag, RandomGeneratorSeed);
@@ -158,7 +153,7 @@ MIRCO::InputParameters::InputParameters(double E1, double E2, double nu1, double
       lateral_length_(LateralLength),
       max_iteration_(MaxIteration),
       warm_starting_flag_(WarmStartingFlag),
-      pressure_greenfun_flag_(PressureGreenFunFlag)
+      pressure_green_funct_flag_(PressureGreenFunFlag)
 {
   int N;
   topology_ = MIRCO::CreateSurfaceFromFile(TopologyFilePath, N);

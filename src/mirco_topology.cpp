@@ -7,9 +7,6 @@
 #include <iostream>
 #include <random>
 #include <string>
-#include <vector>
-
-#include "mirco_topologyutilities.h"
 
 Teuchos::SerialDenseMatrix<int, double> MIRCO::CreateSurfaceFromFile(
     const std::string& filepath, int& N)

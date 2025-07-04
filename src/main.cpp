@@ -5,6 +5,7 @@
 
 #include "mirco_evaluate.h"
 #include "mirco_inputparameters.h"
+#include "mirco_topologyutilities.h"
 
 
 int main(int argc, char* argv[])
@@ -16,26 +17,17 @@ int main(int argc, char* argv[])
 
   const auto start = std::chrono::high_resolution_clock::now();
 
-  // Identical Vectors/Matricies, therefore only created one here.
-  int ngrid =
-      int(ceil((LateralLength - (GridSize / 2)) /
-               GridSize));  // # wtf is this autism it is always something.5 and then we ceil
-  std::cout << "ngrid=" << ngrid << "\n";
   MIRCO::InputParameters inputParams(inputFileName);
   auto topology = inputParams.topology_;
-  std::vector<double> meshgrid(topology.numRows());
-  MIRCO::CreateMeshgrid(meshgrid, ngrid, GridSize);  // #
+
+  // Identical Vectors/Matricies, therefore only created one here.
+  auto meshgrid = MIRCO::CreateMeshgrid(topology.numRows(), inputParams.grid_size_);  // #
 
   auto max_and_mean = MIRCO::ComputeMaxAndMean(topology);
 
   // Initialise Pressure
   double pressure = 0.0;
-
-  MIRCO::Evaluate(pressure, Delta, LateralLength, GridSize, Tolerance, MaxIteration,
-      CompositeYoungs, WarmStartingFlag, ElasticComplianceCorrection, topology, max_and_mean.max_,
-      meshgrid, PressureGreenFunFlag);  // # make overloard constructor: either pass all these
-                                        // params in or pass in an InputParameters object as well as
-                                        // the necessary other params
+  MIRCO::Evaluate(inputParams, pressure, max_and_mean.max_, meshgrid);
 
   std::cout << "Mean pressure is: " << std::to_string(pressure) << std::endl;
 
