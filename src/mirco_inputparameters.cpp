@@ -28,7 +28,6 @@ const std::map<int, double> shape_factors_force{{1, 0.778958541513360}, {2, 0.80
     {7, 0.862368243479785}, {8, 0.864741597831785}};
 
 inline int NFromResolution(int resolution) { return (1 << resolution) + 1; }
-// basic linear interpolation for now
 double InterpolatedShapeFactor(const std::map<int, double>& shapeFactors, int N)
 {
   double resolution = log2(N - 1);
@@ -62,10 +61,10 @@ MIRCO::InputParameters::InputParameters(const std::string& inputFileName)
 
     N_ = NFromResolution(resolution);
 
-    topology_ =
+    topology_ = std::make_shared<Teuchos::SerialDenseMatrix<int, double>>(
         MIRCO::CreateRmgSurface(resolution, geo_params.get<double>("InitialTopologyStdDeviation"),
             geo_params.get<double>("HurstExponent"), parameter_list.get<bool>("RandomSeedFlag"),
-            parameter_list.get<int>("RandomGeneratorSeed"));
+            parameter_list.get<int>("RandomGeneratorSeed")));
 
     // Resolution is available; no interpolation required
     if (pressure_green_funct_flag_)
@@ -82,7 +81,8 @@ MIRCO::InputParameters::InputParameters(const std::string& inputFileName)
     auto topology_file_path = parameter_list.get<std::string>("TopologyFilePath");
     // The following function generates the actual path of the topology file
     MIRCO::UTILS::ChangeRelativePath(topology_file_path, inputFileName);
-    topology_ = MIRCO::CreateSurfaceFromFile(topology_file_path, N_);
+    topology_ = std::make_shared<Teuchos::SerialDenseMatrix<int, double>>(
+        MIRCO::CreateSurfaceFromFile(topology_file_path, N_));
 
     // Interpolation required
     if (pressure_green_funct_flag_)
@@ -120,8 +120,8 @@ MIRCO::InputParameters::InputParameters(double E1, double E2, double nu1, double
       warm_starting_flag_(WarmStartingFlag),
       pressure_green_funct_flag_(PressureGreenFunFlag)
 {
-  topology_ = MIRCO::CreateRmgSurface(
-      Resolution, InitialTopologyStdDeviation, Hurst, RandomSeedFlag, RandomGeneratorSeed);
+  topology_ = std::make_shared<Teuchos::SerialDenseMatrix<int, double>>(MIRCO::CreateRmgSurface(
+      Resolution, InitialTopologyStdDeviation, Hurst, RandomSeedFlag, RandomGeneratorSeed));
 
   // resolution is available; no interpolation needed
   if (PressureGreenFunFlag)
@@ -149,7 +149,8 @@ MIRCO::InputParameters::InputParameters(double E1, double E2, double nu1, double
       warm_starting_flag_(WarmStartingFlag),
       pressure_green_funct_flag_(PressureGreenFunFlag)
 {
-  topology_ = MIRCO::CreateSurfaceFromFile(TopologyFilePath, N_);
+  topology_ = std::make_shared<Teuchos::SerialDenseMatrix<int, double>>(
+      MIRCO::CreateSurfaceFromFile(TopologyFilePath, N_));
 
   // interpolation needed
   if (PressureGreenFunFlag)

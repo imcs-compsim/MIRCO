@@ -151,8 +151,10 @@ TEST(inputParameters, readFromXmlFile_rmg)
   std::string inputFilePath = "test/data/input_res2_rmg.xml";
   MIRCO::InputParameters inputParams(inputFilePath);
 
-  EXPECT_EQ(inputParams.topology_.numRows(), 5);
-  EXPECT_EQ(inputParams.topology_.numCols(), 5);
+  auto& topology = *(inputParams.topology_);
+
+  EXPECT_EQ(topology.numRows(), 5);
+  EXPECT_EQ(topology.numCols(), 5);
 
   EXPECT_EQ(inputParams.max_iteration_, 100);
   EXPECT_NEAR(inputParams.tolerance_, 0.01, 1e-06);
@@ -165,10 +167,12 @@ TEST(inputParameters, readFromXmlFile_dat)
   std::string inputFilePath = "test/data/input_withDat.xml";
   MIRCO::InputParameters inputParams(inputFilePath);
 
-  EXPECT_EQ(inputParams.topology_.numRows(), 5);
-  EXPECT_EQ(inputParams.topology_.numCols(), 5);
-  EXPECT_NEAR(inputParams.topology_(0, 0), 5.7299175e+01, 1e-06);
-  EXPECT_NEAR(inputParams.topology_(4, 3), 9.8243100e+01, 1e-06);
+  auto& topology = *(inputParams.topology_);
+
+  EXPECT_EQ(topology.numRows(), 5);
+  EXPECT_EQ(topology.numCols(), 5);
+  EXPECT_NEAR(topology(0, 0), 5.7299175e+01, 1e-06);
+  EXPECT_NEAR(topology(4, 3), 9.8243100e+01, 1e-06);
 
   EXPECT_EQ(inputParams.max_iteration_, 100);
   EXPECT_NEAR(inputParams.tolerance_, 0.01, 1e-06);
@@ -181,8 +185,10 @@ TEST(inputParameters, directInput_rmg)
   MIRCO::InputParameters inputParams(
       1.0, 1.0, 0.2, 0.2, 0.005, 10.0, 1000, 2, 15.0, 0.15, false, 46, 100, false, true);
 
-  EXPECT_EQ(inputParams.topology_.numRows(), 5);
-  EXPECT_EQ(inputParams.topology_.numCols(), 5);
+  auto& topology = *(inputParams.topology_);
+
+  EXPECT_EQ(topology.numRows(), 5);
+  EXPECT_EQ(topology.numCols(), 5);
 
   EXPECT_EQ(inputParams.max_iteration_, 100);
   EXPECT_NEAR(inputParams.tolerance_, 0.005, 1e-06);
@@ -196,10 +202,12 @@ TEST(inputParameters, directInput_dat)
   MIRCO::InputParameters inputParams(
       1.0, 1.0, 0.2, 0.2, 0.005, 10.0, 1000, topologyFilePath, 100, false, false);
 
-  EXPECT_EQ(inputParams.topology_.numRows(), 5);
-  EXPECT_EQ(inputParams.topology_.numCols(), 5);
-  EXPECT_NEAR(inputParams.topology_(0, 0), 5.7299175e+01, 1e-06);
-  EXPECT_NEAR(inputParams.topology_(4, 3), 9.8243100e+01, 1e-06);
+  auto& topology = *(inputParams.topology_);
+
+  EXPECT_EQ(topology.numRows(), 5);
+  EXPECT_EQ(topology.numCols(), 5);
+  EXPECT_NEAR(topology(0, 0), 5.7299175e+01, 1e-06);
+  EXPECT_NEAR(topology(4, 3), 9.8243100e+01, 1e-06);
 
   EXPECT_EQ(inputParams.max_iteration_, 100);
   EXPECT_NEAR(inputParams.tolerance_, 0.005, 1e-06);
@@ -287,7 +295,7 @@ TEST(warmstarting, warmstart2)
   EXPECT_EQ(x0(2, 0), 30);
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

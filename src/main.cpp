@@ -22,7 +22,7 @@ int main(int argc, char* argv[])
   // Identical Vectors/Matricies, therefore only created one here.
   auto meshgrid = MIRCO::CreateMeshgrid(inputParams.N_, inputParams.grid_size_);
 
-  auto& topology = inputParams.topology_;
+  auto& topology = *(inputParams.topology_);
   auto max_and_mean = MIRCO::ComputeMaxAndMean(topology);
 
   // Initialise Pressure

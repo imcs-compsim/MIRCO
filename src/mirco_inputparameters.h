@@ -2,6 +2,7 @@
 #define SRC_INPUTPARAMETERS_H_
 
 #include <Teuchos_SerialDenseMatrix.hpp>
+#include <memory>
 #include <string>
 
 namespace MIRCO
@@ -80,7 +81,7 @@ namespace MIRCO
     bool warm_starting_flag_ = false;
     bool pressure_green_funct_flag_ = false;
 
-    Teuchos::SerialDenseMatrix<int, double> topology_;
+    std::shared_ptr<Teuchos::SerialDenseMatrix<int, double>> topology_;
   };
 }  // namespace MIRCO
 

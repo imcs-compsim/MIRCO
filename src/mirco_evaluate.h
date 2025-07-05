@@ -47,7 +47,7 @@ namespace MIRCO
     Evaluate(pressure, inputParams.delta_, inputParams.lateral_length_, inputParams.grid_size_,
         inputParams.tolerance_, inputParams.max_iteration_, inputParams.composite_youngs_,
         inputParams.warm_starting_flag_, inputParams.elastic_compliance_correction_,
-        inputParams.topology_, zmax, meshgrid, inputParams.pressure_green_funct_flag_);
+        *(inputParams.topology_), zmax, meshgrid, inputParams.pressure_green_funct_flag_);
   }
 }  // namespace MIRCO
 
