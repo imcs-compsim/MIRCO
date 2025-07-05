@@ -9,10 +9,6 @@
 #include <cmath>
 #include <cstdio>
 #include <ctime>
-#include <fstream>
-#include <iostream>
-#include <memory>
-#include <string>
 #include <vector>
 
 #include "mirco_contactpredictors.h"
