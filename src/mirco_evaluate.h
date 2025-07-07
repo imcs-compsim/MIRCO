@@ -2,7 +2,8 @@
 #define SRC_EVALUATE_H_
 
 #include <Teuchos_SerialDenseMatrix.hpp>
-#include <string>
+
+#include "mirco_inputparameters.h"
 
 namespace MIRCO
 {
@@ -30,6 +31,24 @@ namespace MIRCO
       const double ElasticComplianceCorrection,
       const Teuchos::SerialDenseMatrix<int, double>& topology, const double zmax,
       const std::vector<double>& meshgrid, const bool PressureGreenFunFlag);
+
+  /**
+   * @brief Relate the far-field displacement with pressure, taking the parameters from a
+   * MIRCO::InputParameters object
+   *
+   * @param inputParams Object which holds the input parameters
+   * @param pressure Pressure
+   * @param zmax Maximum height
+   * @param meshgrid Meshgrid vector
+   */
+  inline void Evaluate(const MIRCO::InputParameters& inputParams, double& pressure,
+      const double zmax, const std::vector<double>& meshgrid)
+  {
+    Evaluate(pressure, inputParams.delta_, inputParams.lateral_length_, inputParams.grid_size_,
+        inputParams.tolerance_, inputParams.max_iteration_, inputParams.composite_youngs_,
+        inputParams.warm_starting_flag_, inputParams.elastic_compliance_correction_,
+        *(inputParams.topology_), zmax, meshgrid, inputParams.pressure_green_funct_flag_);
+  }
 }  // namespace MIRCO
 
 
