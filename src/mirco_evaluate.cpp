@@ -16,7 +16,6 @@
 #include "mirco_matrixsetup.h"
 #include "mirco_nonlinearsolver.h"
 
-
 void MIRCO::Evaluate(double& pressure, const double Delta, const double LateralLength,
     const double GridSize, const double Tolerance, const int MaxIteration,
     const double CompositeYoungs, const bool WarmStartingFlag,
