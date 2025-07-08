@@ -15,7 +15,8 @@ void MIRCO::SetParameters(double& E1, double& E2, double& LateralLength, double&
     double& GridSize, double& Tolerance, double& Delta, std::string& TopologyFilePath,
     int& Resolution, double& InitialTopologyStdDeviation, const std::string& inputFileName,
     bool& RandomTopologyFlag, double& Hurst, bool& RandomSeedFlag, int& RandomGeneratorSeed,
-    bool& WarmStartingFlag, int& MaxIteration, bool& PressureGreenFunFlag)
+    bool& WarmStartingFlag, int& MaxIteration, bool& PressureGreenFunFlag, double& ExpectedPressure,
+    double& ExpectedPressureTolerance)
 {
   Teuchos::RCP<Teuchos::ParameterList> parameterList = Teuchos::rcp(new Teuchos::ParameterList());
   Teuchos::updateParametersFromXmlFile(inputFileName, parameterList.ptr());
@@ -86,4 +87,11 @@ void MIRCO::SetParameters(double& E1, double& E2, double& LateralLength, double&
 
   ElasticComplianceCorrection = LateralLength * CompositeYoungs / ShapeFactor;
   GridSize = LateralLength / (pow(2, Resolution) + 1);
+
+  if (parameterList->isSublist("result_description"))
+  {
+    Teuchos::ParameterList& result_description = parameterList->sublist("result_description");
+    ExpectedPressure = result_description.get<double>("ExpectedPressure");
+    ExpectedPressureTolerance = result_description.get<double>("ExpectedPressureTolerance");
+  }
 }

@@ -1,4 +1,6 @@
-#include <Teuchos_TestForException.hpp>
+#include <Teuchos_ParameterList.hpp>
+#include <Teuchos_RCP.hpp>
+#include <Teuchos_XMLParameterListHelpers.hpp>
 #include <chrono>
 #include <iostream>
 #include <string>
@@ -32,10 +34,17 @@ int main(int argc, char* argv[])
   int MaxIteration = 0;
   bool PressureGreenFunFlag = false;
 
+  double ExpectedPressure = -1.0;
+  double ExpectedPressureTolerance = -1.0;
+
+  Teuchos::RCP<Teuchos::ParameterList> parameterList = Teuchos::rcp(new Teuchos::ParameterList());
+  Teuchos::updateParametersFromXmlFile(inputFileName, parameterList.ptr());
+
   MIRCO::SetParameters(E1, E2, LateralLength, nu1, nu2, CompositeYoungs, ShapeFactor,
       ElasticComplianceCorrection, GridSize, Tolerance, Delta, TopologyFilePath, Resolution,
       InitialTopologyStdDeviation, inputFileName, RandomTopologyFlag, Hurst, RandomSeedFlag,
-      RandomGeneratorSeed, WarmStartingFlag, MaxIteration, PressureGreenFunFlag);
+      RandomGeneratorSeed, WarmStartingFlag, MaxIteration, PressureGreenFunFlag, ExpectedPressure,
+      ExpectedPressureTolerance);
 
   // Identical Vectors/Matricies, therefore only created one here.
   int ngrid = int(ceil((LateralLength - (GridSize / 2)) / GridSize));
@@ -67,6 +76,14 @@ int main(int argc, char* argv[])
 
   const auto finish = std::chrono::high_resolution_clock::now();
   const double elapsedTime =
-      std::chrono::duration_cast<std::chrono::seconds>(finish - start).count();
+      std::chrono::duration_cast<std::chrono::duration<double>>(finish - start).count();
   std::cout << "Elapsed time is: " + std::to_string(elapsedTime) + "s." << std::endl;
+
+  // Test for correct output if the result_description is given in the input file
+  if (parameterList->isSublist("result_description") &&
+      std::abs(pressure - ExpectedPressure) > ExpectedPressureTolerance)
+  {
+    std::cerr << "The output pressure is incorrect" << std::endl;
+    return EXIT_FAILURE;
+  }
 }
