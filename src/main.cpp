@@ -1,3 +1,6 @@
+#include <Teuchos_ParameterList.hpp>
+#include <Teuchos_RCP.hpp>
+#include <Teuchos_XMLParameterListHelpers.hpp>
 #include <chrono>
 #include <iostream>
 #include <string>
@@ -33,6 +36,9 @@ int main(int argc, char* argv[])
 
   double ExpectedPressure = -1.0;
   double ExpectedPressureTolerance = -1.0;
+
+  Teuchos::RCP<Teuchos::ParameterList> parameterList = Teuchos::rcp(new Teuchos::ParameterList());
+  Teuchos::updateParametersFromXmlFile(inputFileName, parameterList.ptr());
 
   MIRCO::SetParameters(E1, E2, LateralLength, nu1, nu2, CompositeYoungs, ShapeFactor,
       ElasticComplianceCorrection, GridSize, Tolerance, Delta, TopologyFilePath, Resolution,
@@ -74,7 +80,8 @@ int main(int argc, char* argv[])
   std::cout << "Elapsed time is: " + std::to_string(elapsedTime) + "s." << std::endl;
 
   // Test for correct output if the result_description is given in the input file
-  if (ExpectedPressure >= 0.0 && std::abs(pressure - ExpectedPressure) > ExpectedPressureTolerance)
+  if (parameterList->isSublist("result_description") &&
+      std::abs(pressure - ExpectedPressure) > ExpectedPressureTolerance)
   {
     std::cerr << "The output pressure is incorrect" << std::endl;
     return EXIT_FAILURE;
