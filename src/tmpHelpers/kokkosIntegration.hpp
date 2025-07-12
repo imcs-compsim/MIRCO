@@ -8,6 +8,9 @@
 #include <vector>
 */
 
+// for switching between kokkos and openmp during integration process
+#define kokkosElseOpenMP true
+
 #include <Kokkos_Core.hpp>
 #include <Teuchos_SerialDenseMatrix.hpp>
 #include <Teuchos_SerialDenseVector.hpp>
@@ -20,7 +23,7 @@ using ViewVector = Kokkos::View<double*, HostSpace>;
 using ViewMatrix =
     Kokkos::View<double**, Kokkos::LayoutRight, HostSpace>;  // LayoutRight = row-major
 
-inline ViewVector teuchosVectorToKokkos(const Teuchos::SerialDenseVector<int, double>& vec)
+inline ViewVector toKokkos(const Teuchos::SerialDenseVector<int, double>& vec)
 {
   int n = vec.length();
   ViewVector kokkosVec("kokkosVec", n);
@@ -42,7 +45,7 @@ inline Teuchos::SerialDenseVector<int, double> kokkosVectorToTeuchos(const ViewV
   return vec;
 }
 
-inline ViewMatrix teuchosMatrixToKokkos(const Teuchos::SerialDenseMatrix<int, double>& mat)
+inline ViewMatrix toKokkos(const Teuchos::SerialDenseMatrix<int, double>& mat)
 {
   int numRows = mat.numRows();
   int numCols = mat.numCols();
@@ -61,4 +64,22 @@ inline Teuchos::SerialDenseMatrix<int, double> kokkosMatrixToTeuchos(const ViewM
   for (int i = 0; i < numRows; ++i)
     for (int j = 0; j < numCols; ++j) mat(i, j) = kokkosMat(i, j);
   return mat;
+}
+
+inline ViewVector toKokkos(const std::vector<double>& stdVec)
+{
+  ViewVector view("b0_kokkos", stdVec.size());
+  for (std::size_t i = 0; i < stdVec.size(); ++i) view(i) = stdVec[i];
+  return view;
+}
+
+inline std::vector<double> kokkosVectorToStdVector(const ViewVector& kokkosVec)
+{
+  int n = kokkosVec.extent(0);
+  std::vector<double> stdVec(n);
+  for (int i = 0; i < n; ++i)
+  {
+    stdVec[i] = kokkosVec(i);
+  }
+  return stdVec;
 }

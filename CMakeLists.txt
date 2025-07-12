@@ -125,6 +125,11 @@ add_library(mirco_topology
   )
 target_link_libraries(mirco_topology PRIVATE Trilinos::all_selected_libs)
 
+add_library(tmpHelpers
+  src/tmpHelpers/Timer.cpp
+  )
+target_link_libraries(tmpHelpers PRIVATE Trilinos::all_selected_libs) # should be Kokkos directly, but this is tmp anyways
+
 add_library(mirco_io
   src/mirco_inputparameters.cpp
   )
@@ -136,7 +141,7 @@ add_library(mirco_utils
   )
 
 add_library(mirco_lib INTERFACE)
-target_link_libraries(mirco_lib INTERFACE mirco_core mirco_io mirco_utils mirco_topology)
+target_link_libraries(mirco_lib INTERFACE mirco_core mirco_io mirco_utils mirco_topology tmpHelpers)
 target_link_libraries(mirco_lib
   INTERFACE OpenMP::OpenMP_CXX
   Trilinos::all_selected_libs
@@ -155,7 +160,7 @@ add_executable(mirco src/main.cpp)
 target_link_libraries(mirco PUBLIC mirco::mirco_lib)
 
 # Install mirco (to be used as a library by other codes)
-install(TARGETS mirco_lib mirco_core mirco_io mirco_utils mirco_topology
+install(TARGETS mirco_lib mirco_core mirco_io mirco_utils mirco_topology tmpHelpers
   EXPORT mirco_libTargets
   ARCHIVE LIBRARY PUBLIC_HEADER
   )

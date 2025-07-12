@@ -9,9 +9,16 @@
 #include "mirco_inputparameters.h"
 #include "mirco_topologyutilities.h"
 
+// tmp
+#include "tmpHelpers/Timer.hpp"
+#include "tmpHelpers/kokkosIntegration.hpp"
 
 int main(int argc, char* argv[])
 {
+#if (kokkosElseOpenMP)
+  Kokkos::initialize(argc, argv);
+#endif
+
   TEUCHOS_TEST_FOR_EXCEPTION(
       argc != 2, std::invalid_argument, "The code expects (only) an input file as argument");
   // reading the input file name from the command line
@@ -52,4 +59,8 @@ int main(int argc, char* argv[])
       return EXIT_FAILURE;
     }
   }
+
+#if (kokkosElseOpenMP)
+  Kokkos::finalize();
+#endif
 }

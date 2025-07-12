@@ -15,6 +15,10 @@ Teuchos::SerialDenseVector<int, double> MIRCO::NonLinearSolver::Solve(
     const Teuchos::SerialDenseMatrix<int, double>& matrix, const std::vector<double>& b0,
     const Teuchos::SerialDenseMatrix<int, double>& y0, Teuchos::SerialDenseMatrix<int, double>& w)
 {
+  const std::string thisFctName =
+      "MIRCO::NonLinearSolver::Solve";  // we should do this anywhere we want to use timers or
+                                        // kokkos parallel annotation/naming?
+
   double nnlstol = 1.0000e-08;
   double maxiter = 10000;
   double eps = 2.2204e-16;
@@ -50,12 +54,24 @@ Teuchos::SerialDenseVector<int, double> MIRCO::NonLinearSolver::Solve(
 
   if (counter == 0)
   {
+#if (!kokkosElseOpenMP)
+    // add StandardTimer to compare
 #pragma omp parallel for schedule(static, 16)  // Always same workload -> static
     for (int x = 0; x < n0; x++)
     {
       w(x, 0) = -b0[x];
     }
-
+// end StandardTimer
+#else
+    auto w_kokkos = toKokkos(w);
+    auto b0_kokkos = toKokkos(b0);
+    // add StandardTimer to compare
+    Kokkos::parallel_for(
+        thisFctName + "__firstParallel", Kokkos::RangePolicy<ExecSpace>(0, n0),
+        KOKKOS_LAMBDA(const int x) { w_kokkos(x, 0) = -b0_kokkos(x); });
+    // end StandardTimer
+    w = kokkosMatrixToTeuchos(w_kokkos);
+#endif
     init = false;
   }
   else
