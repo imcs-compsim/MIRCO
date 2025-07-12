@@ -7,6 +7,10 @@
 
 #include "mirco_linearsolver.h"
 
+// tmp
+#include "tmpHelpers/Timer.hpp"
+#include "tmpHelpers/kokkosIntegration.hpp"
+
 Teuchos::SerialDenseVector<int, double> MIRCO::NonLinearSolver::Solve(
     const Teuchos::SerialDenseMatrix<int, double>& matrix, const std::vector<double>& b0,
     const Teuchos::SerialDenseMatrix<int, double>& y0, Teuchos::SerialDenseMatrix<int, double>& w)
