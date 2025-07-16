@@ -56,20 +56,26 @@ Teuchos::SerialDenseVector<int, double> MIRCO::NonLinearSolver::Solve(
   {
 #if (!kokkosElseOpenMP)
     // add StandardTimer to compare
+    StandardTimer timerO("OPENMP __firstParallel");
+    timerO.start();
 #pragma omp parallel for schedule(static, 16)  // Always same workload -> static
     for (int x = 0; x < n0; x++)
     {
       w(x, 0) = -b0[x];
     }
-// end StandardTimer
+    // end StandardTimer
+    timerO.stop();
 #else
     auto w_kokkos = toKokkos(w);
     auto b0_kokkos = toKokkos(b0);
     // add StandardTimer to compare
+    StandardTimer timerK("KOKKOS __firstParallel");
+    timerK.start();
     Kokkos::parallel_for(
-        thisFctName + "__firstParallel", Kokkos::RangePolicy<ExecSpace>(0, n0),
+        thisFctName + "__firstParallel", Kokkos::RangePolicy<ExecSpace_Default_t>(0, n0),
         KOKKOS_LAMBDA(const int x) { w_kokkos(x, 0) = -b0_kokkos(x); });
     // end StandardTimer
+    timerK.stop();
     w = kokkosMatrixToTeuchos(w_kokkos);
 #endif
     init = false;

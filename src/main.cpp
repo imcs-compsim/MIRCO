@@ -10,6 +10,8 @@
 #include "mirco_topologyutilities.h"
 
 // tmp
+#include <omp.h>
+
 #include "tmpHelpers/Timer.hpp"
 #include "tmpHelpers/kokkosIntegration.hpp"
 
@@ -17,7 +19,19 @@ int main(int argc, char* argv[])
 {
 #if (kokkosElseOpenMP)
   Kokkos::initialize(argc, argv);
+  int threads_in_use = ExecSpace_Default_t::concurrency();
+  std::cout << "\nthreads_in_use=" << threads_in_use << "\n";
+  std::cout << "\nExecSpace_Default= " << typeid(ExecSpace_Default_t).name() << "\n";
+  std::cout << "\nExecSpace_DefaultHost= " << typeid(ExecSpace_DefaultHost_t).name() << "\n\n";
+  std::cout << "\nMemorySpace_Host_t= " << typeid(MemorySpace_Host_t).name() << "\n";
+  std::cout << "\nMemorySpace_ofDefaultExec_t= " << typeid(MemorySpace_ofDefaultExec_t).name()
+            << "\n\n";
+#else
+  int max_threads = omp_get_max_threads();
+  std::cout << "OPENMP omp_get_max_threads=" << max_threads << "\n\n";
 #endif
+
+  TimerRegistry::globalInstance().start();
 
   TEUCHOS_TEST_FOR_EXCEPTION(
       argc != 2, std::invalid_argument, "The code expects (only) an input file as argument");
@@ -59,6 +73,8 @@ int main(int argc, char* argv[])
       return EXIT_FAILURE;
     }
   }
+
+  std::cout << TimerRegistry::globalInstance().timingReportStr(true);
 
 #if (kokkosElseOpenMP)
   Kokkos::finalize();

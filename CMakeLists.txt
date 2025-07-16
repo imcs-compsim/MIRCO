@@ -97,6 +97,52 @@ if(TRILINOS_IN_MIRCO)
   endif()
 endif()
 
+
+
+
+
+
+# Kokkos (and Kokkos-Kernels //#)
+
+option(KOKKOS_IN_MIRCO "Find Kokkos in the MIRCO project. If set to OFF, use the Kokkos installation from an upstream project" ON)
+
+if(KOKKOS_IN_MIRCO)
+  set(CMAKE_PREFIX_PATH ${KOKKOS_PATH} ${CMAKE_PREFIX_PATH})
+  find_package(Kokkos REQUIRED)
+
+  # Optionally, mimic the interface target logic for older or minimal installations (unlikely needed, but here's the symmetry)
+  if(Kokkos_FOUND AND NOT TARGET Kokkos::kokkos)
+    message(FATAL_ERROR "Kokkos found, but no Kokkos::kokkos target available — modern Kokkos should provide this")
+  endif()
+else()
+# Use a Kokkos from an upstream project
+  if(TARGET Kokkos::kokkos)
+    message(STATUS "Kokkos included from upstream project.")
+  else()
+    message(FATAL_ERROR "KOKKOS_IN_MIRCO=OFF but no Kokkos target was available in the upstream project.")
+  endif()
+endif()
+
+# Print details on the Kokkos configuration
+if(KOKKOS_IN_MIRCO)
+  if(Kokkos_FOUND)
+    message("\nFound Kokkos! Here are the details:")
+    get_target_property(Kokkos_INCLUDE_DIRS Kokkos::kokkos INTERFACE_INCLUDE_DIRECTORIES)
+    message("   Kokkos_INCLUDE_DIRS = ${Kokkos_INCLUDE_DIRS}")
+    get_target_property(Kokkos_COMPILE_DEFINITIONS Kokkos::kokkos INTERFACE_COMPILE_DEFINITIONS)
+    message("   Kokkos_COMPILE_DEFINITIONS = ${Kokkos_COMPILE_DEFINITIONS}")
+    get_target_property(Kokkos_COMPILE_OPTIONS Kokkos::kokkos INTERFACE_COMPILE_OPTIONS)
+    message("   Kokkos_COMPILE_OPTIONS = ${Kokkos_COMPILE_OPTIONS}")
+    message("End of Kokkos details\n")
+  else()
+    message(FATAL_ERROR "Could not find Kokkos!")
+  endif()
+endif()
+
+
+
+
+
 # Find OpenMP
 find_package(OpenMP REQUIRED)
 
@@ -118,17 +164,17 @@ add_library(mirco_core
   src/mirco_contactpredictors.cpp
   src/mirco_contactstatus.cpp
   )
-target_link_libraries(mirco_core PUBLIC Trilinos::all_selected_libs OpenMP::OpenMP_CXX)
+target_link_libraries(mirco_core PUBLIC Trilinos::all_selected_libs OpenMP::OpenMP_CXX Kokkos::kokkos)
 
 add_library(mirco_topology
   src/mirco_topology.cpp
   )
-target_link_libraries(mirco_topology PRIVATE Trilinos::all_selected_libs)
+target_link_libraries(mirco_topology PUBLIC Trilinos::all_selected_libs Kokkos::kokkos)
 
 add_library(tmpHelpers
   src/tmpHelpers/Timer.cpp
   )
-target_link_libraries(tmpHelpers PRIVATE Trilinos::all_selected_libs) # should be Kokkos directly, but this is tmp anyways
+target_link_libraries(tmpHelpers PUBLIC Trilinos::all_selected_libs Kokkos::kokkos) # should be Kokkos directly, but this is tmp anyways
 
 add_library(mirco_io
   src/mirco_inputparameters.cpp
