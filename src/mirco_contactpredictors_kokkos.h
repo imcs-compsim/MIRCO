@@ -1,8 +1,12 @@
 #ifndef SRC_CONTACTPREDICTORS_H_
 #define SRC_CONTACTPREDICTORS_H_
 
+#include <Kokkos_Core.hpp>
 #include <Teuchos_SerialDenseMatrix.hpp>
 #include <vector>
+// tmp
+#include "tmpHelpers/Timer.hpp"
+#include "tmpHelpers/kokkosIntegration.hpp"
 
 namespace MIRCO
 {

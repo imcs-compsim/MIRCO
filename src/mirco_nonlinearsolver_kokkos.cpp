@@ -1,16 +1,38 @@
-#include "mirco_nonlinearsolver.h"
+#include "mirco_nonlinearsolver_kokkos.h"
 
+#include <KokkosLapack_gesv.hpp>
 #include <Teuchos_SerialDenseMatrix.hpp>
 #include <Teuchos_SerialDenseVector.hpp>
-#include <Teuchos_SerialSymDenseMatrix.hpp>
 #include <vector>
 
-#include "mirco_linearsolver.h"
-
-Teuchos::SerialDenseVector<int, double> MIRCO::NonLinearSolver::Solve(
-    const Teuchos::SerialDenseMatrix<int, double>& matrix, const std::vector<double>& b0,
-    const Teuchos::SerialDenseMatrix<int, double>& y0, Teuchos::SerialDenseMatrix<int, double>& w)
+ViewVector_h MIRCO::NonLinearSolver::Solve(
+    const ViewMatrix_h& matrix, const ViewVector_h& b0, const ViewVector_h& y0, ViewMatrix_h& w)
 {
+  const std::string thisFctName =
+      "MIRCO::NonLinearSolver::Solve";  // we should do this anywhere we want to use timers or
+                                        // kokkos parallel annotation/naming?
+
+
+  /*
+  input H - Influence coefficient matrix (Discrete version of Green Function); symmetric positive
+  definite p* - optimal contact force vector (p_{i,j}); p - initial guess? u* - optimal normal
+  displacement vector (p_{i,j}); u - initial guess? input \overbar{u} - compenetration vector
+  \overbar{u}_{i,j}, i.e. \Delta - (\xi_{max} - \xi_{i,j}) w - := vector w_{i,j}, := u - \overbar{u}
+
+  \epsilon > 0 - tolerance
+  K_max - max iterations
+
+
+
+
+
+
+  */
+
+
+
+  // TODO: make these into input params? at least the important ones
+  // TODO: also, make some comments here to describe what exactly they mean
   double nnlstol = 1.0000e-08;
   double maxiter = 10000;
   double eps = 2.2204e-16;
@@ -19,40 +41,51 @@ Teuchos::SerialDenseVector<int, double> MIRCO::NonLinearSolver::Solve(
   int iter = 0;
   bool init = false;
   const int n0 = b0.size();
-  Teuchos::SerialDenseMatrix<int, double> s0;
-  std::vector<int> P(n0);
-  Teuchos::SerialDenseVector<int, double> vector_x, vector_b;
-  Teuchos::SerialSymDenseMatrix<int, double> solverMatrix;
 
-  // Initialize contact force solution
-  Teuchos::SerialDenseVector<int, double> y;
-  y.size(n0);
-  y.putScalar(0.0);
+
 
   // Initialize active set
   std::vector<int> positions;
-  for (int i = 0; i < y0.numRows(); i++)
+  Kokkos::View<double*, Device_Host_t> positions for (int i = 0; i < y0.extent(0); i++)
   {
-    if (y0(i, 0) >= nnlstol)
+    if (y0(i) >= nnlstol)  // # this should be >= -epsilon, no?
     {
       positions.push_back(i);
-      std::cout << "\t" << "line40, i=" << i << "\n";
+      counter++;
     }
   }
 
-  int counter = 0;
-  counter = positions.size();
-  w.reshape(n0, 1);
-  w.putScalar(0.0);
+
+
+  w.reshape(n0, 1);  // # wtf
+  w.putScalar(0.0);  // # why
 
   if (counter == 0)
   {
+#if (!kokkosElseOpenMP)
+    // add StandardTimer to compare
+    StandardTimer timerO("OPENMP __firstParallel");
+    timerO.start();
 #pragma omp parallel for schedule(static, 16)  // Always same workload -> static
     for (int x = 0; x < n0; x++)
     {
-      w(x, 0) = -b0[x];
+      w(x, 0) = -b0[x];  // # if this is really necessary, use atomic
     }
-
+    // end StandardTimer
+    timerO.stop();
+#else
+    auto w_kokkos = toKokkos(w);
+    auto b0_kokkos = toKokkos(b0);
+    // add StandardTimer to compare
+    StandardTimer timerK("KOKKOS __firstParallel");
+    timerK.start();
+    Kokkos::parallel_for(
+        thisFctName + "__firstParallel", Kokkos::RangePolicy<ExecSpace_Default_t>(0, n0),
+        KOKKOS_LAMBDA(const int x) { w_kokkos(x, 0) = -b0_kokkos(x); });
+    // end StandardTimer
+    timerK.stop();
+    w = kokkosMatrixToTeuchos(w_kokkos);
+#endif
     init = false;
   }
   else
@@ -60,14 +93,14 @@ Teuchos::SerialDenseVector<int, double> MIRCO::NonLinearSolver::Solve(
 #pragma omp parallel for schedule(static, 16)  // Always same workload -> static
     for (int i = 0; i < counter; i++)
     {
-      P[i] = positions[i];
+      P[i] = positions[i];  // # what
     }
 
     init = true;
   }
 
-  s0.shape(n0, 1);
-  bool aux1 = true, aux2 = true;
+  s0.shape(n0, 1);  // # what
+
 
   // New searching algorithm
   std::vector<double> values, newValues;
@@ -75,10 +108,11 @@ Teuchos::SerialDenseVector<int, double> MIRCO::NonLinearSolver::Solve(
   double minValue = w(0, 0);
   int minPosition = 0;
 
-  while (aux1 == true)
+  bool aux1 = true;
+  while (aux1)
   {
     // @{
-    for (int i = 0; i < w.numRows(); i++)
+    for (int i = 0; i < w.numRows(); i++)  // # wtf
     {
       values.push_back(w(i, 0));
       poss.push_back(i);
@@ -131,10 +165,22 @@ Teuchos::SerialDenseVector<int, double> MIRCO::NonLinearSolver::Solve(
     }
 
     int j = 0;
+
     aux2 = true;
-    while (aux2 == true)
+    while (aux2)
     {
       iter++;
+
+
+
+      ViewVector_d P("P", n0);
+
+      ViewVector_d s0("s0", n0);
+      ViewVector_d vector_bx("bx", counter);
+      ViewMatrix_d solverMatrix("A", counter);
+
+
+
       vector_b.size(counter);
       solverMatrix.shape(counter);
 
@@ -152,10 +198,10 @@ Teuchos::SerialDenseVector<int, double> MIRCO::NonLinearSolver::Solve(
         }
       }
       // Solving solverMatrix*vector_x=vector_b
-      vector_x = MIRCO::LinearSolver::Solve(solverMatrix, vector_b);
+      KokkosLapack::gesv()
 
 #pragma omp parallel for schedule(static, 16)  // Always same workload -> Static!
-      for (int x = 0; x < counter; x++)
+          for (int x = 0; x < counter; x++)
       {
         s0(P[x], 0) = vector_x(x);
       }

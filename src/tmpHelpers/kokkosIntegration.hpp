@@ -16,7 +16,6 @@
 #include <Teuchos_SerialDenseVector.hpp>
 
 // These can be adjusted later to use CudaSpace, etc.
-// using ExecSpace = Kokkos::DefaultExecutionSpace;
 using ExecSpace_DefaultHost_t = Kokkos::DefaultHostExecutionSpace;
 // using ExecSpace_Cuda_t = Kokkos::Cuda;
 using ExecSpace_Default_t = Kokkos::DefaultExecutionSpace;
@@ -32,25 +31,31 @@ using Device_Host_t = Kokkos::Device<ExecSpace_DefaultHost_t, MemorySpace_Host_t
   >;*/
 using Device_Default_t = Kokkos::Device<ExecSpace_Default_t, MemorySpace_ofDefaultExec_t>;
 
-
+// # or LayoutRight for some things? no idea
+// # LayoutRight = row-major, which is what Teuchos uses
 using ViewVector_h = Kokkos::View<double*, Device_Host_t>;
 using ViewMatrix_h =
-    Kokkos::View<double**, Kokkos::LayoutRight, Device_Host_t>;  // LayoutRight = row-major
+    Kokkos::View<double**, Kokkos::LayoutLeft, Device_Host_t>;  // LayoutRight = row-major
 
 /*using ViewVector_cuda = Kokkos::View<double*, Device_Cuda_t>;
 using ViewMatrix_cuda =
-    Kokkos::View<double**, Kokkos::LayoutRight, Device_Cuda_t>;*/  // LayoutRight = row-major
+    Kokkos::View<double**, Kokkos::LayoutLeft, Device_Cuda_t>;*/  // LayoutRight = row-major
 
-using ViewVector_Default = Kokkos::View<double*, Device_Default_t>;
-using ViewMatrix_Default =
-    Kokkos::View<double**, Kokkos::LayoutRight, Device_Default_t>;  // LayoutRight = row-major
+using ViewVector_d = Kokkos::View<double*, Device_Default_t>;
+using ViewMatrix_d =
+    Kokkos::View<double**, Kokkos::LayoutLeft, Device_Default_t>;  // LayoutRight = row-major
 
 
 
-inline ViewVector_Default toKokkos(const Teuchos::SerialDenseVector<int, double>& vec)
+#if (kokkosElseOpenMP)
+constexpr bool HOSTONLY = std::is_same<MemorySpace_Host_t, MemorySpace_ofDefaultExec_t>();
+#endif
+
+
+inline ViewVector_d toKokkos(const Teuchos::SerialDenseVector<int, double>& vec)
 {
   int n = vec.length();
-  ViewVector_Default kokkosVec("kokkosVec", n);
+  ViewVector_d kokkosVec("kokkosVec", n);
 
   // Always create host mirror (may just return kokkosVec itself if already in HostSpace)
   auto kokkosVec_h = Kokkos::create_mirror_view(MemorySpace_Host_t(), kokkosVec);
@@ -67,10 +72,10 @@ inline ViewVector_Default toKokkos(const Teuchos::SerialDenseVector<int, double>
   return kokkosVec;
 }
 
-inline ViewVector_Default toKokkos(const std::vector<double>& stdVec)
+inline ViewVector_d toKokkos(const std::vector<double>& stdVec)
 {
   int n = stdVec.size();
-  ViewVector_Default kokkosVec("kokkosVec", n);
+  ViewVector_d kokkosVec("kokkosVec", n);
 
   // Always create host mirror (may just return kokkosVec itself if already in HostSpace)
   auto kokkosVec_h = Kokkos::create_mirror_view(MemorySpace_Host_t(), kokkosVec);
@@ -87,11 +92,11 @@ inline ViewVector_Default toKokkos(const std::vector<double>& stdVec)
   return kokkosVec;
 }
 
-inline ViewMatrix_Default toKokkos(const Teuchos::SerialDenseMatrix<int, double>& mat)
+inline ViewMatrix_d toKokkos(const Teuchos::SerialDenseMatrix<int, double>& mat)
 {
   int numRows = mat.numRows();
   int numCols = mat.numCols();
-  ViewMatrix_Default kokkosMat("kokkosMat", numRows, numCols);
+  ViewMatrix_d kokkosMat("kokkosMat", numRows, numCols);
 
   auto kokkosMat_h = Kokkos::create_mirror_view(MemorySpace_Host_t(), kokkosMat);
 
@@ -106,8 +111,7 @@ inline ViewMatrix_Default toKokkos(const Teuchos::SerialDenseMatrix<int, double>
 
 
 
-inline Teuchos::SerialDenseVector<int, double> kokkosVectorToTeuchos(
-    const ViewVector_Default& kokkosVec)
+inline Teuchos::SerialDenseVector<int, double> kokkosVectorToTeuchos(const ViewVector_d& kokkosVec)
 {
   int n = kokkosVec.extent(0);
 
@@ -121,7 +125,7 @@ inline Teuchos::SerialDenseVector<int, double> kokkosVectorToTeuchos(
   return vec;
 }
 
-inline std::vector<double> kokkosVectorToStdVector(const ViewVector_Default& kokkosVec)
+inline std::vector<double> kokkosVectorToStdVector(const ViewVector_d& kokkosVec)
 {
   int n = kokkosVec.extent(0);
 
@@ -135,8 +139,7 @@ inline std::vector<double> kokkosVectorToStdVector(const ViewVector_Default& kok
   return stdVec;
 }
 
-inline Teuchos::SerialDenseMatrix<int, double> kokkosMatrixToTeuchos(
-    const ViewMatrix_Default& kokkosMat)
+inline Teuchos::SerialDenseMatrix<int, double> kokkosMatrixToTeuchos(const ViewMatrix_d& kokkosMat)
 {
   int numRows = kokkosMat.extent(0);
   int numCols = kokkosMat.extent(1);

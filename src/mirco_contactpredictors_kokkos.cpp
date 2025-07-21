@@ -1,4 +1,4 @@
-#include "mirco_contactpredictors.h"
+#include "mirco_contactpredictors_kokkos.h"
 
 #include <Teuchos_SerialDenseMatrix.hpp>
 #include <vector>
@@ -38,36 +38,15 @@ void MIRCO::ContactSetPredictor(int &n0, std::vector<double> &xv0, std::vector<d
   b0.resize(n0);
   // @} Parallelizing slows down program here, so not parallel
 
-#pragma omp for schedule(guided, 16)  // Always same workload but testing might be good -> Guided?
-  for (int b = 0; b < n0; b++)
+#pragma omp parallel for schedule( \
+        guided, 16)  // Always same workload but testing might be good -> Guided?
+  for (int i = 0; i < n0; i++)
   {
     try
     {
-      xv0[b] = meshgrid[col[b]];
-    }
-    catch (const std::exception &e)
-    {
-    }
-  }
-
-#pragma omp parallel for schedule(guided, 16)  // Same
-  for (int b = 0; b < n0; b++)
-  {
-    try
-    {
-      yv0[b] = meshgrid[row[b]];
-    }
-    catch (const std::exception &e)
-    {
-    }
-  }
-
-#pragma omp parallel for schedule(guided, 16)  // Same
-  for (int b = 0; b < n0; b++)
-  {
-    try
-    {
-      b0[b] = Delta + w_el - (zmax - topology(row[b], col[b]));
+      xv0[i] = meshgrid[col[i]];
+      yv0[i] = meshgrid[row[i]];
+      b0[i] = Delta + w_el - (zmax - topology(row[i], col[i]));
     }
     catch (const std::exception &e)
     {
@@ -80,7 +59,7 @@ void MIRCO::InitialGuessPredictor(bool WarmStartingFlag, int k, int n0,
     Teuchos::SerialDenseMatrix<int, double> &x0, const std::vector<double> &b0,
     const std::vector<double> &xvf, const std::vector<double> &yvf)
 {
-  if (WarmStartingFlag == 1 && k > 0)
+  if (WarmStartingFlag && k > 0)
   {
     MIRCO::Warmstart(x0, xv0, yv0, xvf, yvf, pf);
   }
