@@ -1,5 +1,5 @@
-#ifndef SRC_CONTACTPREDICTORS_H_
-#define SRC_CONTACTPREDICTORS_H_
+#ifndef SRC_CONTACTPREDICTORS_KOKKOS_H_
+#define SRC_CONTACTPREDICTORS_KOKKOS_H_
 
 #include <Kokkos_Core.hpp>
 #include <Teuchos_SerialDenseMatrix.hpp>
@@ -15,41 +15,44 @@ namespace MIRCO
    * than the displacement of the rigid indenter, cannot be in contact and thus are not checked in
    * nonlinear solve
    *
-   * @param n0 Number of nodes predicted to be in contact
-   * @param xv0 x-coordinates of the points in contact in the previous iteration.
-   * @param yv0 y-coordinates of the points in contact in the previous iteration.
-   * @param b0 Indentation value of the half space at the predicted points of contact.
-   * @param zmax Maximum height of the topology
-   * @param Delta Far-field displacement (Gap)
-   * @param w_el Elastic correction
-   * @param meshgrid Meshgrid
-   * @param topology Topology matrix containing heights
+   * @param[out] n0 Number of nodes predicted to be in contact
+   * @param[out] xv0 x-coordinates of the points in contact in the previous iteration.
+   * @param[out] yv0 y-coordinates of the points in contact in the previous iteration. //# TODO:g
+   * consider switching the order of in and out params and also keep it consistent everywhere
+   * @param[out] b0 Indentation value of the half space at the predicted points of contact.
+   * @param[in] zmax Maximum height of the topology
+   * @param[in] Delta Far-field displacement (Gap)
+   * @param[in] w_el Elastic correction
+   * @param[in] meshgrid Meshgrid
+   * @param[in] topology Topology matrix containing heights
    */
-  void ContactSetPredictor(int &n0, std::vector<double> &xv0, std::vector<double> &yv0,
-      std::vector<double> &b0, double zmax, double Delta, double w_el,
-      const std::vector<double> &meshgrid, const Teuchos::SerialDenseMatrix<int, double> &topology);
+  void ContactSetPredictor(int &n0, ViewVector_d &xv0, ViewVector_d &yv0, ViewVector_d &b0,
+      double zmax, double Delta, double w_el, const ViewVector_d &meshgrid,
+      const ViewMatrix_d &topology);
 
   /**
    * @brief The aim of this function is to guess the set of nodes in contact among the nodes
    * predicted in the ContactSetPredictor function. It uses Warmstart to make an initial guess of
    * the nodes incontact in this iteration based on the previous iteration.
    *
-   * @param WarmStartingFlag Warm-Starter flag
-   * @param k Iteration number
-   * @param n0 Number of nodes predicted to be in contact
-   * @param xv0 x-coordinates of the points in contact in the previous iteration.
-   * @param yv0 y-coordinates of the points in contact in the previous iteration.
-   * @param pf Contact force at (xvf,yvf) predicted in the previous iteration.
-   * @param x0 contact forces at (xvf,yvf) predicted in the previous iteration but are a part of
+   * @param[in] WarmStartingFlag Warm-Starter flag
+   * @param[in] k Iteration number
+   * @param[in] n0 Number of nodes predicted to be in contact
+   * @param[in] xv0 x-coordinates of the points in contact in the previous[in] iteration.
+   * @param[in] yv0 y-coordinates of the points in contact in the previous iteration.
+   * @param[in] pf Contact force at (xvf,yvf) predicted in the previous iteration.
+   * @param[in] x0 contact forces at (xvf,yvf) predicted in the previous iteration but are a part of
    * currect predicted contact set.
-   * @param b0 Indentation value of the half space at the predicted points of contact.
-   * @param xvf Coordinates of the points predicted to be in contact. //#
-   * @param yvf Coordinates of the points predicted to be in contact. //#
+   * @param[in] b0 Indentation value of the half space at the predicted points of contact.
+   * @param[in] xvf Coordinates of the points predicted to be in contact. //#
+   * @param[in] yvf Coordinates of the points predicted to be in contact. //#
+   *
+   * @return p0 vector of contact forces predicted in the previous iteration but are a part of
+   * currect predicted contact set.
    */
-  void InitialGuessPredictor(bool WarmStartingFlag, int k, int n0, const std::vector<double> &xv0,
-      const std::vector<double> &yv0, const std::vector<double> &pf,
-      Teuchos::SerialDenseMatrix<int, double> &x0, const std::vector<double> &b0,
-      const std::vector<double> &xvf, const std::vector<double> &yvf);
+  ViewVector_h InitialGuessPredictor(bool WarmStartingFlag, int k, int n0, const ViewVector_h &xv0,
+      const ViewVector_h &yv0, const ViewVector_h &pf, const ViewVector_h &b0,
+      const ViewVector_h &xvf, const ViewVector_h &yvf);
 }  // namespace MIRCO
 
-#endif  // SRC_CONTACTPREDICTORS_H_
+#endif  // SRC_CONTACTPREDICTORS_KOKKOS_H_

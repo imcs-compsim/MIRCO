@@ -1,4 +1,4 @@
-#include "mirco_contactstatus.h"
+#include "mirco_contactstatus_kokkos.h"
 
 #include <Teuchos_SerialDenseMatrix.hpp>
 #include <cmath>

@@ -11,8 +11,8 @@
 #include <ctime>
 #include <vector>
 
-#include "mirco_contactpredictors.h"
-#include "mirco_contactstatus.h"
+#include "mirco_contactpredictors_kokkos.h"
+#include "mirco_contactstatus_kokkos.h"
 #include "mirco_matrixsetup_kokkos.h"
 #include "mirco_nonlinearsolver.h"
 
@@ -29,6 +29,8 @@ void MIRCO::Evaluate(double& pressure, const double Delta, const double LateralL
   std::vector<double> force0;
   double w_el = 0.0;
 
+  std::cout << "---------------------------Evaluate Kokkos\n";
+
   // Initialise number of iteration, k, and initial number of predicted contact
   // nodes, n0.
   int k = 0;  ///, n0 = 0;//#local to while scope
@@ -37,11 +39,9 @@ void MIRCO::Evaluate(double& pressure, const double Delta, const double LateralL
   /// std::vector<double> xv0, yv0;//# this should not be declared here as it is local to the while
   /// loop
   // Coordinates of the points in contact in the previous iteration.
-  std::vector<double> xvf, yvf;
-  // Indentation value of the half space at the predicted points of contact.
-  std::vector<double> b0;
+  ViewVector_d xvf_d, yvf_d;
   // Contact force at (xvf,yvf) predicted in the previous iteration.
-  std::vector<double> pf;
+  ViewVector_d pf_d;
 
   // The number of nodes in contact in the previous iteration.
   int nf = 0;
@@ -51,6 +51,9 @@ void MIRCO::Evaluate(double& pressure, const double Delta, const double LateralL
   // Solution containing force
   ViewVector_h p_star;  //==y; //# <-- means previously called
 
+  ViewVector_d meshgrid_d = toKokkos(meshgrid);
+  ViewMatrix_d topology_d = toKokkos(topology);
+
   // Initialise the error in force
   double ErrorForce = std::numeric_limits<double>::max();
   while (ErrorForce > Tolerance && k < MaxIteration)
@@ -58,10 +61,13 @@ void MIRCO::Evaluate(double& pressure, const double Delta, const double LateralL
     // Initial number of predicted contact nodes.
     int n0;
     // Coordinates of the points predicted to be in contact.
-    std::vector<double> xv0, yv0;  // # change to ViewVector_d/h xv0, yv0;
+    ViewVector_d xv0_d, yv0_d;
+    // Indentation value of the half space at the predicted points of contact.
+    ViewVector_d b0_d;  // # change to ViewVector_d/h xv0, yv0;
+
     // // First predictor for contact set
     // # xv0 and xy0 and b0 are cleared, so are only out and not in; n0 is only out
-    MIRCO::ContactSetPredictor(n0, xv0, yv0, b0, zmax, Delta, w_el, meshgrid, topology);
+    MIRCO::ContactSetPredictor(n0, xv0_d, yv0_d, b0_d, zmax, Delta, w_el, meshgrid_d, topology_d);
 
     // Second predictor for contact set
     // @{
@@ -73,7 +79,13 @@ void MIRCO::Evaluate(double& pressure, const double Delta, const double LateralL
              // InitialGuessPredictor() //# in fact we should just make InitialGuessPredictor()
              // return x0, as it is the only output
 
-    MIRCO::InitialGuessPredictor(WarmStartingFlag, k, n0, xv0, yv0, pf, x0, b0, xvf, yvf);
+    ViewVector_h p0_h = MIRCO::InitialGuessPredictor(WarmStartingFlag, k, n0,
+        Kokkos::create_mirror_view_and_copy(MemorySpace_Host_t(), xv0_d),
+        Kokkos::create_mirror_view_and_copy(MemorySpace_Host_t(), yv0_d),
+        Kokkos::create_mirror_view_and_copy(MemorySpace_Host_t(), pf_d),
+        Kokkos::create_mirror_view_and_copy(MemorySpace_Host_t(), b0_d),
+        Kokkos::create_mirror_view_and_copy(MemorySpace_Host_t(), xvf_d),
+        Kokkos::create_mirror_view_and_copy(MemorySpace_Host_t(), yvf_d));
     // }
 
     // Construction of the Matrix A
@@ -82,8 +94,6 @@ void MIRCO::Evaluate(double& pressure, const double Delta, const double LateralL
       Kokkos::deep_copy(H_d, H_h);
       H = H_d;
     }*/
-    auto xv0_d = toKokkos(xv0);
-    auto yv0_d = toKokkos(yv0);
     // ViewMatrix_d H_d("H", xv0.size(), xv0.size());
     auto H_d = MIRCO::MatrixGeneration::SetupMatrix(
         xv0_d, yv0_d, GridSize, CompositeYoungs, n0, PressureGreenFunFlag);
@@ -92,6 +102,17 @@ void MIRCO::Evaluate(double& pressure, const double Delta, const double LateralL
     /// future maybe
 
     Teuchos::SerialDenseMatrix A = kokkosMatrixToTeuchos(H_d);
+
+    auto b0 = kokkosVectorToStdVector(b0_d);
+    auto xvf = kokkosVectorToStdVector(xvf_d);
+    auto yvf = kokkosVectorToStdVector(yvf_d);
+    auto xv0 = kokkosVectorToStdVector(xv0_d);
+    auto yv0 = kokkosVectorToStdVector(yv0_d);
+    auto pf = kokkosVectorToStdVector(pf_d);
+
+    ViewVector_d p0_d =
+        Kokkos::create_mirror_view_and_copy(MemorySpace_ofDefaultExec_t(), p0_h);  // #
+    Teuchos::SerialDenseVector p0 = kokkosVectorToTeuchos(p0_d);  // # bad but its temp anyways
 
 
 
@@ -102,7 +123,7 @@ void MIRCO::Evaluate(double& pressure, const double Delta, const double LateralL
 
     // use Nonlinear solver --> Non-Negative Least Squares (NNLS) as in
     // (Bemporad & Paggi, 2015)
-    auto y = MIRCO::NonLinearSolver::Solve(A, b0, x0, w);
+    auto y = MIRCO::NonLinearSolver::Solve(A, b0, p0, w);
     // #Q Why is x0 (or y0...) a matrix with 1 column and not just a vector. there is no reason i
     // think
 

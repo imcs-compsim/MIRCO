@@ -46,7 +46,8 @@ ViewVector_h MIRCO::NonLinearSolver::Solve(
 
   // Initialize active set
   std::vector<int> positions;
-  Kokkos::View<double*, Device_Host_t> positions for (int i = 0; i < y0.extent(0); i++)
+  Kokkos::View<int*, Device_Host_t> positions;
+  for (int i = 0; i < y0.extent(0); i++)
   {
     if (y0(i) >= nnlstol)  // # this should be >= -epsilon, no?
     {
@@ -102,11 +103,13 @@ ViewVector_h MIRCO::NonLinearSolver::Solve(
   s0.shape(n0, 1);  // # what
 
 
+
   // New searching algorithm
   std::vector<double> values, newValues;
   std::vector<int> poss, newPositions;
   double minValue = w(0, 0);
   int minPosition = 0;
+
 
   bool aux1 = true;
   while (aux1)
@@ -239,7 +242,7 @@ ViewVector_h MIRCO::NonLinearSolver::Solve(
       else
       {
         j = 0;
-        alpha = 1.0e8;
+        alpha = 1.0e8;  // #wtf
 
         // Searching for minimum value with index position
 #pragma omp parallel
@@ -280,5 +283,8 @@ ViewVector_h MIRCO::NonLinearSolver::Solve(
       }
     }
   }
+
+
+
   return y;
 }

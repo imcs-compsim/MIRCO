@@ -1,5 +1,5 @@
-#ifndef SRC_EVALUATE_H_
-#define SRC_EVALUATE_H_
+#ifndef SRC_EVALUATE_KOKKOS_H_
+#define SRC_EVALUATE_KOKKOS_H_
 
 #include <Kokkos_Core.hpp>
 #include <Teuchos_SerialDenseMatrix.hpp>
@@ -56,4 +56,4 @@ namespace MIRCO
 }  // namespace MIRCO
 
 
-#endif  // SRC_EVALUATE_H_
+#endif  // SRC_EVALUATE_KOKKOS_H_

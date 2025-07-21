@@ -1,5 +1,5 @@
-#ifndef SRC_NONLINEARSOLVER_H_
-#define SRC_NONLINEARSOLVER_H_
+#ifndef SRC_NONLINEARSOLVER_KOKKOS_H_
+#define SRC_NONLINEARSOLVER_KOKKOS_H_
 
 #include <Kokkos_Core.hpp>
 // tmp
@@ -28,4 +28,4 @@ namespace MIRCO
   };  // namespace NonLinearSolver
 }  // namespace MIRCO
 
-#endif  // SRC_NONLINEARSOLVER_H_
+#endif  // SRC_NONLINEARSOLVER_KOKKOS_H_

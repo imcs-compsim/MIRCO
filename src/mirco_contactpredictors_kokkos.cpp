@@ -3,71 +3,76 @@
 #include <Teuchos_SerialDenseMatrix.hpp>
 #include <vector>
 
-#include "mirco_warmstart.h"
+#include "mirco_warmstart_kokkos.h"
 
-void MIRCO::ContactSetPredictor(int &n0, std::vector<double> &xv0, std::vector<double> &yv0,
-    std::vector<double> &b0, double zmax, double Delta, double w_el,
-    const std::vector<double> &meshgrid, const Teuchos::SerialDenseMatrix<int, double> &topology)
+void MIRCO::ContactSetPredictor(int &n0, ViewVector_d &xv0, ViewVector_d &yv0, ViewVector_d &b0,
+    double zmax, double Delta, double w_el, const ViewVector_d &meshgrid,
+    const ViewMatrix_d &topology)
 {
-  std::vector<int> col, row;
+  // # TODO:m see if this parallization is even needed or just makes it less efficient
+
+  n0 = 0;
+
   double value = zmax - Delta - w_el;
-  // row.clear();//#
-  // col.clear();//# completely unecessary
 
-  // Data is even, guided makes more sense//#we parallize
-  for (int i = 0; i < topology.numCols(); i++)
-  {
-    for (int j = 0; j < topology.numCols(); j++)
-    {
-      if (topology(i, j) >= value)
-      {
-        row.push_back(i);
-        col.push_back(j);
-      }
-    }
-  }
+  int N = topology.extent(0);
 
-  n0 = col.size();
+  Kokkos::parallel_reduce(
+      "ContactSetPredictor0", N * N,
+      KOKKOS_LAMBDA(int idx, int &local_sum) {
+        int i = idx / N;
+        int j = idx % N;
+        if (topology(i, j) >= value) local_sum++;
+      },
+      n0);
 
-  // @{
-  xv0.clear();
-  xv0.resize(n0);
-  yv0.clear();
-  yv0.resize(n0);
-  b0.clear();
-  b0.resize(n0);
-  // @} Parallelizing slows down program here, so not parallel
+  Kokkos::View<int *, Device_Default_t> row("row", n0);
+  Kokkos::View<int *, Device_Default_t> col("col", n0);
 
-#pragma omp parallel for schedule( \
-        guided, 16)  // Always same workload but testing might be good -> Guided?
-  for (int i = 0; i < n0; i++)
-  {
-    try
-    {
-      xv0[i] = meshgrid[col[i]];
-      yv0[i] = meshgrid[row[i]];
-      b0[i] = Delta + w_el - (zmax - topology(row[i], col[i]));
-    }
-    catch (const std::exception &e)
-    {
-    }
-  }
+  Kokkos::View<int, Device_Default_t> counter("counter");
+  Kokkos::deep_copy(counter, 0);
+
+  Kokkos::parallel_for(
+      "ContactSetPredictor1", N * N, KOKKOS_LAMBDA(int idx) {
+        int i = idx / N;
+        int j = idx % N;
+        if (topology(i, j) >= value)
+        {
+          int pos = Kokkos::atomic_fetch_add(&counter(), 1);
+          row(pos) = i;
+          col(pos) = j;
+        }
+      });
+
+  xv0 = ViewVector_d("xv0", n0);
+  yv0 = ViewVector_d("yv0", n0);
+  b0 = ViewVector_d("b0", n0);
+
+  Kokkos::parallel_for(
+      "ContactSetPredictor2", n0, KOKKOS_LAMBDA(int i) {
+        int ci = col(i);
+        int ri = row(i);
+        xv0(i) = meshgrid(ci);
+        yv0(i) = meshgrid(ri);
+        b0(i) = Delta + w_el - (zmax - topology(ri, ci));
+      });
 }
 
-void MIRCO::InitialGuessPredictor(bool WarmStartingFlag, int k, int n0,
-    const std::vector<double> &xv0, const std::vector<double> &yv0, const std::vector<double> &pf,
-    Teuchos::SerialDenseMatrix<int, double> &x0, const std::vector<double> &b0,
-    const std::vector<double> &xvf, const std::vector<double> &yvf)
+ViewVector_h MIRCO::InitialGuessPredictor(bool WarmStartingFlag, int k, int n0,
+    const ViewVector_h &xv0, const ViewVector_h &yv0, const ViewVector_h &pf,
+    const ViewVector_h &b0, const ViewVector_h &xvf, const ViewVector_h &yvf)
 {
+  // # we make it serial for now. TODO:m If it takes >~5% of the total time, then consider
+  // parallizing it
   if (WarmStartingFlag && k > 0)
   {
-    MIRCO::Warmstart(x0, xv0, yv0, xvf, yvf, pf);
+    return MIRCO::Warmstart(xv0, yv0, xvf, yvf, pf);
   }
   else
   {
     if (b0.size() > 0)
     {
-      x0.shape(n0, 1);
+      return ViewVector_h("InitialGuessPredictor", n0);
     }
   }
 }

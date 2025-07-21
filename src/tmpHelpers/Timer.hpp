@@ -55,7 +55,7 @@ class TimerRegistry
 
 
 class Timer
-{  // TODOm: probably should all virtual destructor for memory stuff? so the destruction gets
+{  // TODO:m probably should all virtual destructor for memory stuff? so the destruction gets
    // upcast? idk how it works honestly
  public:
   Timer() {}

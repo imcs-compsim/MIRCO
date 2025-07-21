@@ -1,5 +1,5 @@
-#ifndef SRC_MATRIXSETUP_H_
-#define SRC_MATRIXSETUP_H_
+#ifndef SRC_MATRIXSETUP_KOKKOS_H_
+#define SRC_MATRIXSETUP_KOKKOS_H_
 
 #include <Kokkos_Core.hpp>
 #include <Teuchos_SerialDenseMatrix.hpp>
@@ -32,4 +32,4 @@ namespace MIRCO
   };  // namespace MatrixGeneration
 }  // namespace MIRCO
 
-#endif  // SRC_MATRIXSETUP_H_
+#endif  // SRC_MATRIXSETUP_KOKKOS_H_

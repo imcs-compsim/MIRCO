@@ -210,7 +210,7 @@ inline Array<int> checkForIn(const std::string& checkFor, const std::string& che
 }
 
 // aligns the string rows at certain keys, like e.g. "|"" will be vertically aligned according to
-// count (TODOm: make an overload for Array<std::string> where each ele is a row)
+// count (TODO:m make an overload for Array<std::string> where each ele is a row)
 inline std::string alignStringAt(const std::string& s, const std::string& alignerKey)
 {
   auto a = strToStrArray(s);
