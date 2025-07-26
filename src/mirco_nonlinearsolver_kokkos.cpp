@@ -6,75 +6,68 @@
 #include <vector>
 
 ViewVector_h MIRCO::NonLinearSolver::Solve(
-    const ViewMatrix_h& matrix, const ViewVector_h& b0, const ViewVector_h& y0, ViewMatrix_h& w)
+    const ViewMatrix_h& matrix, const ViewVector_h& b0, const ViewVector_h& p0, ViewVector_h& w)
 {
   const std::string thisFctName =
       "MIRCO::NonLinearSolver::Solve";  // we should do this anywhere we want to use timers or
                                         // kokkos parallel annotation/naming?
 
 
-  /*
-  input H - Influence coefficient matrix (Discrete version of Green Function); symmetric positive
-  definite p* - optimal contact force vector (p_{i,j}); p - initial guess? u* - optimal normal
-  displacement vector (p_{i,j}); u - initial guess? input \overbar{u} - compenetration vector
-  \overbar{u}_{i,j}, i.e. \Delta - (\xi_{max} - \xi_{i,j}) w - := vector w_{i,j}, := u - \overbar{u}
 
-  \epsilon > 0 - tolerance
-  K_max - max iterations
+  //- input H - Influence coefficient matrix (Discrete version of Green Function); symmetric
+  // positive definite
+  //- p* - optimal contact force vector (p_{i,j});
+  //- p - initial guess?
+  //- u* - optimal normal displacement vector (p_{i,j}); u - initial guess?
+  //- input b0 - compenetration vector with correction, i.e. b0(i) = Delta + w_el - (zmax -
+  // topology(ri, ci));
+  //- w - := vector w_{i,j}, := u - \overbar{u}
 
-
-
-
-
-
-  */
+  //- \epsilon > 0 - tolerance
+  //- K_max - max iterations
 
 
 
   // TODO: make these into input params? at least the important ones
-  // TODO: also, make some comments here to describe what exactly they mean
+  // TODO: also, make some comments here to describe what exactly they mean (or just in @brief when
+  // they are params)
   double nnlstol = 1.0000e-08;
   double maxiter = 10000;
-  double eps = 2.2204e-16;
+  double eps = 2.2204e-16;  // #what is this
   double alphai = 0;
   double alpha = 100000000;
   int iter = 0;
   bool init = false;
-  const int n0 = b0.size();
+  const int n0 = b0.extent(0);
 
 
 
   // Initialize active set
-  std::vector<int> positions;
-  Kokkos::View<int*, Device_Host_t> positions;
-  for (int i = 0; i < y0.extent(0); i++)
-  {
-    if (y0(i) >= nnlstol)  // # this should be >= -epsilon, no?
-    {
-      positions.push_back(i);
-      counter++;
-    }
-  }
+  ViewVectorInt_d tempIndices_d("tempIndices_d", n0);  // Overallocate
+  ViewScalarInt_d counter_d("counter_d");              // Holds final count
+
+  Kokkos::parallel_scan(
+      "build active set", n0, KOKKOS_LAMBDA(const int i, int& update, const bool final) {
+        if (p0(i) > 0.0)
+        {
+          if (final) tempIndices_d(update) = i;
+          update++;
+        }
+        if (final && i == n0 - 1) counter_d = update;
+      });
+
+  // Shrink to actual size
+  int counter = Kokkos::create_mirror_view_and_copy(MemorySpace_Host_t, counter_d)(0);
+  ViewVectorInt_d activeSetI("activeSetI", counter);
+  Kokkos::deep_copy(activeSetI, Kokkos::subview(tempIndices_d, std::make_pair(0, counter)));
 
 
 
-  w.reshape(n0, 1);  // # wtf
-  w.putScalar(0.0);  // # why
+  w_h = ViewVector_h("w", n0);
 
   if (counter == 0)
   {
-#if (!kokkosElseOpenMP)
-    // add StandardTimer to compare
-    StandardTimer timerO("OPENMP __firstParallel");
-    timerO.start();
-#pragma omp parallel for schedule(static, 16)  // Always same workload -> static
-    for (int x = 0; x < n0; x++)
-    {
-      w(x, 0) = -b0[x];  // # if this is really necessary, use atomic
-    }
-    // end StandardTimer
-    timerO.stop();
-#else
+    // # TODO: change this
     auto w_kokkos = toKokkos(w);
     auto b0_kokkos = toKokkos(b0);
     // add StandardTimer to compare
@@ -86,88 +79,59 @@ ViewVector_h MIRCO::NonLinearSolver::Solve(
     // end StandardTimer
     timerK.stop();
     w = kokkosMatrixToTeuchos(w_kokkos);
-#endif
+
     init = false;
   }
   else
   {
-#pragma omp parallel for schedule(static, 16)  // Always same workload -> static
-    for (int i = 0; i < counter; i++)
-    {
-      P[i] = positions[i];  // # what
-    }
-
     init = true;
   }
 
-  s0.shape(n0, 1);  // # what
+  /// P = copy(positions)
 
 
 
-  // New searching algorithm
-  std::vector<double> values, newValues;
-  std::vector<int> poss, newPositions;
-  double minValue = w(0, 0);
-  int minPosition = 0;
-
+  ViewVector_d p_star("p_star", n0);
 
   bool aux1 = true;
-  while (aux1)
+  while (1)  /// while (aux1)
   {
-    // @{
-    for (int i = 0; i < w.numRows(); i++)  // # wtf
+    w.scale(0.0);
+#pragma omp parallel for schedule(dynamic, 16)
+    for (int a = 0; a < matrix.numRows(); a++)
     {
-      values.push_back(w(i, 0));
-      poss.push_back(i);
+      w(a, 0) = 0;
+      for (int b = 0; b < counter; b++)
+      {
+        w(a, 0) += (matrix(a, P[b]) * p_star(P[b]));
+      }
+      w(a, 0) -= b0[a];
     }
 
-    // Get all values bigger than initial one
-    while (values.size() > 1)
-    {
-      for (unsigned long int i = 1; i < values.size(); i++)
-      {
-        if (values[i] < values[0])
-        {
-          newValues.push_back(values[i]);
-          newPositions.push_back(poss[i]);
-        }
-      }
 
-      if (newValues.size() == 0)
-      {
-        newValues.push_back(values[0]);
-        newPositions.push_back(poss[0]);
-      }
 
-      values = newValues;
-      poss = newPositions;
-      newValues.clear();
-      newPositions.clear();
-    }
-    minValue = values[0];
-    minPosition = poss[0];
-    values.clear();
-    poss.clear();
+    double min_w_i;
+    int argmin_w_i;
+
+    Kokkos::parallel_reduce(
+        "min_w", w.extent(0),
+        KOKKOS_LAMBDA(const int i, Kokkos::MinLoc<double, int>::value_type& ml) {
+          if (w(i) < ml.val)
+          {
+            ml.val = w(i);
+            ml.loc = i;
+          }
+        },
+        Kokkos::MinLoc<double, int>(min_w_i, argmin_w_i));
+
     // }
 
-    if (((counter == n0) || (minValue > -nnlstol) || (iter >= maxiter)) && (init == false))
+    if (((min_w_i >= -epsilon || counter == n0) && init) || iter >= maxiter)
     {
-      aux1 = false;
-    }
-    else
-    {
-      if (init == false)
-      {
-        P[counter] = minPosition;
-        counter += 1;
-      }
-      else
-      {
-        init = false;
-      }
+      break;
     }
 
-    int j = 0;
+    if (init) int j = 0;
 
     aux2 = true;
     while (aux2)
@@ -178,8 +142,12 @@ ViewVector_h MIRCO::NonLinearSolver::Solve(
 
       ViewVector_d P("P", n0);
 
-      ViewVector_d s0("s0", n0);
+      /// ViewVector_d s0("s0", n0);//# completely unnecessary
+
+      // first the rhs, then the solution of the linear system matrix*x = b; or, really, H_I*s_I =
+      // \overbar{u}_I
       ViewVector_d vector_bx("bx", counter);
+
       ViewMatrix_d solverMatrix("A", counter);
 
 
@@ -187,33 +155,25 @@ ViewVector_h MIRCO::NonLinearSolver::Solve(
       vector_b.size(counter);
       solverMatrix.shape(counter);
 
-#pragma omp parallel for schedule(static, 16)  // Always same workload -> Static!
-      for (int x = 0; x < counter; x++)
-      {
-        vector_b(x) = b0[P[x]];
+      Kokkos::parallel_for(
+          "assemble reduced system", counter, KOKKOS_LAMBDA(const int x) {
+            vector_bx(x) = b0(activeSetI(x));
+            for (int z = 0; z < counter; z++)
+            {
+              double val = matrix(activeSetI(x), activeSetI(z));
+              solverMatrix(x, z) = val;
+            }
+          });
 
-        for (int z = 0; z < counter; z++)
-        {
-          if (x >= z)
-            solverMatrix(x, z) = matrix(P[x], P[z]);
-          else
-            solverMatrix(z, x) = matrix(P[x], P[z]);
-        }
-      }
       // Solving solverMatrix*vector_x=vector_b
-      KokkosLapack::gesv()
-
-#pragma omp parallel for schedule(static, 16)  // Always same workload -> Static!
-          for (int x = 0; x < counter; x++)
-      {
-        s0(P[x], 0) = vector_x(x);
-      }
+      KokkosLapack::gesv(solverMatrix, vector_bx);
 
       bool allBigger = true;
 #pragma omp parallel for schedule(static, 16)  // Always same workload -> Static!
-      for (int x = 0; x < counter; x++)
+      for (int x = 0; x < counter;
+          x++)  // # opposite of $s_i \ge -\epsilon \forall i \in activeSetI$
       {
-        if (s0(P[x], 0) < nnlstol)
+        if (vector_bx(x) < -nnlstol)
         {
           allBigger = false;
         }
@@ -225,18 +185,7 @@ ViewVector_h MIRCO::NonLinearSolver::Solve(
 #pragma omp parallel for schedule(guided, 16)
         for (int x = 0; x < counter; x++)
         {
-          y(P[x]) = s0(P[x], 0);
-        }
-        w.scale(0.0);
-#pragma omp parallel for schedule(dynamic, 16)
-        for (int a = 0; a < matrix.numRows(); a++)
-        {
-          w(a, 0) = 0;
-          for (int b = 0; b < counter; b++)
-          {
-            w(a, 0) += (matrix(a, P[b]) * y(P[b]));
-          }
-          w(a, 0) -= b0[a];
+          p_star(P[x]) = vector_bx(x);
         }
       }
       else
@@ -254,7 +203,7 @@ ViewVector_h MIRCO::NonLinearSolver::Solve(
           {
             if (s0(P[i], 0) < nnlstol)
             {
-              alphai = y(P[i]) / (eps + y(P[i]) - s0(P[i], 0));
+              alphai = p_star(P[i]) / (eps + p_star(P[i]) - s0(P[i], 0));
               if (alphai < alphaP)
               {
                 alphaP = alphai;
@@ -271,7 +220,8 @@ ViewVector_h MIRCO::NonLinearSolver::Solve(
 
         // TODO: WHAT BELONGS TO THIS LOOP?????????????????????
 #pragma omp parallel for schedule(guided, 16)
-        for (int a = 0; a < counter; a++) y(P[a]) = y(P[a]) + alpha * (s0(P[a], 0) - y(P[a]));
+        for (int a = 0; a < counter; a++)
+          p_star(P[a]) = p_star(P[a]) + alpha * (s0(P[a], 0) - p_star(P[a]));
         if (j > 0)
         {
           // jth entry in P leaves active set
@@ -284,7 +234,10 @@ ViewVector_h MIRCO::NonLinearSolver::Solve(
     }
   }
 
+  // p_star = p;
+  // u_star = w + \overbar{u}
 
 
-  return y;
+
+  return p_star;
 }

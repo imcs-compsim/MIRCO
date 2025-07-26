@@ -14,7 +14,7 @@
 #include "mirco_contactpredictors_kokkos.h"
 #include "mirco_contactstatus_kokkos.h"
 #include "mirco_matrixsetup_kokkos.h"
-#include "mirco_nonlinearsolver.h"
+#include "mirco_nonlinearsolver_kokkos.h"
 
 void MIRCO::Evaluate(double& pressure, const double Delta, const double LateralLength,
     const double GridSize, const double Tolerance, const int MaxIteration,
@@ -49,20 +49,29 @@ void MIRCO::Evaluate(double& pressure, const double Delta, const double LateralL
   // The influence coefficient matrix (Discrete version of Green Function)
   ///  ViewMatrix_h H;//==A
   // Solution containing force
-  ViewVector_h p_star;  //==y; //# <-- means previously called
+  /// ViewVector_h p_star;  //==y; //# <-- means previously called
 
   ViewVector_d meshgrid_d = toKokkos(meshgrid);
   ViewMatrix_d topology_d = toKokkos(topology);
 
   // Initialise the error in force
-  double ErrorForce = std::numeric_limits<double>::max();
+  double ErrorForce = std::numeric_limits<double>::max();  // # can just do tolerance + 1.0 so you
+                                                           // dont need to include numeric_limits
   while (ErrorForce > Tolerance && k < MaxIteration)
   {
     // Initial number of predicted contact nodes.
     int n0;
     // Coordinates of the points predicted to be in contact.
     ViewVector_d xv0_d, yv0_d;
+
     // Indentation value of the half space at the predicted points of contact.
+    // b0(i) = Delta + w_el - (zmax - topology(ri, ci));
+    //                        ^\xi_{max}  ^ \xi             in Bemporad 2015
+    // w_el = force0[k] / ElasticComplianceCorrection;
+    // elastic_compliance_correction_ = LateralLength * composite_youngs_ / shape_factor_; where
+    // LateralLength is the side length of the whole big (FEM) element (projected onto boundary),
+    // which contains a bunch of smaller BEM elements (see Mayr 2019)
+    // cf: \overbar{u} would be Delta - (zmax - topology(ri, ci))         without the w_el
     ViewVector_d b0_d;  // # change to ViewVector_d/h xv0, yv0;
 
     // // First predictor for contact set
@@ -123,12 +132,12 @@ void MIRCO::Evaluate(double& pressure, const double Delta, const double LateralL
 
     // use Nonlinear solver --> Non-Negative Least Squares (NNLS) as in
     // (Bemporad & Paggi, 2015)
-    auto y = MIRCO::NonLinearSolver::Solve(A, b0, p0, w);
+    auto p_star = MIRCO::NonLinearSolver::Solve(A, b0, p0, w);
     // #Q Why is x0 (or y0...) a matrix with 1 column and not just a vector. there is no reason i
     // think
 
     // Compute number of contact node
-    MIRCO::ComputeContactNodes(xvf, yvf, pf, nf, y, xv0, yv0);
+    MIRCO::ComputeContactNodes(xvf, yvf, pf, nf, p_star, xv0, yv0);
 
     // Compute contact force and contact area
     MIRCO::ComputeContactForceAndArea(force0, area0, w_el, nf, pf, k, GridSize, LateralLength,

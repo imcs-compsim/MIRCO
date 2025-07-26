@@ -11,13 +11,14 @@ namespace MIRCO
   namespace NonLinearSolver
   {
     /**
-     * @brief Solve the non-linear set of equations using Non-Negative Least Squares (NNLS) method.
+     * @brief Solve the non-linear set of equations using the Non-Negative Least Squares (NNLS)
+     * method from (Lawson and Hanson 1974) https://doi.org/10.1137/1.9781611971217.ch23
      *
      * @param[in] matrix Influence coefficient matrix (Discrete version of Green Function)
      * @param[in] b0 Indentation value of the half space at the predicted points of contact.
      * @param[in] y0 contact forces vector _{l(i,j)} predicted in the previous iteration but are a
      * part of currect predicted contact set.
-     * @param[in] w Gap between the point on the topology and the half space
+     * @param[out] w Gap between the point on the topology and the half space
      *
      * @return y Solution containing force
      */

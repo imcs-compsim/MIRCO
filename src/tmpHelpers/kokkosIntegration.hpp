@@ -37,6 +37,11 @@ using ViewVector_h = Kokkos::View<double*, Device_Host_t>;
 using ViewMatrix_h =
     Kokkos::View<double**, Kokkos::LayoutLeft, Device_Host_t>;  // LayoutRight = row-major
 
+using ViewVectorInt_h = Kokkos::View<int*, Device_Host_t>;    // # or "array"?
+using ViewVectorBool_h = Kokkos::View<bool*, Device_Host_t>;  // #
+
+using ViewScalarInt_h = Kokkos::View<int, Device_Host_t>;
+
 /*using ViewVector_cuda = Kokkos::View<double*, Device_Cuda_t>;
 using ViewMatrix_cuda =
     Kokkos::View<double**, Kokkos::LayoutLeft, Device_Cuda_t>;*/  // LayoutRight = row-major
@@ -45,6 +50,10 @@ using ViewVector_d = Kokkos::View<double*, Device_Default_t>;
 using ViewMatrix_d =
     Kokkos::View<double**, Kokkos::LayoutLeft, Device_Default_t>;  // LayoutRight = row-major
 
+using ViewVectorInt_d = Kokkos::View<int*, Device_Default_t>;
+using ViewVectorBool_d = Kokkos::View<bool*, Device_Default_t>;
+
+using ViewScalarInt_d = Kokkos::View<int, Device_Default_t>;
 
 
 #if (kokkosElseOpenMP)
