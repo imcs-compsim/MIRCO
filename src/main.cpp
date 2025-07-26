@@ -1,4 +1,6 @@
-#include <Teuchos_TestForException.hpp>
+#include <Teuchos_ParameterList.hpp>
+#include <Teuchos_RCP.hpp>
+#include <Teuchos_XMLParameterListHelpers.hpp>
 #include <chrono>
 #include <iostream>
 #include <string>
@@ -33,6 +35,21 @@ int main(int argc, char* argv[])
 
   const auto finish = std::chrono::high_resolution_clock::now();
   const double elapsedTime =
-      std::chrono::duration_cast<std::chrono::seconds>(finish - start).count();
+      std::chrono::duration_cast<std::chrono::duration<double>>(finish - start).count();
   std::cout << "Elapsed time is: " + std::to_string(elapsedTime) + "s." << std::endl;
+
+  // Test for correct output if the result_description is given in the input file
+  Teuchos::RCP<Teuchos::ParameterList> parameterList = Teuchos::rcp(new Teuchos::ParameterList());
+  Teuchos::updateParametersFromXmlFile(inputFileName, parameterList.ptr());
+  if (parameterList->isSublist("result_description"))
+  {
+    Teuchos::ParameterList& result_description = parameterList->sublist("result_description");
+    double ExpectedPressure = result_description.get<double>("ExpectedPressure");
+    double ExpectedPressureTolerance = result_description.get<double>("ExpectedPressureTolerance");
+    if (std::abs(pressure - ExpectedPressure) > ExpectedPressureTolerance)
+    {
+      std::cerr << "The output pressure is incorrect" << std::endl;
+      return EXIT_FAILURE;
+    }
+  }
 }
