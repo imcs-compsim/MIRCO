@@ -6,7 +6,7 @@
 #include <vector>
 
 ViewVector_h MIRCO::NonLinearSolver::Solve(
-    const ViewMatrix_h& matrix, const ViewVector_d& b0_d, const ViewVector_h& p0, ViewVector_h& w_out)
+    const ViewMatrix_d& matrix, const ViewVector_d& b0_d, const ViewVector_h& p0, ViewVector_h& w_out)
 {
   const std::string thisFctName =
       "MIRCO::NonLinearSolver::Solve";  // we should do this anywhere we want to use timers or
@@ -115,7 +115,7 @@ I suppose I have two options for how to treat them:
 
   if (counter == 0)
   {
-    // add StandardTimer to compare
+    // Hp - b0 for p = 0
     StandardTimer timerK("KOKKOS __firstParallel");
     timerK.start();
     Kokkos::parallel_for(
@@ -124,23 +124,21 @@ I suppose I have two options for how to treat them:
     // end StandardTimer
     timerK.stop();
 
-    init = false;
+    init = true; //# note: in the original implementation, init was the opposite of how it is defined/used in Bemporad 2015
   }
-  else
-  {
-    init = true;
+  else {
+    
   }
 
   /// P = copy(positions)
 
 
 
-  ViewVector_d p_star("p_star", n0);
+  ViewVector_d p_d("p_d", n0);
 
   bool aux1 = true;
   while (1)  /// while (aux1)
   {
-
 
     double min_w_i;
     int argmin_w_i;
@@ -163,15 +161,16 @@ I suppose I have two options for how to treat them:
     
     
     
-    if (init) {
+    if (init) { // I empty or iter1 > 0 // if init, we extend the active set by something
       double min_w_i_fromInactiveSet;
       int argmin_w_i_fromInactiveSet; // in algo3 line(5), we need the argmin where i \in {1, ..., n}\I
       Kokkos::parallel_reduce(
-          "min_w", w.extent(0),
+          "min_w", Kokkos::RangePolicy<ExecSpace_Default_t>(counter, n0),
           KOKKOS_LAMBDA(const int i, Kokkos::MinLoc<double, int>::value_type& ml) {
-            if (w(i) < ml.val)
+            auto wi = w(activeSetI(i))
+            if (wi < ml.val)
             {
-              ml.val = w(i);
+              ml.val = wi;
               ml.loc = i;
             }
           },
@@ -179,71 +178,84 @@ I suppose I have two options for how to treat them:
           
       Kokkos::deep_copy(Kokkos::subview(activeSetI, counter), argmin_w_i_fromInactiveSet);
       ++counter;
+      
+      // separate thing but also fits perfectly into this init
+    }
+    else {
+      
+      
+      init = true;
     }
 
     while (2)
     {
       ++iter;
+          
+          
+      ViewMatrix_d H_compact_d("H_compact", counter, counter);
+      ViewVector_d b0s_compact_d("b0_compact", counter);
 
-
-
-      ViewVector_d P("P", n0);
-
-      /// ViewVector_d s0("s0", n0);//# completely unnecessary
-
-      // first the rhs, then the solution of the linear system matrix*x = b; or, really, H_I*s_I =
-      // \overbar{u}_I
-      ViewVector_d vector_bx("bx", counter);
-
-      ViewMatrix_d solverMatrix("A", counter);
-
-
-
-      vector_b.size(counter);
-      solverMatrix.shape(counter);
-
-      Kokkos::parallel_for(
-          "assemble reduced system", counter, KOKKOS_LAMBDA(const int x) {
-            vector_bx(x) = b0_d(activeSetI(x));
-            for (int z = 0; z < counter; z++)
-            {
-              double val = matrix(activeSetI(x), activeSetI(z));
-              solverMatrix(x, z) = val;
-            }
-          });
-
-      // Solving solverMatrix*vector_x=vector_b
-      KokkosLapack::gesv(solverMatrix, vector_bx);
-
-      bool allBigger = true;
-#pragma omp parallel for schedule(static, 16)  // Always same workload -> Static!
-      for (int x = 0; x < counter;
-          x++)  // # opposite of $s_i \ge -\epsilon \forall i \in activeSetI$
-      {
-        if (vector_bx(x) < -nnlstol)
-        {
-          allBigger = false;
+      Kokkos::parallel_for("define compact views", counter, KOKKOS_LAMBDA(const int i) {
+        int row = activeSetI(i);
+        b0s_compact_d(i) = b0_d(row);
+        for (int j = 0; j < counter; ++j) {
+          int col = activeSetI(j);
+          H_compact_d(i, j) = H(row, col);
         }
-      }
+      });
 
-      if (allBigger == true)
-      {
-#pragma omp parallel for schedule(guided, 16)
-        for (int x = 0; x < counter; x++)
-        {
-          p_star(P[x]) = vector_bx(x); //# Algo3 line(7)
-        }
-        w.scale(0.0);
-#pragma omp parallel for schedule(dynamic, 16)
-        for (int a = 0; a < matrix.numRows(); a++)
-        {
-          w(a, 0) = 0;
-          for (int b = 0; b < counter; b++)
+
+      // Solving H_compact_d b0s_compact_d [as output] = b0s_compact_d [as input]
+      KokkosLapack::gesv(H_compact_d, b0s_compact_d);
+
+      bool allGreater = true;
+      Kokkos::parallel_reduce(
+        "allGreater", counter,
+        KOKKOS_LAMBDA(const int i, bool& local_allGreater) {
+          if (b0s_compact_d(i) < -nnlstol)
           {
-            w(a, 0) += (matrix(a, P[b]) * p_star(P[b]));
+            local_allGreater = false;
           }
-          w(a, 0) -= b0_d[a];
+        },
+        allGreater);
+
+      if (allGreater)
+      {
+        Kokkos::parallel_for("p = s_compact", counter, KOKKOS_LAMBDA(const int i) {
+            p_d(activeSet(i)) = b0s_compact_d(i);
+          });
+          
+        // Algo3, line (3) after loop: TWO OPTIONS: (TODO: test if one is generally superior or when each is superior)
+        /*constexpr bool option1ElseOption2 = false; //#tmp
+        
+        // first option: uses 2D range policy but needs two separate loops
+        if(option1ElseOption2){
+          Kokkos::parallel_for("init w = -b0", n0, KOKKOS_LAMBDA(const int i) {
+              const int Ii = activeSetI(i);
+              w(i) = -b0(i);
+            });
+            
+          Kokkos::parallel_for(
+            "compute H*p", 
+            Kokkos::MDRangePolicy<Kokkos::Rank<2>>({0, 0}, {n0, counter}),
+            KOKKOS_LAMBDA(const int i, const int j) {
+              const int col = activeSetI(j);
+              Kokkos::atomic_add(&w(i), H_d(i, activeSetI(col)) * p_compact(activeSetI(col)));
+            });
+          
         }
+          
+        // second option: one loop with 1D range policy (probably better option)
+        else {*/
+          Kokkos::parallel_for(
+            "w = H p - b0", n0, KOKKOS_LAMBDA(const int i) {
+              double sum = 0.0;
+              for(int j=0; j<counter; ++j)
+                sum += matrix(i, j) * b0s_compact_d(j);
+              w(i) = sum - b0(i);
+            });
+          
+        ///}
         
         break;
       }
@@ -257,7 +269,7 @@ I suppose I have two options for how to treat them:
           "min_alpha", counter,
           KOKKOS_LAMBDA(const int i, Kokkos::MinLoc<double, int>::value_type& ml) {
             if(s0(activeSetI(i)) <= 0) {
-              const alphai = p_star(activeSetI(i)) / (eps + p_star(activeSetI(i)) - s0(activeSetI(i)));
+              const alphai = p_d(activeSetI(i)) / (eps + p_d(activeSetI(i)) - s0(activeSetI(i)));
               if (alphai < ml.val)
               {
                 ml.val = alphai;
@@ -266,40 +278,18 @@ I suppose I have two options for how to treat them:
             }
           },
           Kokkos::MinLoc<double, int>(min_alpha_i, argmin_alpha_i));
-#pragma omp parallel
-        {
-          int jP = 0;
-          double alphaP = alpha;
-#pragma omp parallel for schedule(guided, 16)  // Even, guided seems fitting
-          for (int i = 0; i < counter; i++)
-          {
-            if (s0(activeSetI(i)) < nnlstol) //# Algo3 line(8), i.e. argmin is jP, and min the actual min is alphaP
-            {
-              alphai = p_star(activeSetI(i)) / (eps + p_star(activeSetI(i)) - s0(activeSetI(i)));
-              if (alphai < alphaP)
-              {
-                alphaP = alphai;
-                jP = i;
-              }
-            }
-          }
-#pragma omp critical
-          {
-            alpha = alphaP;
-            j = jP;
-          }
-        }
-
-        // TODO: WHAT BELONGS TO THIS LOOP?????????????????????
-#pragma omp parallel for schedule(guided, 16)
-        for (int a = 0; a < counter; a++)
-          p_star(P[a]) = p_star(P[a]) + alpha * (s0(P[a], 0) - p_star(P[a])); //# Algo3 line(9)
-        
-        if (j > 0) //# why do we check the last j value? It should be erase I_h where h such that p_h = 0, and that also means all such h, not necessarily only one--though I suppose we should use eps here then too
+          
+        Kokkos::parallel_for(
+          "assemble reduced system", counter, KOKKOS_LAMBDA(const int i) {
+            p_d(activeSetI(i)) = p_d(activeSetI(i)) + alpha * (s0(activeSetI(i)) - p_d(activeSetI(i)))
+          });
+          
+        if (j > -1) //# why do we check the last j value? It should be erase I_h where h such that p_h = 0, and that also means all such h, not necessarily only one--though I suppose we should use eps here then too
         {
           //# TODO: think about whether there is a chance of counter ever = 0 in here. Probably not, but if so we need a check ofc. Yeah I think not, but make sure
           // jth entry in P leaves active set
-          ///s0(P[j], 0) = 0; //# in fact unnecessary. We can leave the old value there
+          p_d(P[j], 0) = 0; //# in fact unnecessary. We can leave the old value there; no, the old value may be 0 only within a tolerance
+          Kokkos::deep_copy(Kokkos::subview(activeSetI, j), Kokkos::subview(activeSetI, counter-1));
           Kokkos::deep_copy(Kokkos::subview(activeSetI, j), Kokkos::subview(activeSetI, counter-1));
           ///Kokkos::deep_copy(Kokkos::subview(activeSetI, counter-1), 0); //# this is actually strictly speaking also not needed. We can leave the old value there
           --counter;
@@ -308,10 +298,10 @@ I suppose I have two options for how to treat them:
     }
   }
 
-  // p_star = p;
+  // p_d = p;
   // u_star = w + \overbar{u}
 
 
 
-  return p_star;
+  return p_d;
 }
