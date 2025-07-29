@@ -54,7 +54,7 @@ void MIRCO::ContactSetPredictor(int &n0, ViewVector_d &xv0, ViewVector_d &yv0, V
         int ri = row(i);
         xv0(i) = meshgrid(ci);
         yv0(i) = meshgrid(ri);
-        b0(i) = Delta + w_el - (zmax - topology(ri, ci));
+        b0(i) = Delta + w_el - (zmax - topology(ri, ci)); // b0 = \overbar{u} + w_el
       });
 }
 
@@ -63,7 +63,7 @@ ViewVector_h MIRCO::InitialGuessPredictor(bool WarmStartingFlag, int k, int n0,
     const ViewVector_h &b0, const ViewVector_h &xvf, const ViewVector_h &yvf)
 {
   // # we make it serial for now. TODO:m If it takes >~5% of the total time, then consider
-  // parallizing it
+  // parallelizing it
   if (WarmStartingFlag && k > 0)
   {
     return MIRCO::Warmstart(xv0, yv0, xvf, yvf, pf);
