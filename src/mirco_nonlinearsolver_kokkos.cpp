@@ -5,6 +5,26 @@
 #include <Teuchos_SerialDenseVector.hpp>
 #include <vector>
 
+// tmp
+#include "tmpHelpers/Timer.hpp"
+
+void swap_entries(ViewVector_d v, const int i, const int j) {
+  if constexpr (HOSTONLY) {
+    std::swap(v(i), v(j));
+  }
+  else {
+    auto vi = Kokkos::subview(v, i);
+    auto vj = Kokkos::subview(v, j);
+    
+    ViewScalarDouble_d tmp("tmp");
+    
+    Kokkos::deep_copy(tmp, vi);  // tmp = v(i)
+    Kokkos::deep_copy(vi, vj);    // v(i) = v(j)
+    Kokkos::deep_copy(vj, tmp);  // v(j) = old v(i)
+  }
+}
+
+
 ViewVector_h MIRCO::NonLinearSolver::Solve(
     const ViewMatrix_d& matrix, const ViewVector_d& b0_d, const ViewVector_h& p0, ViewVector_h& w_out)
 {
@@ -47,10 +67,6 @@ ViewVector_h MIRCO::NonLinearSolver::Solve(
   ///double eps = 2.2204e-16;  // # machine precision of double, i.e. smallest number such that 1.0 + eps > 1.0
   constexpr double eps = 1.0 / (1ULL << 52); // 2^{-52}; double machine precision, i.e. smallest number such that 1.0 + eps > 1.0
   constexpr double infty = 0x7FF0000000000000; // positive infinity for double
-  double alphai = 0;
-  double alpha = infty;
-  int iter = 0;
-  bool init = false;
   const int n0 = b0_d.extent(0);
 
 
@@ -79,13 +95,17 @@ ViewVector_h MIRCO::NonLinearSolver::Solve(
   ViewScalarInt_d counter_init_d("counter_init_d");
   ViewVectorInt_d activeSetI("activeSetI", n0);
   Kokkos::parallel_scan(
-      "build initial active set", n0, KOKKOS_LAMBDA(const int i, int& update, const bool final) {
+      "build initial active set", n0, KOKKOS_LAMBDA(const int i, int& counterActive, int& counterInactive, const bool final) {
         if (p0(i) > 0.0)
         {
-          if (final) activeSetI(update) = i;
-          update++;
+          if (final) activeSetI(counterActive) = i;
+          ++counterActive;
         }
-        if (final && i == n0 - 1) counter_d_init = update;
+        else {
+          if(final) activeSetI(n0 - counterInactive) = i; //# genius idea: the inactive set is just the right part of this view (the part from counter-1 to n0-1). It is just a reordering of all indices
+          ++counterInactive;
+        }
+        if (final && i == n0 - 1) counter_d_init = counterActive;
       });
 
   
@@ -110,6 +130,7 @@ I suppose I have two options for how to treat them:
   
   */
 
+  bool init = false;
 
   ViewVector_d w_d("w_d", n0);
 
@@ -136,7 +157,8 @@ I suppose I have two options for how to treat them:
 
   ViewVector_d p_d("p_d", n0);
 
-  bool aux1 = true;
+  // iter is incremented in while(2)
+  int iter = 0;
   while (1)  /// while (aux1)
   {
 
@@ -145,9 +167,10 @@ I suppose I have two options for how to treat them:
     Kokkos::parallel_reduce(
         "min_w", w.extent(0),
         KOKKOS_LAMBDA(const int i, Kokkos::MinLoc<double, int>::value_type& ml) {
-          if (w(i) < ml.val)
+          auto wi = w(activeSetI(i))
+          if (wi < ml.val)
           {
-            ml.val = w(i);
+            ml.val = wi;
             ml.loc = i;
           }
         },
@@ -176,7 +199,10 @@ I suppose I have two options for how to treat them:
           },
           Kokkos::MinLoc<double, int>(min_w_i_fromInactiveSet, argmin_w_i_fromInactiveSet));
           
-      Kokkos::deep_copy(Kokkos::subview(activeSetI, counter), argmin_w_i_fromInactiveSet);
+      ////Kokkos::deep_copy(Kokkos::subview(activeSetI, counter), argmin_w_i_fromInactiveSet);
+      ///swap_entries(activeSetI, counter-1, j);
+      ///++counter;
+      swap_entries(activeSetI, j, counter);
       ++counter;
       
       // separate thing but also fits perfectly into this init
@@ -269,7 +295,7 @@ I suppose I have two options for how to treat them:
           "min_alpha", counter,
           KOKKOS_LAMBDA(const int i, Kokkos::MinLoc<double, int>::value_type& ml) {
             if(s0(activeSetI(i)) <= 0) {
-              const alphai = p_d(activeSetI(i)) / (eps + p_d(activeSetI(i)) - s0(activeSetI(i)));
+              const double alphai = p_d(activeSetI(i)) / (eps + p_d(activeSetI(i)) - s0(activeSetI(i)));
               if (alphai < ml.val)
               {
                 ml.val = alphai;
@@ -288,11 +314,15 @@ I suppose I have two options for how to treat them:
         {
           //# TODO: think about whether there is a chance of counter ever = 0 in here. Probably not, but if so we need a check ofc. Yeah I think not, but make sure
           // jth entry in P leaves active set
-          p_d(P[j], 0) = 0; //# in fact unnecessary. We can leave the old value there; no, the old value may be 0 only within a tolerance
-          Kokkos::deep_copy(Kokkos::subview(activeSetI, j), Kokkos::subview(activeSetI, counter-1));
-          Kokkos::deep_copy(Kokkos::subview(activeSetI, j), Kokkos::subview(activeSetI, counter-1));
-          ///Kokkos::deep_copy(Kokkos::subview(activeSetI, counter-1), 0); //# this is actually strictly speaking also not needed. We can leave the old value there
-          --counter;
+          ///p_d(P[j], 0) = 0; //# in fact unnecessary. We can leave the old value there; no, the old value may be 0 only within a tolerance
+          Kokkos::deep_copy(Kokkos::subview(p_d, j), 0);
+          
+          
+          ///Kokkos::deep_copy(Kokkos::subview(activeSetI, counter-1), Kokkos::subview(activeSetI, counter-1));
+          // j becomes inactive
+          ///swap_entries(activeSetI, j, counter-1);
+          ///--counter;
+          swap_entries(activeSetI, j, --counter);
         }
       }
     }
@@ -300,8 +330,6 @@ I suppose I have two options for how to treat them:
 
   // p_d = p;
   // u_star = w + \overbar{u}
-
-
 
   return p_d;
 }

@@ -3,7 +3,6 @@
 
 #include <Kokkos_Core.hpp>
 // tmp
-#include "tmpHelpers/Timer.hpp"
 #include "tmpHelpers/kokkosIntegration.hpp"
 
 namespace MIRCO
@@ -24,8 +23,7 @@ namespace MIRCO
      */
 
     // # _h for now; we will see whether we can just keep on device more
-    ViewVector_h Solve(const ViewMatrix_h& matrix, const ViewVector_h& b0, const ViewVector_h& y0,
-        ViewMatrix_h& w);
+    ViewVector_h Solve(const ViewMatrix_d& matrix, const ViewVector_d& b0_d, const ViewVector_h& p0, ViewVector_h& w_out);
   };  // namespace NonLinearSolver
 }  // namespace MIRCO
 
