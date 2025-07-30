@@ -23,7 +23,7 @@ namespace MIRCO
      */
 
     // # _h for now; we will see whether we can just keep on device more
-    ViewVector_h Solve(const ViewMatrix_d& matrix, const ViewVector_d& b0_d, const ViewVector_h& p0, ViewVector_h& w_out);
+    ViewVector_d Solve(const ViewMatrix_d& matrix, const ViewVector_d& b0_d, const ViewVector_h& p0, ViewVector_h& w_out, bool returnWRef = true, double nnlstol = 1.0e-08, int maxiter = 1000);
   };  // namespace NonLinearSolver
 }  // namespace MIRCO
 

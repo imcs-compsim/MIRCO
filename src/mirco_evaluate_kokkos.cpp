@@ -16,7 +16,7 @@
 #include "mirco_matrixsetup_kokkos.h"
 #include "mirco_nonlinearsolver_kokkos.h"
 
-void MIRCO::Evaluate(double& pressure, const double Delta, const double LateralLength,
+double MIRCO::Evaluate(const double Delta, const double LateralLength,
     const double GridSize, const double Tolerance, const int MaxIteration,
     const double CompositeYoungs, const bool WarmStartingFlag,
     const double ElasticComplianceCorrection,
@@ -25,8 +25,8 @@ void MIRCO::Evaluate(double& pressure, const double Delta, const double LateralL
 {
   // Initialise the area vector and force vector. Each element containing the
   // area and force calculated at every iteration.
-  std::vector<double> area0;
-  std::vector<double> force0;
+  std::vector<double> contactAreaVector;
+  std::vector<double> totalForceVector;
   double w_el = 0.0;
 
   std::cout << "---------------------------Evaluate Kokkos\n";
@@ -128,25 +128,34 @@ void MIRCO::Evaluate(double& pressure, const double Delta, const double LateralL
     // {
     // Defined as (u - u(bar)) in (Bemporad & Paggi, 2015)
     // Gap between the point on the topology and the half space
-    Teuchos::SerialDenseMatrix<int, double> w;
+    ViewVector_d w;
 
     // use Nonlinear solver --> Non-Negative Least Squares (NNLS) as in
     // (Bemporad & Paggi, 2015)
-    auto p_star = MIRCO::NonLinearSolver::Solve(A, b0, p0, w);
+    ViewVector_d p_star_d = MIRCO::NonLinearSolver::Solve(A, b0, p0, w);
     // #Q Why is x0 (or y0...) a matrix with 1 column and not just a vector. there is no reason i
     // think
+    
+    auto p_star = kokkosVectorToTeuchos(p_star_d);
 
     // Compute number of contact node
+    //# TODO: this function, I think, we can actually just integrate into nonlinear solve and it will all be more efficient because we already have a compact form basically in nonlinear solve
     MIRCO::ComputeContactNodes(xvf, yvf, pf, nf, p_star, xv0, yv0);
 
-    // Compute contact force and contact area
-    MIRCO::ComputeContactForceAndArea(force0, area0, w_el, nf, pf, k, GridSize, LateralLength,
-        ElasticComplianceCorrection, PressureGreenFunFlag);
+    // Compute total contact force and contact area
+    double totalForce;
+    double contactArea;
+    MIRCO::ComputeContactForceAndArea(totalForce, contactArea, nf, pf, k, GridSize, LateralLength, PressureGreenFunFlag)
+    
+    totalForceVector.push_back(totalForce);
+    
+    // Elastic correction, used in the next iteration
+    w_el = totalForce / ElasticComplianceCorrection;
 
     // Compute error due to nonlinear correction
     if (k > 0)
     {
-      ErrorForce = abs(force0[k] - force0[k - 1]) / force0[k];
+      ErrorForce = abs(totalForce[k] - totalForce[k - 1]) / totalForce[k];
     }
     k += 1;
   }
@@ -155,9 +164,8 @@ void MIRCO::Evaluate(double& pressure, const double Delta, const double LateralL
       "The solution did not converge in the maximum number of iternations defined");
 
   // Calculate the final force value at the end of the iteration.
-  const double force = force0[k - 1];
+  const double finalForce = totalForce[k - 1];
 
   // Mean pressure
-  double sigmaz = force / (LateralLength * LateralLength);
-  pressure = sigmaz;
+  return finalForce / (LateralLength * LateralLength);
 }

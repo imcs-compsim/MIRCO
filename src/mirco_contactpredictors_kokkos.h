@@ -50,7 +50,7 @@ namespace MIRCO
    * @return p0 vector of contact forces predicted in the previous iteration but are a part of
    * currect predicted contact set.
    */
-  ViewVector_h InitialGuessPredictor(bool WarmStartingFlag, int k, int n0, const ViewVector_h &xv0,
+  ViewVector_h InitialGuessPredictor(const bool WarmStartingFlag, const int k, const int n0, const ViewVector_h &xv0,
       const ViewVector_h &yv0, const ViewVector_h &pf, const ViewVector_h &b0,
       const ViewVector_h &xvf, const ViewVector_h &yvf);
 }  // namespace MIRCO

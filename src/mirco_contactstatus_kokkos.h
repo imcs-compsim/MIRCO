@@ -24,23 +24,18 @@ namespace MIRCO
 
   /**
    * @brief The aim of this function is to calulate the contact force and contact area for the
-   * current iteration
+   * current iteration. Note that the force vector
    *
-   * @param force0 Force vector; Each element contating contact force calculated at every iteraion
-   * @param area0 Force vector; Each element contating contact area calculated at every iteraion
-   * @param w_el Elastic correction
+   * @param[out] totalForce Total force
+   * @param[out] contactArea Contact area
    * @param nf Number of nodes in contact in the previous iteration
-   * @param pf Contact force at (xvf,yvf) predicted in the previous iteration.
-   * @param k Iteration number
+   * @param pf Contact force vector predicted in the previous iteration.
    * @param GridSize Grid size (length of each cell)
    * @param LateralLength Lateral side of the surface [micrometers]
-   * @param ElasticComplianceCorrection Elastic compliance correction
    * @param PressureGreenFunFlag Flag to use Green function based on uniform pressure instead of
    * point force
    */
-  void ComputeContactForceAndArea(std::vector<double> &force0, std::vector<double> &area0,
-      double &w_el, int nf, std::vector<double> pf, int k, double GridSize, double LateralLength,
-      double ElasticComplianceCorrection, bool PressureGreenFunFlag);
+  void ComputeContactForceAndArea(double& totalForce, double& contactArea, const int nf, const ViewVector_d pf, double GridSize, double LateralLength, bool PressureGreenFunFlag);
 }  // namespace MIRCO
 
 #endif  // SRC_CONTACTSTATUS_H_
