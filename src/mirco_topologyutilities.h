@@ -6,6 +6,11 @@
 #include <cmath>
 #include <vector>
 
+#include <Kokkos_Core.hpp>
+// tmp
+#include "tmpHelpers/Timer.hpp"
+#include "tmpHelpers/kokkosIntegration.hpp"
+
 namespace MIRCO
 {
   /**
@@ -18,7 +23,7 @@ namespace MIRCO
    * @param ngrid Number of grid points in one direction
    * @param GridSize Grid size (length of each cell)
    */
-  std::vector<double> CreateMeshgrid(const int ngrid, const double GridSize);
+  ViewVector_d CreateMeshgrid(const int ngrid, const double GridSize);
 
   /**
    * @brief Store maximum and mean height of the topology

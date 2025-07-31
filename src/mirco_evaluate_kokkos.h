@@ -35,7 +35,7 @@ namespace MIRCO
       const double CompositeYoungs, const bool WarmStartingFlag,
       const double ElasticComplianceCorrection,
       const Teuchos::SerialDenseMatrix<int, double>& topology, const double zmax,
-      const std::vector<double>& meshgrid, const bool PressureGreenFunFlag);
+      const ViewVector_d meshgrid_d, const bool PressureGreenFunFlag);
 
   /**
    * @brief Relate the far-field displacement with pressure, taking the parameters from a
@@ -48,12 +48,12 @@ namespace MIRCO
    * @return Mean pressure
    */
   inline double Evaluate(const MIRCO::InputParameters& inputParams,
-      const double zmax, const std::vector<double>& meshgrid)
+      const double zmax, const ViewVector_d meshgrid_d)
   {
     return Evaluate(inputParams.delta_, inputParams.lateral_length_, inputParams.grid_size_,
         inputParams.tolerance_, inputParams.max_iteration_, inputParams.composite_youngs_,
         inputParams.warm_starting_flag_, inputParams.elastic_compliance_correction_,
-        *(inputParams.topology_), zmax, meshgrid, inputParams.pressure_green_funct_flag_);
+        *(inputParams.topology_), zmax, meshgrid_d, inputParams.pressure_green_funct_flag_);
   }
 }  // namespace MIRCO
 

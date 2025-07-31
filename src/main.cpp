@@ -44,15 +44,15 @@ int main(int argc, char* argv[])
   MIRCO::InputParameters inputParams(inputFileName);
 
   // Identical Vectors/Matricies, therefore only created one here.
-  auto meshgrid = MIRCO::CreateMeshgrid(inputParams.N, inputParams.grid_size);
+  ViewVector_d meshgrid = MIRCO::CreateMeshgrid(inputParams.N_, inputParams.grid_size_);
 
   auto& topology = *(inputParams.topology);
   auto max_and_mean = MIRCO::ComputeMaxAndMean(topology);
 
   // Main evaluation agorithm
-  double pressure = MIRCO::Evaluate(inputParams, max_and_mean.max_, meshgrid);
+  double meanPressure = MIRCO::Evaluate(inputParams, max_and_mean.max_, meshgrid);
 
-  std::cout << "Mean pressure is: " << std::to_string(pressure) << std::endl;
+  std::cout << "Mean pressure is: " << std::to_string(meanPressure) << std::endl;
 
   const auto finish = std::chrono::high_resolution_clock::now();
   const double elapsedTime =

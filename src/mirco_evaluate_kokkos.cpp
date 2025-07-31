@@ -22,7 +22,7 @@ double MIRCO::Evaluate(const double Delta, const double LateralLength,
     const double CompositeYoungs, const bool WarmStartingFlag,
     const double ElasticComplianceCorrection,
     const Teuchos::SerialDenseMatrix<int, double>& topology, const double zmax,
-    const std::vector<double>& meshgrid, const bool PressureGreenFunFlag)
+    const ViewVector_d meshgrid_d, const bool PressureGreenFunFlag)
 {
   // Initialise the area vector and force vector. Each element containing the
   // area and force calculated at every iteration.
@@ -52,7 +52,6 @@ double MIRCO::Evaluate(const double Delta, const double LateralLength,
   // Solution containing force
   /// ViewVector_h p_star;  //==y; //# <-- means previously called
 
-  ViewVector_d meshgrid_d = toKokkos(meshgrid);
   ViewMatrix_d topology_d = toKokkos(topology);
 
   // Initialise the error in force
