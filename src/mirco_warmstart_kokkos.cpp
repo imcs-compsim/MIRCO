@@ -29,10 +29,10 @@ ViewVector_h MIRCO::Warmstart(const ViewVector_h& xv0, const ViewVector_h& yv0,
   return p0;
 }
 
-ViewVector_d Warmstart(const ViewVector_d& xv0, const ViewVector_d& yv0, const ViewVector_d& xvf,
-    const ViewVector_d& yvf, const ViewVector_d& pf)
-{
-  return ViewVector_d(
-      "void", 0);  // # TODO: to do this efficiently, we should store the indices that were removed,
-                   // as they are removed, so in ContactSetPredictor or something idk
-}
+// ViewVector_d Warmstart(const ViewVector_d xv0, const ViewVector_d yv0, const ViewVector_d xvf,
+//     const ViewVector_d yvf, const ViewVector_d pf)
+// {
+//   return ViewVector_d(
+//       "void", 0);  // # TODO: to do this efficiently, we should store the indices that were removed,
+//                    // as they are removed, so in ContactSetPredictor or something idk
+// }

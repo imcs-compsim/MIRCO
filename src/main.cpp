@@ -49,9 +49,8 @@ int main(int argc, char* argv[])
   auto& topology = *(inputParams.topology);
   auto max_and_mean = MIRCO::ComputeMaxAndMean(topology);
 
-  // Initialise Pressure
-  double pressure = 0.0;
-  MIRCO::Evaluate(inputParams, pressure, max_and_mean.max_, meshgrid);
+  // Main evaluation agorithm
+  double pressure = MIRCO::Evaluate(inputParams, max_and_mean.max_, meshgrid);
 
   std::cout << "Mean pressure is: " << std::to_string(pressure) << std::endl;
 

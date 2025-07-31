@@ -26,9 +26,9 @@ namespace MIRCO
      *
      * @return Influence coefficient matrix (Discrete version of Green Function) (usually denoted H)
      */
-    ViewMatrix_d SetupMatrix(const ViewVector_d& xv0, const ViewVector_d& yv0,
-        const double GridSize, const double CompositeYoungs, const int systemsize,
-        const bool PressureGreenFunFlag);
+    ViewMatrix_d SetupMatrix(const ViewVector_d xv0, const ViewVector_d yv0,
+    const double GridSize, const double CompositeYoungs, const int systemsize,
+    const bool PressureGreenFunFlag);
   };  // namespace MatrixGeneration
 }  // namespace MIRCO
 

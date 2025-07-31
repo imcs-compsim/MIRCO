@@ -4,6 +4,10 @@
 #include <Teuchos_SerialDenseMatrix.hpp>
 #include <cmath>
 #include <vector>
+#include <Kokkos_Core.hpp>
+// tmp
+#include "tmpHelpers/Timer.hpp"
+#include "tmpHelpers/kokkosIntegration.hpp"
 
 namespace MIRCO
 {
@@ -18,9 +22,9 @@ namespace MIRCO
    * @param[in] xv0 x-coordinates of the points in contact in the previous iteration.
    * @param[in] yv0 y-coordinates of the points in contact in the previous iteration.
    */
-  void ComputeContactNodes(std::vector<double> &xvf, std::vector<double> &yvf,
-      std::vector<double> &pf, int &nf, const Teuchos::SerialDenseMatrix<int, double> y,
-      const std::vector<double> xv0, const std::vector<double> yv0);
+  void ComputeContactNodes(ViewVector_d& xvf, ViewVector_d& yvf,
+    ViewVector_d& pf_d, const int activeSetSize, const ViewVector_d p_d,
+    const ViewVector_d xv0, const ViewVector_d yv0);
 
   /**
    * @brief The aim of this function is to calulate the contact force and contact area for the
@@ -35,7 +39,7 @@ namespace MIRCO
    * @param PressureGreenFunFlag Flag to use Green function based on uniform pressure instead of
    * point force
    */
-  void ComputeContactForceAndArea(double& totalForce, double& contactArea, const int nf, const ViewVector_d pf, double GridSize, double LateralLength, bool PressureGreenFunFlag);
+  void ComputeContactForceAndArea(double& totalForce, double& contactArea, const ViewVector_d pf_d, const double GridSize, const double LateralLength, const bool PressureGreenFunFlag);
 }  // namespace MIRCO
 
 #endif  // SRC_CONTACTSTATUS_H_

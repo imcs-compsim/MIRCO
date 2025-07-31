@@ -15,6 +15,7 @@
 #include "mirco_contactstatus_kokkos.h"
 #include "mirco_matrixsetup_kokkos.h"
 #include "mirco_nonlinearsolver_kokkos.h"
+#include "mirco_warmstart_kokkos.h"
 
 double MIRCO::Evaluate(const double Delta, const double LateralLength,
     const double GridSize, const double Tolerance, const int MaxIteration,
@@ -87,67 +88,59 @@ double MIRCO::Evaluate(const double Delta, const double LateralLength,
         x0;  // #ViewVector_h x0; //# this can be scoped in while, as it always gets reshaped in
              // InitialGuessPredictor() //# in fact we should just make InitialGuessPredictor()
              // return x0, as it is the only output
-
-    ViewVector_h p0_h = MIRCO::InitialGuessPredictor(WarmStartingFlag, k, n0,
-        Kokkos::create_mirror_view_and_copy(MemorySpace_Host_t(), xv0_d),
+             
+             
+    ViewVector_d p0p_d;
+    if (WarmStartingFlag && k > 0)
+    {
+      ViewVector_h p0_h = MIRCO::Warmstart(Kokkos::create_mirror_view_and_copy(MemorySpace_Host_t(), xv0_d),
         Kokkos::create_mirror_view_and_copy(MemorySpace_Host_t(), yv0_d),
-        Kokkos::create_mirror_view_and_copy(MemorySpace_Host_t(), pf_d),
-        Kokkos::create_mirror_view_and_copy(MemorySpace_Host_t(), b0_d),
         Kokkos::create_mirror_view_and_copy(MemorySpace_Host_t(), xvf_d),
-        Kokkos::create_mirror_view_and_copy(MemorySpace_Host_t(), yvf_d));
-    // }
+        Kokkos::create_mirror_view_and_copy(MemorySpace_Host_t(), yvf_d),
+        Kokkos::create_mirror_view_and_copy(MemorySpace_Host_t(), pf_d));
+        
+      p0p_d = Kokkos::create_mirror_view_and_copy(MemorySpace_ofDefaultExec_t(), p0_h);
+    }
+    else
+    {
+      if (b0_d.extent(0) > 0)
+      {
+        p0p_d = ViewVector_d("InitialGuessPredictor", n0, 0.0);
+      }
+    }
 
-    // Construction of the Matrix A
-    /*if(!HOSTONLY) { //# or something like this?
-      ViewMatrix_d H_d;
-      Kokkos::deep_copy(H_d, H_h);
-      H = H_d;
-    }*/
-    // ViewMatrix_d H_d("H", xv0.size(), xv0.size());
+        
+    // }
     auto H_d = MIRCO::MatrixGeneration::SetupMatrix(
         xv0_d, yv0_d, GridSize, CompositeYoungs, n0, PressureGreenFunFlag);
 
-    /// ViewMatrix_h H_h = Kokkos::create_mirror_view_and_copy(MemorySpace_Host_t(), H_d); //# in
-    /// future maybe
 
-    Teuchos::SerialDenseMatrix A = kokkosMatrixToTeuchos(H_d);
-
-    auto b0 = kokkosVectorToStdVector(b0_d);
-    auto xvf = kokkosVectorToStdVector(xvf_d);
-    auto yvf = kokkosVectorToStdVector(yvf_d);
-    auto xv0 = kokkosVectorToStdVector(xv0_d);
-    auto yv0 = kokkosVectorToStdVector(yv0_d);
-    auto pf = kokkosVectorToStdVector(pf_d);
-
-    ViewVector_d p0_d =
-        Kokkos::create_mirror_view_and_copy(MemorySpace_ofDefaultExec_t(), p0_h);  // #
-    Teuchos::SerialDenseVector p0 = kokkosVectorToTeuchos(p0_d);  // # bad but its temp anyways
-
-
+        //## we have at this point used the indexing of xv0 and such. index 0 of a quantity like p0_d is wherever that xv0 active set starts
 
     // {
     // Defined as (u - u(bar)) in (Bemporad & Paggi, 2015)
     // Gap between the point on the topology and the half space
-    ViewVector_d w;
-
+    ///ViewVector_d w_d;
+    
+    int activeSetSize;
     // use Nonlinear solver --> Non-Negative Least Squares (NNLS) as in
     // (Bemporad & Paggi, 2015)
-    ViewVector_d p_star_d = MIRCO::NonLinearSolver::Solve(A, b0, p0, w);
+    //## here, we make an active set that holds in no particular order the references to the indices. but the thing is that p_d inside of this function, as the non-compacted vector, still holds
+    MIRCO::NonLinearSolver::solve(H_d, b0_d, p0p_d, activeSetSize);///w_d);
     // #Q Why is x0 (or y0...) a matrix with 1 column and not just a vector. there is no reason i
     // think
-    
-    auto p_star = kokkosVectorToTeuchos(p_star_d);
 
     // Compute number of contact node
     //# TODO: this function, I think, we can actually just integrate into nonlinear solve and it will all be more efficient because we already have a compact form basically in nonlinear solve
-    MIRCO::ComputeContactNodes(xvf, yvf, pf, nf, p_star, xv0, yv0);
+    MIRCO::ComputeContactNodes(xvf_d, yvf_d, pf_d, activeSetSize, p0p_d, xv0_d, yv0_d);
 
     // Compute total contact force and contact area
     double totalForce;
     double contactArea;
-    MIRCO::ComputeContactForceAndArea(totalForce, contactArea, nf, pf, k, GridSize, LateralLength, PressureGreenFunFlag)
+    MIRCO::ComputeContactForceAndArea(totalForce, contactArea, pf_d, GridSize, LateralLength, PressureGreenFunFlag);
     
     totalForceVector.push_back(totalForce);
+    contactAreaVector.push_back(contactArea);
     
     // Elastic correction, used in the next iteration
     w_el = totalForce / ElasticComplianceCorrection;
@@ -155,7 +148,7 @@ double MIRCO::Evaluate(const double Delta, const double LateralLength,
     // Compute error due to nonlinear correction
     if (k > 0)
     {
-      ErrorForce = abs(totalForce[k] - totalForce[k - 1]) / totalForce[k];
+      ErrorForce = abs(totalForceVector[k] - totalForceVector[k - 1]) / totalForceVector[k];
     }
     k += 1;
   }
@@ -164,7 +157,7 @@ double MIRCO::Evaluate(const double Delta, const double LateralLength,
       "The solution did not converge in the maximum number of iternations defined");
 
   // Calculate the final force value at the end of the iteration.
-  const double finalForce = totalForce[k - 1];
+  const double finalForce = totalForceVector[k - 1];
 
   // Mean pressure
   return finalForce / (LateralLength * LateralLength);

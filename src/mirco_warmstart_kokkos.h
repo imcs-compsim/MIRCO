@@ -30,8 +30,8 @@ namespace MIRCO
   /**
    * @brief Overload to use on default device.
    */
-  ViewVector_d Warmstart(const ViewVector_d& xv0, const ViewVector_d& yv0, const ViewVector_d& xvf,
-      const ViewVector_d& yvf, const ViewVector_d& pf);
+  // ViewVector_d Warmstart(const ViewVector_d xv0, const ViewVector_d yv0, const ViewVector_d xvf,
+  //   const ViewVector_d yvf, const ViewVector_d pf);
 }  // namespace MIRCO
 
 #endif  // SRC_WARMSTART_KOKKOS_H_

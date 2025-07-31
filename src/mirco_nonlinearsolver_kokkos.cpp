@@ -8,7 +8,7 @@
 // tmp
 #include "tmpHelpers/Timer.hpp"
 
-void swap_entries(ViewVector_d v, const int i, const int j) {
+void swap_entries(ViewVectorInt_d v, const int i, const int j) {
   if constexpr (HOSTONLY) {
     std::swap(v(i), v(j));
   }
@@ -16,7 +16,7 @@ void swap_entries(ViewVector_d v, const int i, const int j) {
     auto vi = Kokkos::subview(v, i);
     auto vj = Kokkos::subview(v, j);
     
-    ViewScalarDouble_d tmp("tmp");
+    ViewScalarInt_d tmp("tmp");
     
     Kokkos::deep_copy(tmp, vi);
     Kokkos::deep_copy(vi, vj);
@@ -25,8 +25,11 @@ void swap_entries(ViewVector_d v, const int i, const int j) {
 }
 
 
-ViewVector_d MIRCO::NonLinearSolver::Solve(const ViewMatrix_d& matrix, const ViewVector_d& b0_d, const ViewVector_h& p0, ViewVector_h& w_out, bool returnWRef, double nnlstol, int maxiter)
+void MIRCO::NonLinearSolver::solve(const ViewMatrix_d matrix, const ViewVector_d b0_d, ViewVector_d& p_d, int& activeSetSize, double nnlstol, int maxiter)
 {
+  using minloc_t = Kokkos::MinLoc<double, int, MemorySpace_ofDefaultExec_t>;
+  using minloc_value_t = typename minloc_t::value_type;
+  
   const std::string thisFctName =
       "MIRCO::NonLinearSolver::Solve";
       
@@ -36,24 +39,27 @@ ViewVector_d MIRCO::NonLinearSolver::Solve(const ViewMatrix_d& matrix, const Vie
   constexpr double infty = 0x7FF0000000000000;
   const int n0 = b0_d.extent(0);
   
-  ViewScalarInt_d counter_init_d("counter_init_d");
+  ViewVector_d w_d("w_d", n0);
+  
   ViewVectorInt_d activeInactiveSet("activeInactiveSet", n0);
-  Kokkos::parallel_scan("build initial active set", n0,
-    KOKKOS_LAMBDA(const int i, int& counterActive, int& counterInactive, const bool final) {
-      if (p0(i) > 0.0)
+  // These need to be int pointers for atomic_fetch_add() to work reliably //# says chatgpt. maybe check this further
+  Kokkos::View<int*, Device_Default_t> counterActive("counterActive", 1);
+  Kokkos::deep_copy(counterActive, 0);
+  Kokkos::View<int*, Device_Default_t> counterInactive("counterInactive", 1);
+  Kokkos::deep_copy(counterInactive, 0);
+  
+  Kokkos::parallel_for("build initial active set", n0,
+    KOKKOS_LAMBDA(const int i) {
+      if (p_d(i) > nnlstol)
       {
-        if (final) activeInactiveSet(counterActive) = i;
-        ++counterActive;
+        // Note: atomic_fetch_add() returns the old value
+        activeInactiveSet(Kokkos::atomic_fetch_add(&counterActive(0), 1)) = i;
       }
       else {
-        if(final) activeInactiveSet(n0 - counterInactive) = i;
-        ++counterInactive;
+        activeInactiveSet(n0 - 1 - (Kokkos::atomic_fetch_add(&counterInactive(0), 1))) = i;
       }
-      if (final && i == n0 - 1) counter_d_init = counterActive;
     });
-  int activeSetSize = Kokkos::create_mirror_view_and_copy(MemorySpace_Host_t, counter_d_init)(0);
-
-  ViewVector_d w_d("w_d", n0);
+  Kokkos::deep_copy(activeSetSize, Kokkos::subview(counterActive, 0));
   
   bool init = false;
   if (activeSetSize == 0)
@@ -63,46 +69,48 @@ ViewVector_d MIRCO::NonLinearSolver::Solve(const ViewMatrix_d& matrix, const Vie
     // Hp - b0 for p = 0
     Kokkos::parallel_for(
         thisFctName + "__firstParallel", Kokkos::RangePolicy<ExecSpace_Default_t>(0, n0),
-        KOKKOS_LAMBDA(const int x) { w_d(x) = -b0_d(x); });
+        KOKKOS_LAMBDA(const int i) { w_d(i) = -b0_d(i); });
   }
-  ViewVector_d p_d("p_d", n0);
 
   // iter is incremented in while(2)
   int iter = 0;
   while (1)
   {
-    double min_w_iActive;
-    int argmin_w_iActive;
+    if ((init && (activeSetSize == n0)) || iter >= maxiter)
+      break;
+    
+    minloc_value_t minloc_w_i;
+    ///double min_w_i = infty;
+    ///int argmin_w_i = -1;
     Kokkos::parallel_reduce(
-        "min_w", w_d.extent(0),
-        KOKKOS_LAMBDA(const int i, Kokkos::MinLoc<double, int>::value_type& ml) {
-          auto wi = w_d(activeInactiveSet(i))
+        "min_w", Kokkos::RangePolicy<ExecSpace_Default_t>(0, n0),
+        KOKKOS_LAMBDA(const int i, minloc_value_t& ml) {
+          const double wi = w_d(i);
           if (wi < ml.val)
           {
             ml.val = wi;
             ml.loc = i;
           }
         },
-        Kokkos::MinLoc<double, int>(min_w_iActive, argmin_w_iActive));
+        minloc_t(minloc_w_i));
 
-    if (((min_w_iActive >= -epsilon || activeSetSize == n0) && init) || iter >= maxiter)
+    if (init && (minloc_w_i.val >= -nnlstol))
       break;
 
     if (init) {
-      double min_w_iInactive;
-      int argmin_w_iInactive;
+      minloc_value_t minloc_w_iInactive;
       Kokkos::parallel_reduce("min_w", Kokkos::RangePolicy<ExecSpace_Default_t>(activeSetSize, n0),
-        KOKKOS_LAMBDA(const int i, Kokkos::MinLoc<double, int>::value_type& ml) {
-          const double wi = w_d(activeInactiveSet(i))
+        KOKKOS_LAMBDA(const int i, minloc_value_t& ml) {
+          const double wi = w_d(activeInactiveSet(i));
           if (wi < ml.val)
           {
             ml.val = wi;
             ml.loc = i;
           }
         },
-        Kokkos::MinLoc<double, int>(min_w_iInactive, argmin_w_iInactive));
+        minloc_t(minloc_w_iInactive));
           
-      swap_entries(activeInactiveSet, argmin_w_iInactive, activeSetSize);
+      swap_entries(activeInactiveSet, minloc_w_iInactive.loc, activeSetSize);
       ++activeSetSize;
     }
     else
@@ -111,26 +119,34 @@ ViewVector_d MIRCO::NonLinearSolver::Solve(const ViewMatrix_d& matrix, const Vie
     while (2)
     {
       ++iter;
-          
-      ViewMatrix_d H_compact_d("H_compact", activeSetSize, activeSetSize);
+      
+      
+      // Compact versions of H and b0, i.e. H_I and \overbar{u}_I in line 6 of Algorithm 3, (Bemporad & Paggi, 2015)
+      
       ViewVector_d b0s_compact_d("b0_compact", activeSetSize);
+      // Scope objects that should not be used later
+      {
+        ViewMatrix_d H_compact_d("H_compact", activeSetSize, activeSetSize);
 
-      Kokkos::parallel_for("define compact views", activeSetSize,
-        KOKKOS_LAMBDA(const int i) {
-          int row = activeInactiveSet(i);
-          b0s_compact_d(i) = b0_d(row);
-          for (int j = 0; j < activeSetSize; ++j) {
-            int col = activeInactiveSet(j);
-            H_compact_d(i, j) = H(row, col);
-          }
-        });
+        Kokkos::parallel_for("define compact views", activeSetSize,
+          KOKKOS_LAMBDA(const int i) {
+            int row = activeInactiveSet(i);
+            b0s_compact_d(i) = b0_d(row);
+            for (int j = 0; j < activeSetSize; ++j) {
+              int col = activeInactiveSet(j);
+              H_compact_d(i, j) = matrix(row, col);
+            }
+          });
 
-      // Solve H s = b0
-      KokkosLapack::gesv(H_compact_d, b0s_compact_d);
+        ViewVectorInt_d ipiv("ipiv", activeSetSize);
+        
+        // Solve H_I s_I = b0_I; b0s_compact_d becomes s_I
+        KokkosLapack::gesv(H_compact_d, b0s_compact_d, ipiv);
+      }
 
       bool allGreater = true;
       Kokkos::parallel_reduce("allGreater", activeSetSize,
-        KOKKOS_LAMBDA(const int i, bool& local_allGreater) {
+        KOKKOS_LAMBDA(const int i, bool& l_allGreater) {
           if (b0s_compact_d(i) < -nnlstol)
             l_allGreater = false;
         },
@@ -139,7 +155,7 @@ ViewVector_d MIRCO::NonLinearSolver::Solve(const ViewMatrix_d& matrix, const Vie
       if (allGreater)
       {
         Kokkos::parallel_for("p = s_compact", activeSetSize, KOKKOS_LAMBDA(const int i) {
-            p_d(activeSet(i)) = b0s_compact_d(i);
+            p_d(activeInactiveSet(i)) = b0s_compact_d(i);
           });
           
         Kokkos::parallel_for("w = H p - b0", n0,
@@ -147,22 +163,22 @@ ViewVector_d MIRCO::NonLinearSolver::Solve(const ViewMatrix_d& matrix, const Vie
             double sum = 0.0;
             for(int j=0; j<activeSetSize; ++j)
               sum += matrix(i, activeInactiveSet(j)) * b0s_compact_d(j);
-            w_d(i) = sum - b0(i);
+            w_d(i) = sum - b0_d(i);
           });
         
         break;
       }
-      else//# Algo3 line(8)-(11)
+      else
       {
-        // Searching for minimum value with index position
-        double min_alpha_i = infty;
-        int argmin_alpha_i = -1;
+        // Lines 8-11 of Algorithm 3, (Bemporad & Paggi, 2015)
         
+        // Find min_i and argmin_i of alpha_i := \frac{p_i}{p_i - s_i}
+        minloc_value_t minloc_alpha_i;
         Kokkos::parallel_reduce(
           "min_alpha", activeSetSize,
-          KOKKOS_LAMBDA(const int i, Kokkos::MinLoc<double, int>::value_type& ml) {
-            if(s0(activeInactiveSet(i)) <= 0) {
-              const double alphai = p_d(activeInactiveSet(i)) / (eps + p_d(activeInactiveSet(i)) - s0(activeInactiveSet(i)));
+          KOKKOS_LAMBDA(const int i, minloc_value_t& ml) {
+            if(b0s_compact_d(i) <= 0) {
+              const double alphai = p_d(activeInactiveSet(i)) / (eps + p_d(activeInactiveSet(i)) - b0s_compact_d(i));
               if (alphai < ml.val)
               {
                 ml.val = alphai;
@@ -170,17 +186,18 @@ ViewVector_d MIRCO::NonLinearSolver::Solve(const ViewMatrix_d& matrix, const Vie
               }
             }
           },
-          Kokkos::MinLoc<double, int>(min_alpha_i, argmin_alpha_i));
+          minloc_t(minloc_alpha_i));
           
         Kokkos::parallel_for(
           "assemble reduced system", activeSetSize, KOKKOS_LAMBDA(const int i) {
-            p_d(activeInactiveSet(i)) = p_d(activeInactiveSet(i)) + alpha * (s0(activeInactiveSet(i)) - p_d(activeInactiveSet(i)))
+            p_d(activeInactiveSet(i)) = p_d(activeInactiveSet(i)) + minloc_alpha_i.val * (b0s_compact_d(i) - p_d(activeInactiveSet(i)));
           });
           
-        if (j > -1)
+        if (minloc_alpha_i.loc > -1)
         {
-          swap_entries(activeInactiveSet, j, --activeSetSize);
-          Kokkos::deep_copy(Kokkos::subview(p_d, j), 0);
+          Kokkos::deep_copy(Kokkos::subview(p_d, activeInactiveSet(minloc_alpha_i.loc)), 0.0);
+          // `swap_entries()` may not be very efficient on GPU because it does not use `Kokkos::kokkos_swap()`, as that can only be used in parallel lambda. If performance is a problem at this point, consider if it is possible to parallize this entire `while(2)` loop--i.e. put it in a `Kokkos::parallel_for()` and place the `if(allGreater) { ...; break; }` logic after the loop
+          swap_entries(activeInactiveSet, minloc_alpha_i.loc, --activeSetSize);
         }
       }
     }
@@ -189,8 +206,9 @@ ViewVector_d MIRCO::NonLinearSolver::Solve(const ViewMatrix_d& matrix, const Vie
   //# TODO: sort the active set region of activeInactiveSet and at the same time sort p_d and w_d (if needed?) in the same way
   //# wait but if all we need is the final total pressure and the contact area, p_d does not need to be ordered, so that it would be most efficient to integrate the last two functions into here. We can also make a switch or overload for whether we need the (ordered)
   
+  //## p_d now still holds it in the same order though. It is like [0 p_1 p_2 0 0 p_5]. So, it is essentially sorted in the way that the input p0_d was, and also the xv0 and such. To "sort" it, we also just see where 0. But this can be unreliable, so let us instead
+  //## - same with w_d
+  
   // p_d = p;
   // u_star = w + \overbar{u}
-
-  return p_d;
 }

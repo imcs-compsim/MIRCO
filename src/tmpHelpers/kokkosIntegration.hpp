@@ -122,7 +122,7 @@ inline ViewMatrix_d toKokkos(const Teuchos::SerialDenseMatrix<int, double>& mat)
 
 
 
-inline Teuchos::SerialDenseVector<int, double> kokkosVectorToTeuchos(const ViewVector_d& kokkosVec)
+inline Teuchos::SerialDenseVector<int, double> kokkosVectorToTeuchos(const ViewVector_d kokkosVec)
 {
   int n = kokkosVec.extent(0);
 
@@ -136,7 +136,7 @@ inline Teuchos::SerialDenseVector<int, double> kokkosVectorToTeuchos(const ViewV
   return vec;
 }
 
-inline std::vector<double> kokkosVectorToStdVector(const ViewVector_d& kokkosVec)
+inline std::vector<double> kokkosVectorToStdVector(const ViewVector_d kokkosVec)
 {
   int n = kokkosVec.extent(0);
 
@@ -150,7 +150,7 @@ inline std::vector<double> kokkosVectorToStdVector(const ViewVector_d& kokkosVec
   return stdVec;
 }
 
-inline Teuchos::SerialDenseMatrix<int, double> kokkosMatrixToTeuchos(const ViewMatrix_d& kokkosMat)
+inline Teuchos::SerialDenseMatrix<int, double> kokkosMatrixToTeuchos(const ViewMatrix_d kokkosMat)
 {
   int numRows = kokkosMat.extent(0);
   int numCols = kokkosMat.extent(1);
