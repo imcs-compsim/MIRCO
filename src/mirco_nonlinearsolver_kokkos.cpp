@@ -24,9 +24,8 @@ void swap_entries(ViewVectorInt_d v, const int i, const int j) {
   }
 }
 
-
 void MIRCO::NonLinearSolver::solve(const ViewMatrix_d matrix, const ViewVector_d b0_d, ViewVector_d& p_d, int& activeSetSize, double nnlstol, int maxiter)
-{
+{ 
   using minloc_t = Kokkos::MinLoc<double, int, MemorySpace_ofDefaultExec_t>;
   using minloc_value_t = typename minloc_t::value_type;
   
@@ -122,9 +121,14 @@ void MIRCO::NonLinearSolver::solve(const ViewMatrix_d matrix, const ViewVector_d
       
       
       // Compact versions of H and b0, i.e. H_I and \overbar{u}_I in line 6 of Algorithm 3, (Bemporad & Paggi, 2015)
-      
+      std::cout
+          <<"activeSetSize="<<activeSetSize
+          <<", n0="<<n0
+          <<"\n";
+          
+      // gesv() requires a rank-2 view (set of rhs), so we must make an (activeSetSize \cross 1) matrix
       ViewVector_d b0s_compact_d("b0_compact", activeSetSize);
-      // Scope objects that should not be used later
+      if(activeSetSize>1)
       {
         ViewMatrix_d H_compact_d("H_compact", activeSetSize, activeSetSize);
 
@@ -140,18 +144,32 @@ void MIRCO::NonLinearSolver::solve(const ViewMatrix_d matrix, const ViewVector_d
 
         ViewVectorInt_d ipiv("ipiv", activeSetSize);
         
+        
+        
         // Solve H_I s_I = b0_I; b0s_compact_d becomes s_I
         KokkosLapack::gesv(H_compact_d, b0s_compact_d, ipiv);
       }
+      else {
+        Kokkos::parallel_for("", Kokkos::RangePolicy<ExecSpace_Default_t>(0, 1),
+          KOKKOS_LAMBDA(const int i) {
+            b0s_compact_d(0) = b0_d(activeInactiveSet(0))/matrix(activeInactiveSet(0), activeInactiveSet(0));
+          });
+      }
+      
+      std::cout
+          <<"b0s_compact_d(0)="<<Kokkos::create_mirror_view_and_copy(MemorySpace_Host_t(), b0s_compact_d)(0)
+          <<"\n";
 
       bool allGreater = true;
       Kokkos::parallel_reduce("allGreater", activeSetSize,
-        KOKKOS_LAMBDA(const int i, bool& l_allGreater) {
-          if (b0s_compact_d(i) < -nnlstol)
-            l_allGreater = false;
+        KOKKOS_LAMBDA(const int i, bool& sallGreater) {
+          const bool lallGreater = (b0s_compact_d(i) < -nnlstol);
+          sallGreater = sallGreater && !lallGreater;
         },
-        allGreater);
-
+        Kokkos::LAnd<bool>(allGreater));
+std::cout
+          <<"allGreater="<<allGreater
+          <<"\n";
       if (allGreater)
       {
         Kokkos::parallel_for("p = s_compact", activeSetSize, KOKKOS_LAMBDA(const int i) {

@@ -196,14 +196,13 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -O3")
 
 add_library(mirco_needsKokkoskernels
   src/mirco_nonlinearsolver_kokkos.cpp
-  src/mirco_matrixsetup_kokkos.cpp#tmp just so i dont have to comment it out
   )
 target_link_libraries(mirco_needsKokkoskernels PRIVATE Trilinos::all_selected_libs OpenMP::OpenMP_CXX Kokkos::kokkos KokkosKernels::kokkoskernels)
 
 # Compile mirco library
 add_library(mirco_core
-  src/mirco_linearsolver.cpp
-  src/mirco_nonlinearsolver.cpp
+  #src/mirco_linearsolver.cpp
+  #src/mirco_nonlinearsolver.cpp
   #src/mirco_matrixsetup.cpp
   src/mirco_matrixsetup_kokkos.cpp
   #src/mirco_warmstart.cpp
