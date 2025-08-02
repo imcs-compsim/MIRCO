@@ -99,12 +99,12 @@ void MIRCO::NonLinearSolver::solve(const ViewMatrix_d matrix, const ViewVector_d
 
     if (init && (minloc_w_i.val >= -nnlstol)) break;
 
-#ifdef KOKKOSKERNELS_ENABLE_TPL_LAPACK
-    std::cout << " LAPACK";
-#endif
-#ifdef KOKKOSKERNELS_ENABLE_TPL_BLAS
-    std::cout << " BLAS";
-#endif
+    // #ifdef KOKKOSKERNELS_ENABLE_TPL_LAPACK
+    //     std::cout << " LAPACK";
+    // #endif
+    // #ifdef KOKKOSKERNELS_ENABLE_TPL_BLAS
+    //     std::cout << " BLAS";
+    // #endif
 
     if (init)
     {
@@ -134,7 +134,7 @@ void MIRCO::NonLinearSolver::solve(const ViewMatrix_d matrix, const ViewVector_d
 
       // Compact versions of H and b0, i.e. H_I and \overbar{u}_I in line 6 of Algorithm 3,
       // (Bemporad & Paggi, 2015)
-      std::cout << "activeSetSize=" << activeSetSize << ", n0=" << n0 << "\n";
+      /// std::cout << "activeSetSize=" << activeSetSize << ", n0=" << n0 << "\n";
 
       // gesv() requires a rank-2 view (set of rhs), so we must make an (activeSetSize \cross 1)
       // matrix
@@ -156,32 +156,6 @@ void MIRCO::NonLinearSolver::solve(const ViewMatrix_d matrix, const ViewVector_d
 
         ViewVectorInt_d ipiv("ipiv", activeSetSize);
 
-
-
-        std::cout << "Kokkos::SpaceAccessibility<ExecSpace_Default_t, "
-                     "ViewVector_d::memory_space>::accessible="
-                  << Kokkos::SpaceAccessibility<ExecSpace_Default_t,
-                         ViewVector_d::memory_space>::accessible
-                  << "\n";
-        std::cout << "Kokkos::SpaceAccessibility<ExecSpace_Default_t, "
-                     "ViewMatrix_d::memory_space>::accessible="
-                  << Kokkos::SpaceAccessibility<ExecSpace_Default_t,
-                         ViewMatrix_d::memory_space>::accessible
-                  << "\n";
-        std::cout << "Kokkos::SpaceAccessibility<ExecSpace_Default_t, "
-                     "ViewVectorInt_d::memory_space>::accessible="
-                  << Kokkos::SpaceAccessibility<ExecSpace_Default_t,
-                         ViewVectorInt_d::memory_space>::accessible
-                  << "\n";
-
-#ifdef KOKKOSKERNELS_ENABLE_TPL_LAPACK
-        std::cout << " LAPACK";
-#endif
-#ifdef KOKKOSKERNELS_ENABLE_TPL_BLAS
-        std::cout << " BLAS";
-#endif
-
-
         // Solve H_I s_I = b0_I; b0s_compact_d becomes s_I
         KokkosLapack::gesv(ExecSpace_Default_t(), H_compact_d, b0s_compact_d, ipiv);
       }
@@ -194,10 +168,6 @@ void MIRCO::NonLinearSolver::solve(const ViewMatrix_d matrix, const ViewVector_d
             });
       }
 
-      std::cout << "b0s_compact_d(0)="
-                << Kokkos::create_mirror_view_and_copy(MemorySpace_Host_t(), b0s_compact_d)(0)
-                << "\n";
-
       bool allGreater = true;
       Kokkos::parallel_reduce(
           "allGreater", activeSetSize,
@@ -206,7 +176,6 @@ void MIRCO::NonLinearSolver::solve(const ViewMatrix_d matrix, const ViewVector_d
             sallGreater = sallGreater && !lallGreater;
           },
           Kokkos::LAnd<bool>(allGreater));
-      std::cout << "allGreater=" << allGreater << "\n";
       if (allGreater)
       {
         Kokkos::parallel_for(
