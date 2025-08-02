@@ -31,31 +31,31 @@ using Device_Host_t = Kokkos::Device<ExecSpace_DefaultHost_t, MemorySpace_Host_t
   >;*/
 using Device_Default_t = Kokkos::Device<ExecSpace_Default_t, MemorySpace_ofDefaultExec_t>;
 
-// # or LayoutRight for some things? no idea
-// # LayoutRight = row-major, which is what Teuchos uses
-using ViewVector_h = Kokkos::View<double*, Device_Host_t>;
+// Note: LayoutLeft is column major and is necessary in KokkosLapack::gesv(). We have to specify it
+// for views of any rank, even if it is physically meaningless for rank < 2.
+using ViewVector_h = Kokkos::View<double*, Kokkos::LayoutLeft, Device_Host_t>;
 using ViewMatrix_h =
     Kokkos::View<double**, Kokkos::LayoutLeft, Device_Host_t>;  // LayoutRight = row-major
 
-using ViewVectorInt_h = Kokkos::View<int*, Device_Host_t>;    // # or "array"?
-using ViewVectorBool_h = Kokkos::View<bool*, Device_Host_t>;  // #
+using ViewVectorInt_h = Kokkos::View<int*, Kokkos::LayoutLeft, Device_Host_t>;    // # or "array"?
+using ViewVectorBool_h = Kokkos::View<bool*, Kokkos::LayoutLeft, Device_Host_t>;  // #
 
-using ViewScalarInt_h = Kokkos::View<int, Device_Host_t>;
-using ViewScalarDouble_h = Kokkos::View<double, Device_Host_t>;
+using ViewScalarInt_h = Kokkos::View<int, Kokkos::LayoutLeft, Device_Host_t>;
+using ViewScalarDouble_h = Kokkos::View<double, Kokkos::LayoutLeft, Device_Host_t>;
 
 /*using ViewVector_cuda = Kokkos::View<double*, Device_Cuda_t>;
 using ViewMatrix_cuda =
     Kokkos::View<double**, Kokkos::LayoutLeft, Device_Cuda_t>;*/  // LayoutRight = row-major
 
-using ViewVector_d = Kokkos::View<double*, Device_Default_t>;
-using ViewMatrix_d =
-    Kokkos::View<double**, Kokkos::LayoutLeft, Device_Default_t>;  // LayoutRight = row-major
+using ViewVector_d = Kokkos::View<double*, Kokkos::LayoutLeft, Device_Default_t>;
+using ViewMatrix_d = Kokkos::View<double**, Kokkos::LayoutLeft, Kokkos::LayoutLeft,
+    Device_Default_t>;  // LayoutRight = row-major
 
-using ViewVectorInt_d = Kokkos::View<int*, Device_Default_t>;
-using ViewVectorBool_d = Kokkos::View<bool*, Device_Default_t>;
+using ViewVectorInt_d = Kokkos::View<int*, Kokkos::LayoutLeft, Device_Default_t>;
+using ViewVectorBool_d = Kokkos::View<bool*, Kokkos::LayoutLeft, Device_Default_t>;
 
-using ViewScalarInt_d = Kokkos::View<int, Device_Default_t>;
-using ViewScalarDouble_d = Kokkos::View<double, Device_Default_t>;
+using ViewScalarInt_d = Kokkos::View<int, Kokkos::LayoutLeft, Device_Default_t>;
+using ViewScalarDouble_d = Kokkos::View<double, Kokkos::LayoutLeft, Device_Default_t>;
 
 
 #if (kokkosElseOpenMP)
