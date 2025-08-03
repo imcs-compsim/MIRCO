@@ -8,12 +8,11 @@
 namespace MIRCO
 {
   /**
-   * @brief This class stores the input parameters and topology
+   * @brief This struct stores the input parameters and topology
    *
    */
-  class InputParameters
+  struct InputParameters
   {
-   public:
     /**
      * @brief Constructor which sets the necessary member variable parameters from an input (.xml)
      * file and creates the topology
@@ -73,15 +72,13 @@ namespace MIRCO
         double LateralLength, const std::string& TopologyFilePath, int MaxIteration,
         bool WarmStartingFlag, bool PressureGreenFunFlag);
 
-   public:
-    int N_ = 0;
-    double composite_youngs_ = 0.0, elastic_compliance_correction_ = 0.0, shape_factor_ = 0.0,
-           tolerance_ = 0.0, delta_ = 0.0, lateral_length_ = 0.0, grid_size_ = 0.0;
-    int max_iteration_ = 0;
-    bool warm_starting_flag_ = false;
-    bool pressure_green_funct_flag_ = false;
-
-    std::shared_ptr<Teuchos::SerialDenseMatrix<int, double>> topology_;
+    int N = 0;
+    double composite_youngs = 0.0, elastic_compliance_correction = 0.0, shape_factor = 0.0,
+           tolerance = 0.0, delta = 0.0, lateral_length = 0.0, grid_size = 0.0;
+    int max_iteration = 0;
+    bool warm_starting_flag = false;
+    bool pressure_green_funct_flag = false;
+    std::shared_ptr<Teuchos::SerialDenseMatrix<int, double>> topology;
   };
 }  // namespace MIRCO
 

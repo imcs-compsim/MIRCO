@@ -44,10 +44,10 @@ namespace MIRCO
   inline void Evaluate(const MIRCO::InputParameters& inputParams, double& pressure,
       const double zmax, const std::vector<double>& meshgrid)
   {
-    Evaluate(pressure, inputParams.delta_, inputParams.lateral_length_, inputParams.grid_size_,
-        inputParams.tolerance_, inputParams.max_iteration_, inputParams.composite_youngs_,
-        inputParams.warm_starting_flag_, inputParams.elastic_compliance_correction_,
-        *(inputParams.topology_), zmax, meshgrid, inputParams.pressure_green_funct_flag_);
+    Evaluate(pressure, inputParams.delta, inputParams.lateral_length, inputParams.grid_size,
+        inputParams.tolerance, inputParams.max_iteration, inputParams.composite_youngs,
+        inputParams.warm_starting_flag, inputParams.elastic_compliance_correction,
+        *(inputParams.topology), zmax, meshgrid, inputParams.pressure_green_funct_flag);
   }
 }  // namespace MIRCO
 
