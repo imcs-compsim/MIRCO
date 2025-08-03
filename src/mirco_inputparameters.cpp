@@ -31,10 +31,10 @@ inline int NFromResolution(int resolution) { return (1 << resolution) + 1; }
 double InterpolatedShapeFactor(const std::map<int, double>& shapeFactors, int N)
 {
   const double resolution = log2(N - 1);
-  const int resfloor = static_cast<int>(std::floor(resolution));
-  const double sf_floor = shapeFactors.at(resfloor);
-  if (((N - 1) & (N - 2)) == 0) return sf_floor;
-  return sf_floor + (resolution - resfloor) * (shapeFactors.at(resfloor + 1) - sf_floor);
+  const int resFloor = static_cast<int>(std::floor(resolution));
+  const double sfFloor = shapeFactors.at(resFloor);
+  if (((N - 1) & (N - 2)) == 0) return sfFloor;
+  return sfFloor + (resolution - resFloor) * (shapeFactors.at(resFloor + 1) - sfFloor);
 }
 
 MIRCO::InputParameters::InputParameters(const std::string& inputFileName)
