@@ -10,8 +10,8 @@ namespace MIRCO
   /**
    * @brief Construct a Surface object by reading topology from an input (.dat) file.
    *
-   * @param filepath Path of the input file containing the topology w.r.t. the calling directory or
-   * absolute directory.
+   * @param filepath Path of the input file containing the topology, relative to the calling
+   * directory or absolute
    * @param[out] N Dimension of the surface (number of elements/cells/height nodes per sidelength)
    */
   Teuchos::SerialDenseMatrix<int, double> CreateSurfaceFromFile(
