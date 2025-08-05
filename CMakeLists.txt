@@ -109,7 +109,6 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -O3")
 
 # Compile mirco library
 add_library(mirco_core
-  src/mirco_topology.cpp
   src/mirco_linearsolver.cpp
   src/mirco_nonlinearsolver.cpp
   src/mirco_matrixsetup.cpp
@@ -121,10 +120,15 @@ add_library(mirco_core
   )
 target_link_libraries(mirco_core PUBLIC Trilinos::all_selected_libs OpenMP::OpenMP_CXX)
 
-add_library(mirco_io
-  src/mirco_setparameters.cpp
+add_library(mirco_topology
+  src/mirco_topology.cpp
   )
-target_link_libraries(mirco_io PRIVATE mirco_utils)
+target_link_libraries(mirco_topology PRIVATE Trilinos::all_selected_libs)
+
+add_library(mirco_io
+  src/mirco_inputparameters.cpp
+  )
+target_link_libraries(mirco_io PRIVATE mirco_utils mirco_topology)
 target_link_libraries(mirco_io PUBLIC Trilinos::all_selected_libs)
 
 add_library(mirco_utils
@@ -132,7 +136,7 @@ add_library(mirco_utils
   )
 
 add_library(mirco_lib INTERFACE)
-target_link_libraries(mirco_lib INTERFACE mirco_core mirco_io mirco_utils)
+target_link_libraries(mirco_lib INTERFACE mirco_core mirco_io mirco_utils mirco_topology)
 target_link_libraries(mirco_lib
   INTERFACE OpenMP::OpenMP_CXX
   Trilinos::all_selected_libs
@@ -151,7 +155,7 @@ add_executable(mirco src/main.cpp)
 target_link_libraries(mirco PUBLIC mirco::mirco_lib)
 
 # Install mirco (to be used as a library by other codes)
-install(TARGETS mirco_lib mirco_core mirco_io mirco_utils
+install(TARGETS mirco_lib mirco_core mirco_io mirco_utils mirco_topology
   EXPORT mirco_libTargets
   ARCHIVE LIBRARY PUBLIC_HEADER
   )
@@ -187,7 +191,14 @@ if(GTEST_IN_MIRCO)
 
   target_link_libraries(tests PUBLIC mirco::mirco_lib gtest)
 
-  include(GoogleTest)
+  # Copy tests/unittests/data folder to the build dir
+  add_custom_command(
+    TARGET tests POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${CMAKE_CURRENT_SOURCE_DIR}/tests/unittests/data
+            $<TARGET_FILE_DIR:tests>/test/data
+  )
+
   gtest_discover_tests(tests)
 
   include(TestingFramework.cmake)

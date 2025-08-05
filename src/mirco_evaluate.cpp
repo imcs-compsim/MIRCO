@@ -9,17 +9,12 @@
 #include <cmath>
 #include <cstdio>
 #include <ctime>
-#include <fstream>
-#include <iostream>
-#include <memory>
-#include <string>
 #include <vector>
 
 #include "mirco_contactpredictors.h"
 #include "mirco_contactstatus.h"
 #include "mirco_matrixsetup.h"
 #include "mirco_nonlinearsolver.h"
-
 
 void MIRCO::Evaluate(double& pressure, const double Delta, const double LateralLength,
     const double GridSize, const double Tolerance, const int MaxIteration,
