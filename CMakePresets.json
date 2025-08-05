@@ -33,6 +33,18 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RELWITHDEBINFO"
       }
+    },
+    {
+      "name": "docker_container",
+      "displayName": "Release build for CI/CD testing in a docker container",
+      "inherits": [
+        ".imcs_workstation_base"
+      ],
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER_LAUNCHER": "",
+        "CMAKE_CXX_FLAGS": "",
+        "TRILINOS_PATH": "/opt/mirco-dependencies"
+      }
     }
   ]
 }
