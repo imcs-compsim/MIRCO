@@ -6,3 +6,5 @@ BEM_routines
 .project
 slurm-*
 .vscode
+.DS_Store
+CMakeUserPresets.json

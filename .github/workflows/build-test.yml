@@ -1,3 +1,5 @@
+name: mirco_ci
+
 on:
   pull_request:
     types:
@@ -11,7 +13,7 @@ on:
 jobs:
   code-check:
     name: code_check
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     env:
       CTEST_FAIL_ON_WARNING: "1"
     steps:
@@ -26,18 +28,29 @@ jobs:
             echo "Formatting incorrect. Run 'find src/ tests/ -iname *.h -o -iname *.c -o -iname *.cpp -o -iname *.hpp | xargs clang-format -style=file -i -fallback-style=none' in your local source directory and push it."
             exit 1
           fi
+
   mirco-test:
     name: mirco_test_full
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
+
+    container:
+      image: ghcr.io/rshaw026/mirco-dependencies:latest
+
     env:
       CTEST_FAIL_ON_WARNING: "1"
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code with submodules
+        uses: actions/checkout@v4
         with:
-          submodules: true
-      - name: Delete old build files.
-        run: rm -rf ../mirco_build/
-      - name: Clear ccache cache.
-        run: 'if [ -x "$(command -v ccache)" ]; then ccache -C -z; echo "ccache cache cleared"; fi'
-      - name: Run build and ctest
-        run: 'ctest -S ${{github.workspace}}/tests/testconfig/test_release.cmake -VV || tee ../buildtest.log'
+          submodules: recursive
+          path: mirco-src
+          fetch-depth: 0  # Necessary for full git history and tags
+
+      - name: Build and test
+        run: |
+          mkdir mirco-build
+          cd mirco-build
+          cmake --preset=docker_container ../mirco-src/
+          ninja -j 12
+          ctest --output-on-failure
