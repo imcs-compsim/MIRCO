@@ -2,19 +2,40 @@
   "version": 8,
   "configurePresets": [
     {
-      "name": ".imcs_workstation_base",
+      "name": ".base",
       "hidden": true,
       "generator": "Ninja",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RELEASE",
         "CMAKE_CXX_COMPILER": "mpicxx",
-        "CMAKE_CXX_COMPILER_LAUNCHER": "ccache",
         "CMAKE_C_COMPILER": "gcc",
         "CMAKE_C_COMPILER_LAUNCHER": "ccache",
-        "CMAKE_CXX_FLAGS": "-msse3",
-        "TRILINOS_PATH": "/imcs/public/compsim/lib/2022_2/build/lib/cmake/Trilinos",
+        "CMAKE_CXX_FLAGS": "",
+        "TRILINOS_PATH": "",
         "TRILINOS_IN_MIRCO": "ON",
         "GTEST_IN_MIRCO": "ON"
+      }
+    },
+    {
+      "name": "docker_container",
+      "displayName": "Release build for CI/CD testing in a docker container",
+      "inherits": [
+        ".base"
+      ],
+      "cacheVariables": {
+        "TRILINOS_PATH": "/opt/mirco-dependencies"
+      }
+    },
+    {
+      "name": ".imcs_workstation_base",
+      "hidden": true,
+      "inherits": [
+        ".base"
+      ],
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER_LAUNCHER": "ccache",
+        "CMAKE_CXX_FLAGS": "-msse3",
+        "TRILINOS_PATH": "/imcs/public/compsim/lib/2022_2/build/lib/cmake/Trilinos"
       }
     },
     {
@@ -32,18 +53,6 @@
       ],
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RELWITHDEBINFO"
-      }
-    },
-    {
-      "name": "docker_container",
-      "displayName": "Release build for CI/CD testing in a docker container",
-      "inherits": [
-        ".imcs_workstation_base"
-      ],
-      "cacheVariables": {
-        "CMAKE_CXX_COMPILER_LAUNCHER": "",
-        "CMAKE_CXX_FLAGS": "",
-        "TRILINOS_PATH": "/opt/mirco-dependencies"
       }
     }
   ]
