@@ -54,6 +54,26 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RELWITHDEBINFO"
       }
+    },
+    {
+      "name": "imcs_cluster",
+      "inherits": [
+        ".imcs_workstation_base"
+      ],
+      "displayName": "Release build on the IMCS cluster",
+      "cacheVariables": {
+        "TRILINOS_PATH": "$env{TRILINOS_ROOT}",
+        "GTEST_IN_MIRCO": "OFF"
+      }
+    },
+    {
+      "name": "imcs_cluster_with_tests",
+      "displayName": "Release build on the IMCS cluster with tests enabled",
+      "inherits": ".imcs_workstation_base",
+      "cacheVariables": {
+        "TRILINOS_PATH": "$env{TRILINOS_ROOT}",
+        "GTEST_IN_MIRCO": "ON"
+      }
     }
   ]
 }
