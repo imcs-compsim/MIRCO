@@ -39,8 +39,23 @@ ViewMatrix_d MIRCO::MatrixGeneration::SetupMatrix(const ViewVector_d xv0, const 
 
   else
   {
-    double raggio = GridSize / 2;
-    double C = 1 / (CompositeYoungs * pi * raggio);
+    // KOKKOS_LAMBDA will automatically capture const variables into device-space from host-space,
+    // but not non-const variables
+    const double raggio = GridSize / 2;
+    const double C = 1 / (CompositeYoungs * pi * raggio);
+
+    Kokkos::parallel_for(
+        "H off-diag", Kokkos::MDRangePolicy<Kokkos::Rank<2>>({0, 0}, {systemsize, systemsize}),
+        KOKKOS_LAMBDA(const int i, const int j) {
+          if (j >= i) return;
+          const double tmp1 = xv0(j) - xv0(i);
+          const double tmp2 = yv0(j) - yv0(i);
+          const double r = sqrt(tmp1 * tmp1 + tmp2 * tmp2);
+          const double tmp3 = C * asin(raggio / r);
+          H_d(i, j) = tmp3;
+          H_d(j, i) = tmp3;
+        });
+
     Kokkos::parallel_for(
         "H diag", systemsize,
         KOKKOS_LAMBDA(
@@ -48,19 +63,8 @@ ViewMatrix_d MIRCO::MatrixGeneration::SetupMatrix(const ViewVector_d xv0, const 
           H_d(i, i) = C;
         });
 
-    Kokkos::parallel_for(
-        "H off-diag", Kokkos::MDRangePolicy<Kokkos::Rank<2>>({0, 0}, {systemsize, systemsize}),
-        KOKKOS_LAMBDA(const int i, const int j) {
-          const double tmp1 = xv0(j) - xv0(i);
-          const double tmp2 = yv0(j) - yv0(i);
-          const double r = sqrt(tmp1*tmp1 + tmp2*tmp2);
-          const double tmp3 = C * asin(raggio / r);
-          H_d(i, j) = tmp3;
-          ///H_d(j, i) = tmp3;
-        });
-        
     /* for better effiency, try using teams://# TODO
-    
+
     using team_policy = Kokkos::TeamPolicy<>;
 using member_type = team_policy::member_type;
 

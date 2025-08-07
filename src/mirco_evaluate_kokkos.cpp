@@ -45,14 +45,6 @@ void MIRCO::Evaluate(double& pressure, const double Delta, const double LateralL
   // Contact force at (xvf,yvf) predicted in the previous iteration.
   ViewVector_d pf_d;
 
-  // The number of nodes in contact in the previous iteration.
-  int nf = 0;
-
-  // The influence coefficient matrix (Discrete version of Green Function)
-  ///  ViewMatrix_h H;//==A
-  // Solution containing force
-  /// ViewVector_h p_star;  //==y; //# <-- means previously called
-
   ViewMatrix_d topology_d = toKokkos(topology);
 
   // Initialise the error in force
@@ -84,10 +76,6 @@ void MIRCO::Evaluate(double& pressure, const double Delta, const double LateralL
     // x0 --> contact forces at (xvf,yvf) predicted in the previous iteration but
     // are a part of currect predicted contact set. x0 is calculated in the
     // Warmstart function to be used in the NNLS to accelerate the simulation.
-    Teuchos::SerialDenseMatrix<int, double>
-        x0;  // #ViewVector_h x0; //# this can be scoped in while, as it always gets reshaped in
-             // InitialGuessPredictor() //# in fact we should just make InitialGuessPredictor()
-             // return x0, as it is the only output
 
 
     ViewVector_d p0p_d;

@@ -1,10 +1,10 @@
 #ifndef SRC_CONTACTSTATUS_H_
 #define SRC_CONTACTSTATUS_H_
 
+#include <Kokkos_Core.hpp>
 #include <Teuchos_SerialDenseMatrix.hpp>
 #include <cmath>
 #include <vector>
-#include <Kokkos_Core.hpp>
 // tmp
 #include "tmpHelpers/Timer.hpp"
 #include "tmpHelpers/kokkosIntegration.hpp"
@@ -22,9 +22,9 @@ namespace MIRCO
    * @param[in] xv0 x-coordinates of the points in contact in the previous iteration.
    * @param[in] yv0 y-coordinates of the points in contact in the previous iteration.
    */
-  void ComputeContactNodes(ViewVector_d& xvf, ViewVector_d& yvf,
-    ViewVector_d& pf_d, const int activeSetSize, const ViewVector_d p_d,
-    const ViewVector_d xv0, const ViewVector_d yv0);
+  void ComputeContactNodes(ViewVector_d& xvf, ViewVector_d& yvf, ViewVector_d& pf_d,
+      const int activeSetSize, const ViewVector_d p_d, const ViewVector_d xv0,
+      const ViewVector_d yv0);
 
   /**
    * @brief The aim of this function is to calulate the contact force and contact area for the
@@ -32,14 +32,14 @@ namespace MIRCO
    *
    * @param[out] totalForce Total force
    * @param[out] contactArea Contact area
-   * @param nf Number of nodes in contact in the previous iteration
-   * @param pf Contact force vector predicted in the previous iteration.
-   * @param GridSize Grid size (length of each cell)
-   * @param LateralLength Lateral side of the surface [micrometers]
-   * @param PressureGreenFunFlag Flag to use Green function based on uniform pressure instead of
+   * @param[in] pf Contact force vector.
+   * @param[in] GridSize Grid size (length of each cell)
+   * @param[in] LateralLength Lateral side of the surface [micrometers]
+   * @param[in] PressureGreenFunFlag Flag to use Green function based on uniform pressure instead of
    * point force
    */
-  void ComputeContactForceAndArea(double& totalForce, double& contactArea, const ViewVector_d pf_d, const double GridSize, const double LateralLength, const bool PressureGreenFunFlag);
+  void ComputeContactForceAndArea(double& totalForce, double& contactArea, const ViewVector_d pf_d,
+      const double GridSize, const double LateralLength, const bool PressureGreenFunFlag);
 }  // namespace MIRCO
 
 #endif  // SRC_CONTACTSTATUS_H_
