@@ -17,7 +17,7 @@
 #include "mirco_nonlinearsolver_kokkos.h"
 #include "mirco_warmstart_kokkos.h"
 
-double MIRCO::Evaluate(const double Delta, const double LateralLength,
+void MIRCO::Evaluate(double& pressure, const double Delta, const double LateralLength,
     const double GridSize, const double Tolerance, const int MaxIteration,
     const double CompositeYoungs, const bool WarmStartingFlag,
     const double ElasticComplianceCorrection,
@@ -26,8 +26,9 @@ double MIRCO::Evaluate(const double Delta, const double LateralLength,
 {
   // Initialise the area vector and force vector. Each element containing the
   // area and force calculated at every iteration.
-  std::vector<double> contactAreaVector;
   std::vector<double> totalForceVector;
+  std::vector<double> contactAreaVector;
+  pressure = 0.0;
   double w_el = 0.0;
 
   std::cout << "---------------------------Evaluate Kokkos\n";
@@ -87,17 +88,18 @@ double MIRCO::Evaluate(const double Delta, const double LateralLength,
         x0;  // #ViewVector_h x0; //# this can be scoped in while, as it always gets reshaped in
              // InitialGuessPredictor() //# in fact we should just make InitialGuessPredictor()
              // return x0, as it is the only output
-             
-             
+
+
     ViewVector_d p0p_d;
     if (WarmStartingFlag && k > 0)
     {
-      ViewVector_h p0_h = MIRCO::Warmstart(Kokkos::create_mirror_view_and_copy(MemorySpace_Host_t(), xv0_d),
-        Kokkos::create_mirror_view_and_copy(MemorySpace_Host_t(), yv0_d),
-        Kokkos::create_mirror_view_and_copy(MemorySpace_Host_t(), xvf_d),
-        Kokkos::create_mirror_view_and_copy(MemorySpace_Host_t(), yvf_d),
-        Kokkos::create_mirror_view_and_copy(MemorySpace_Host_t(), pf_d));
-        
+      ViewVector_h p0_h =
+          MIRCO::Warmstart(Kokkos::create_mirror_view_and_copy(MemorySpace_Host_t(), xv0_d),
+              Kokkos::create_mirror_view_and_copy(MemorySpace_Host_t(), yv0_d),
+              Kokkos::create_mirror_view_and_copy(MemorySpace_Host_t(), xvf_d),
+              Kokkos::create_mirror_view_and_copy(MemorySpace_Host_t(), yvf_d),
+              Kokkos::create_mirror_view_and_copy(MemorySpace_Host_t(), pf_d));
+
       p0p_d = Kokkos::create_mirror_view_and_copy(MemorySpace_ofDefaultExec_t(), p0_h);
     }
     else
@@ -108,39 +110,45 @@ double MIRCO::Evaluate(const double Delta, const double LateralLength,
       }
     }
 
-        
+
     // }
     auto H_d = MIRCO::MatrixGeneration::SetupMatrix(
         xv0_d, yv0_d, GridSize, CompositeYoungs, n0, PressureGreenFunFlag);
 
 
-        //## we have at this point used the indexing of xv0 and such. index 0 of a quantity like p0_d is wherever that xv0 active set starts
+    // ## we have at this point used the indexing of xv0 and such. index 0 of a quantity like p0_d
+    // is wherever that xv0 active set starts
 
     // {
     // Defined as (u - u(bar)) in (Bemporad & Paggi, 2015)
     // Gap between the point on the topology and the half space
-    ///ViewVector_d w_d;
-    
+    /// ViewVector_d w_d;
+
     int activeSetSize;
     // use Nonlinear solver --> Non-Negative Least Squares (NNLS) as in
     // (Bemporad & Paggi, 2015)
-    //## here, we make an active set that holds in no particular order the references to the indices. but the thing is that p_d inside of this function, as the non-compacted vector, still holds
-    MIRCO::NonLinearSolver::solve(H_d, b0_d, p0p_d, activeSetSize);///w_d);
+    // ## here, we make an active set that holds in no particular order the references to the
+    // indices. but the thing is that p_d inside of this function, as the non-compacted vector,
+    // still holds
+    MIRCO::NonLinearSolver::solve(H_d, b0_d, p0p_d, activeSetSize);  /// w_d);
     // #Q Why is x0 (or y0...) a matrix with 1 column and not just a vector. there is no reason i
     // think
 
     // Compute number of contact node
-    //# TODO: this function, I think, we can actually just integrate into nonlinear solve and it will all be more efficient because we already have a compact form basically in nonlinear solve
+    // # TODO: this function, I think, we can actually just integrate into nonlinear solve and it
+    // will all be more efficient because we already have a compact form basically in nonlinear
+    // solve
     MIRCO::ComputeContactNodes(xvf_d, yvf_d, pf_d, activeSetSize, p0p_d, xv0_d, yv0_d);
 
     // Compute total contact force and contact area
     double totalForce;
     double contactArea;
-    MIRCO::ComputeContactForceAndArea(totalForce, contactArea, pf_d, GridSize, LateralLength, PressureGreenFunFlag);
-    
+    MIRCO::ComputeContactForceAndArea(
+        totalForce, contactArea, pf_d, GridSize, LateralLength, PressureGreenFunFlag);
+
     totalForceVector.push_back(totalForce);
     contactAreaVector.push_back(contactArea);
-    
+
     // Elastic correction, used in the next iteration
     w_el = totalForce / ElasticComplianceCorrection;
 
@@ -159,5 +167,5 @@ double MIRCO::Evaluate(const double Delta, const double LateralLength,
   const double finalForce = totalForceVector[k - 1];
 
   // Mean pressure
-  return finalForce / (LateralLength * LateralLength);
+  pressure = finalForce / (LateralLength * LateralLength);
 }

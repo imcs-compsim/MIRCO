@@ -44,35 +44,37 @@ int main(int argc, char* argv[])
     MIRCO::InputParameters inputParams(inputFileName);
 
     // Identical Vectors/Matricies, therefore only created one here.
-    ViewVector_d meshgrid = MIRCO::CreateMeshgrid(inputParams.N_, inputParams.grid_size_);
+    ViewVector_d meshgrid = MIRCO::CreateMeshgrid(inputParams.N, inputParams.grid_size);
 
-  auto& topology = *(inputParams.topology);
-  auto max_and_mean = MIRCO::ComputeMaxAndMean(topology);
+    auto& topology = *(inputParams.topology);
+    auto max_and_mean = MIRCO::ComputeMaxAndMean(topology);
 
     // Main evaluation agorithm
-    double meanPressure = MIRCO::Evaluate(inputParams, max_and_mean.max_, meshgrid);
+    double meanPressure;
+    MIRCO::Evaluate(meanPressure, inputParams, max_and_mean.max_, meshgrid);
 
     std::cout << "Mean pressure is: " << std::to_string(meanPressure) << std::endl;
 
-  const auto finish = std::chrono::high_resolution_clock::now();
-  const double elapsedTime =
-      std::chrono::duration_cast<std::chrono::duration<double>>(finish - start).count();
-  std::cout << "Elapsed time is: " + std::to_string(elapsedTime) + "s." << std::endl;
+    const auto finish = std::chrono::high_resolution_clock::now();
+    const double elapsedTime =
+        std::chrono::duration_cast<std::chrono::duration<double>>(finish - start).count();
+    std::cout << "Elapsed time is: " + std::to_string(elapsedTime) + "s." << std::endl;
 
-  // Test for correct output if the result_description is given in the input file
-  Teuchos::RCP<Teuchos::ParameterList> parameterList = Teuchos::rcp(new Teuchos::ParameterList());
-  Teuchos::updateParametersFromXmlFile(inputFileName, parameterList.ptr());
-  if (parameterList->isSublist("result_description"))
-  {
-    Teuchos::ParameterList& result_description = parameterList->sublist("result_description");
-    double ExpectedPressure = result_description.get<double>("ExpectedPressure");
-    double ExpectedPressureTolerance = result_description.get<double>("ExpectedPressureTolerance");
-    if (std::abs(pressure - ExpectedPressure) > ExpectedPressureTolerance)
+    // Test for correct output if the result_description is given in the input file
+    Teuchos::RCP<Teuchos::ParameterList> parameterList = Teuchos::rcp(new Teuchos::ParameterList());
+    Teuchos::updateParametersFromXmlFile(inputFileName, parameterList.ptr());
+    if (parameterList->isSublist("result_description"))
     {
-      std::cerr << "The output pressure is incorrect" << std::endl;
-      return EXIT_FAILURE;
+      Teuchos::ParameterList& result_description = parameterList->sublist("result_description");
+      double ExpectedPressure = result_description.get<double>("ExpectedPressure");
+      double ExpectedPressureTolerance =
+          result_description.get<double>("ExpectedPressureTolerance");
+      if (std::abs(meanPressure - ExpectedPressure) > ExpectedPressureTolerance)
+      {
+        std::cerr << "The output pressure is incorrect" << std::endl;
+        return EXIT_FAILURE;
+      }
     }
-  }
 
     std::cout << TimerRegistry::globalInstance().timingReportStr(true);
 #if (kokkosElseOpenMP)
