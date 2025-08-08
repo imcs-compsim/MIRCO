@@ -10,7 +10,7 @@ The research code is implemented throughout in object-oriented programming (C++)
 MIRCO requires
 
 - C++ compiler
-- [CMake](www.cmake.org) (version: >= 3.14)
+- [CMake](www.cmake.org) (version: >= 3.28)
 - OpenMP
 - [Trilinos](https://github.com/trilinos/Trilinos) (version: >= 12.8)
 
