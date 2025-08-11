@@ -41,6 +41,7 @@ RUN apt-get update && apt-get install -y \
       python3-venv \
       python-is-python3 \
       liblapack-dev \
+      #BLAS
       ninja-build \
       libomp-dev \
   && rm -rf /var/lib/apt/lists/*
@@ -55,6 +56,10 @@ COPY dependencies /dependencies
 
 # Install Trilinos 2022_Q1
 RUN /dependencies/trilinos/install.sh ${INSTALL_DIR}
+
+# Install Kokkos and Kokkos-Kernels
+RUN /dependencies/kokkos/install.sh ${INSTALL_DIR}
+RUN /dependencies/kokkos-kernels/install.sh ${INSTALL_DIR}
 
 # Add dependencies hash
 # The label is added at the end because the label causes a cache miss

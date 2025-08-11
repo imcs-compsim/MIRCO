@@ -11,6 +11,8 @@
 // for switching between kokkos and openmp during integration process
 #define kokkosElseOpenMP true
 
+#define GESV_USE_FP32 true
+
 #include <Kokkos_Core.hpp>
 #include <Teuchos_SerialDenseMatrix.hpp>
 #include <Teuchos_SerialDenseVector.hpp>
@@ -48,11 +50,13 @@ using ViewMatrix_cuda =
     Kokkos::View<double**, Kokkos::LayoutLeft, Device_Cuda_t>;*/  // LayoutRight = row-major
 
 using ViewVector_d = Kokkos::View<double*, Kokkos::LayoutLeft, Device_Default_t>;
-using ViewMatrix_d = Kokkos::View<double**, Kokkos::LayoutLeft, Kokkos::LayoutLeft,
-    Device_Default_t>;  // LayoutRight = row-major
+using ViewMatrix_d =
+    Kokkos::View<double**, Kokkos::LayoutLeft, Device_Default_t>;  // LayoutRight = row-major
 
 using ViewVectorInt_d = Kokkos::View<int*, Kokkos::LayoutLeft, Device_Default_t>;
 using ViewVectorBool_d = Kokkos::View<bool*, Kokkos::LayoutLeft, Device_Default_t>;
+using ViewVectorFloat_d = Kokkos::View<float*, Kokkos::LayoutLeft, Device_Default_t>;  // #
+using ViewMatrixFloat_d = Kokkos::View<float**, Kokkos::LayoutLeft, Device_Default_t>;
 
 using ViewScalarInt_d = Kokkos::View<int, Kokkos::LayoutLeft, Device_Default_t>;
 using ViewScalarDouble_d = Kokkos::View<double, Kokkos::LayoutLeft, Device_Default_t>;

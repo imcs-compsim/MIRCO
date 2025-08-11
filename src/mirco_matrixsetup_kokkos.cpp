@@ -44,6 +44,7 @@ ViewMatrix_d MIRCO::MatrixGeneration::SetupMatrix(const ViewVector_d xv0, const 
     const double raggio = GridSize / 2;
     const double C = 1 / (CompositeYoungs * pi * raggio);
 
+    // TODO: For better effiency, try using teams instead of MDRangePolicy
     Kokkos::parallel_for(
         "H off-diag", Kokkos::MDRangePolicy<Kokkos::Rank<2>>({0, 0}, {systemsize, systemsize}),
         KOKKOS_LAMBDA(const int i, const int j) {
@@ -64,27 +65,7 @@ ViewMatrix_d MIRCO::MatrixGeneration::SetupMatrix(const ViewVector_d xv0, const 
         });
 
     /* for better effiency, try using teams://# TODO
-
-    using team_policy = Kokkos::TeamPolicy<>;
-using member_type = team_policy::member_type;
-
-Kokkos::parallel_for("H_upper_team",
-  team_policy(systemsize, Kokkos::AUTO),
-  KOKKOS_LAMBDA(const member_type& team) {
-    const int i = team.league_rank();
-    Kokkos::parallel_for(Kokkos::TeamThreadRange(team, i+1, systemsize), [&](const int j) {
-      const double dx = xv0(j) - xv0(i);
-      const double dy = yv0(j) - yv0(i);
-      const double r2 = dx*dx + dy*dy;
-      const double r  = sqrt(r2);
-      if (r == 0.0) return;
-      const double arg = fmin(1.0, raggio / r);
-      const double val = C * asin(arg);
-      H_d(i,j) = val;
-      H_d(j,i) = val;
-    });
-  });
-*/
+     */
   }
 
   return H_d;

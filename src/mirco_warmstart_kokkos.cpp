@@ -2,16 +2,13 @@
 
 #include <Teuchos_SerialDenseMatrix.hpp>
 #include <algorithm>
-#include <vector>
-
-
-// # TODO: we now have two overloads, one for host and one for device. compare th performance of
-// them including the deep_copy needed for host overload variant.
 
 ViewVector_h MIRCO::Warmstart(const ViewVector_h& xv0, const ViewVector_h& yv0,
     const ViewVector_h& xvf, const ViewVector_h& yvf, const ViewVector_h& pf)
 {
-  const int n = xv0.extent(0);
+  // TODO: If possible, convert this algorithm into running in a parallel kernel so that device
+  // views can be used
+  const auto n = static_cast<size_t>(xv0.extent(0));
   ViewVector_h p0("p0", n);
 
   for (size_t i = 0; i < n; ++i)
@@ -29,12 +26,3 @@ ViewVector_h MIRCO::Warmstart(const ViewVector_h& xv0, const ViewVector_h& yv0,
 
   return p0;
 }
-
-// ViewVector_d Warmstart(const ViewVector_d xv0, const ViewVector_d yv0, const ViewVector_d xvf,
-//     const ViewVector_d yvf, const ViewVector_d pf)
-// {
-//   return ViewVector_d(
-//       "void", 0);  // # TODO: to do this efficiently, we should store the indices that were
-//       removed,
-//                    // as they are removed, so in ContactSetPredictor or something idk
-// }

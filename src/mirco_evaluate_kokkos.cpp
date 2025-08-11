@@ -78,6 +78,7 @@ void MIRCO::Evaluate(double& pressure, const double Delta, const double LateralL
     // Warmstart function to be used in the NNLS to accelerate the simulation.
 
 
+
     ViewVector_d p0p_d;
     if (WarmStartingFlag && k > 0)
     {

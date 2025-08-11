@@ -142,11 +142,11 @@ endif()
 
 # Kokkos-Kernels
 
-option(KOKKOS-KERNELS_IN_MIRCO "Find Kokkos-Kernels in the MIRCO project. If set to OFF, use the Kokkos-Kernels installation from an upstream project" ON)
+option(KOKKOS_KERNELS_IN_MIRCO "Find Kokkos-Kernels in the MIRCO project. If set to OFF, use the Kokkos-Kernels installation from an upstream project" ON)
 
-if(KOKKOS-KERNELS_IN_MIRCO)
-  set(CMAKE_PREFIX_PATH ${KOKKOS-KERNELS_PATH} ${CMAKE_PREFIX_PATH})
-  set(KokkosKernels_DIR "${KOKKOS-KERNELS_PATH}/lib/cmake/KokkosKernels")
+if(KOKKOS_KERNELS_IN_MIRCO)
+  set(CMAKE_PREFIX_PATH ${KOKKOS_KERNELS_PATH} ${CMAKE_PREFIX_PATH})
+  set(KokkosKernels_DIR "${KOKKOS_KERNELS_PATH}/lib/cmake/KokkosKernels")
   find_package(KokkosKernels REQUIRED)
 
   # Optionally, mimic the interface target logic for older or minimal installations (unlikely needed, but here's the symmetry)
@@ -158,12 +158,12 @@ else()
   if(TARGET KokkosKernels::kokkoskernels)
     message(STATUS "KokkosKernels included from upstream project.")
   else()
-    message(FATAL_ERROR "KOKKOS-KERNELS_IN_MIRCO=OFF but no KokkosKernels target was available in the upstream project.")
+    message(FATAL_ERROR "KOKKOS_KERNELS_IN_MIRCO=OFF but no KokkosKernels target was available in the upstream project.")
   endif()
 endif()
 
 # Print details on the Kokkos-Kernels configuration
-if(KOKKOS-KERNELS_IN_MIRCO)
+if(KOKKOS_KERNELS_IN_MIRCO)
   if(KokkosKernels_FOUND)
     message("\nFound KokkosKernels! Here are the details:")
     get_target_property(KokkosKernels_INCLUDE_DIRS KokkosKernels::kokkoskernels INTERFACE_INCLUDE_DIRECTORIES)
