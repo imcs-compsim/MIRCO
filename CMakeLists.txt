@@ -103,82 +103,85 @@ endif()
 
 
 # Kokkos
+option(USE_KOKKOS_CODE "Use the Kokkos variant of MIRCO. If set to OFF, the standard OpenMP-based implementation will be used" ON)
 
-option(KOKKOS_IN_MIRCO "Find Kokkos in the MIRCO project. If set to OFF, use the Kokkos installation from an upstream project" ON)
+if(USE_KOKKOS_CODE)
 
-if(KOKKOS_IN_MIRCO)
-  set(CMAKE_PREFIX_PATH ${KOKKOS_PATH} ${CMAKE_PREFIX_PATH})
-  find_package(Kokkos REQUIRED)
+  option(KOKKOS_IN_MIRCO "Find Kokkos in the MIRCO project. If set to OFF, use the Kokkos installation from an upstream project" ON)
 
-  # Optionally, mimic the interface target logic for older or minimal installations (unlikely needed, but here's the symmetry)
-  if(Kokkos_FOUND AND NOT TARGET Kokkos::kokkos)
-    message(FATAL_ERROR "Kokkos found, but no Kokkos::kokkos target available — modern Kokkos should provide this")
-  endif()
-else()
-# Use a Kokkos from an upstream project
-  if(TARGET Kokkos::kokkos)
-    message(STATUS "Kokkos included from upstream project.")
+  if(KOKKOS_IN_MIRCO)
+    set(CMAKE_PREFIX_PATH ${KOKKOS_PATH} ${CMAKE_PREFIX_PATH})
+    find_package(Kokkos REQUIRED)
+
+    # Optionally, mimic the interface target logic for older or minimal installations (unlikely needed, but here's the symmetry)
+    if(Kokkos_FOUND AND NOT TARGET Kokkos::kokkos)
+      message(FATAL_ERROR "Kokkos found, but no Kokkos::kokkos target available — modern Kokkos should provide this")
+    endif()
   else()
-    message(FATAL_ERROR "KOKKOS_IN_MIRCO=OFF but no Kokkos target was available in the upstream project.")
+  # Use a Kokkos from an upstream project
+    if(TARGET Kokkos::kokkos)
+      message(STATUS "Kokkos included from upstream project.")
+    else()
+      message(FATAL_ERROR "KOKKOS_IN_MIRCO=OFF but no Kokkos target was available in the upstream project.")
+    endif()
   endif()
-endif()
 
-# Print details on the Kokkos configuration
-if(KOKKOS_IN_MIRCO)
-  if(Kokkos_FOUND)
-    message("\nFound Kokkos! Here are the details:")
-    get_target_property(Kokkos_INCLUDE_DIRS Kokkos::kokkos INTERFACE_INCLUDE_DIRECTORIES)
-    message("   Kokkos_INCLUDE_DIRS = ${Kokkos_INCLUDE_DIRS}")
-    get_target_property(Kokkos_COMPILE_DEFINITIONS Kokkos::kokkos INTERFACE_COMPILE_DEFINITIONS)
-    message("   Kokkos_COMPILE_DEFINITIONS = ${Kokkos_COMPILE_DEFINITIONS}")
-    get_target_property(Kokkos_COMPILE_OPTIONS Kokkos::kokkos INTERFACE_COMPILE_OPTIONS)
-    message("   Kokkos_COMPILE_OPTIONS = ${Kokkos_COMPILE_OPTIONS}")
-    message("End of Kokkos details\n")
+  # Print details on the Kokkos configuration
+  if(KOKKOS_IN_MIRCO)
+    if(Kokkos_FOUND)
+      message("\nFound Kokkos! Here are the details:")
+      get_target_property(Kokkos_INCLUDE_DIRS Kokkos::kokkos INTERFACE_INCLUDE_DIRECTORIES)
+      message("   Kokkos_INCLUDE_DIRS = ${Kokkos_INCLUDE_DIRS}")
+      get_target_property(Kokkos_COMPILE_DEFINITIONS Kokkos::kokkos INTERFACE_COMPILE_DEFINITIONS)
+      message("   Kokkos_COMPILE_DEFINITIONS = ${Kokkos_COMPILE_DEFINITIONS}")
+      get_target_property(Kokkos_COMPILE_OPTIONS Kokkos::kokkos INTERFACE_COMPILE_OPTIONS)
+      message("   Kokkos_COMPILE_OPTIONS = ${Kokkos_COMPILE_OPTIONS}")
+      message("End of Kokkos details\n")
+    else()
+      message(FATAL_ERROR "Could not find Kokkos!")
+    endif()
+  endif()
+
+
+  # Kokkos-Kernels
+
+  option(KOKKOS_KERNELS_IN_MIRCO "Find Kokkos-Kernels in the MIRCO project. If set to OFF, use the Kokkos-Kernels installation from an upstream project" ON)
+
+  if(KOKKOS_KERNELS_IN_MIRCO)
+    set(CMAKE_PREFIX_PATH ${KOKKOS_KERNELS_PATH} ${CMAKE_PREFIX_PATH})
+    set(KokkosKernels_DIR "${KOKKOS_KERNELS_PATH}/lib/cmake/KokkosKernels")
+    find_package(KokkosKernels REQUIRED)
+
+    # Optionally, mimic the interface target logic for older or minimal installations (unlikely needed, but here's the symmetry)
+    if(KokkosKernels_FOUND AND NOT TARGET KokkosKernels::kokkoskernels)
+      message(FATAL_ERROR "KokkosKernels found, but no KokkosKernels::kokkoskernels target available — modern Kokkos should provide this")
+    endif()
   else()
-    message(FATAL_ERROR "Could not find Kokkos!")
+  # Use a KokkosKernels from an upstream project
+    if(TARGET KokkosKernels::kokkoskernels)
+      message(STATUS "KokkosKernels included from upstream project.")
+    else()
+      message(FATAL_ERROR "KOKKOS_KERNELS_IN_MIRCO=OFF but no KokkosKernels target was available in the upstream project.")
+    endif()
   endif()
+
+  # Print details on the Kokkos-Kernels configuration
+  if(KOKKOS_KERNELS_IN_MIRCO)
+    if(KokkosKernels_FOUND)
+      message("\nFound KokkosKernels! Here are the details:")
+      get_target_property(KokkosKernels_INCLUDE_DIRS KokkosKernels::kokkoskernels INTERFACE_INCLUDE_DIRECTORIES)
+      message("   KokkosKernels_INCLUDE_DIRS = ${KokkosKernels_INCLUDE_DIRS}")
+      get_target_property(KokkosKernels_COMPILE_DEFINITIONS KokkosKernels::kokkoskernels INTERFACE_COMPILE_DEFINITIONS)
+      message("   KokkosKernels_COMPILE_DEFINITIONS = ${KokkosKernels_COMPILE_DEFINITIONS}")
+      get_target_property(KokkosKernels_COMPILE_OPTIONS KokkosKernels::kokkoskernels INTERFACE_COMPILE_OPTIONS)
+      message("   KokkosKernels_COMPILE_OPTIONS = ${KokkosKernels_COMPILE_OPTIONS}")
+      message("End of KokkosKernels details\n")
+    else()
+      message(FATAL_ERROR "Could not find KokkosKernels!")
+    endif()
+  endif()
+
 endif()
-
-
-# Kokkos-Kernels
-
-option(KOKKOS_KERNELS_IN_MIRCO "Find Kokkos-Kernels in the MIRCO project. If set to OFF, use the Kokkos-Kernels installation from an upstream project" ON)
-
-if(KOKKOS_KERNELS_IN_MIRCO)
-  set(CMAKE_PREFIX_PATH ${KOKKOS_KERNELS_PATH} ${CMAKE_PREFIX_PATH})
-  set(KokkosKernels_DIR "${KOKKOS_KERNELS_PATH}/lib/cmake/KokkosKernels")
-  find_package(KokkosKernels REQUIRED)
-
-  # Optionally, mimic the interface target logic for older or minimal installations (unlikely needed, but here's the symmetry)
-  if(KokkosKernels_FOUND AND NOT TARGET KokkosKernels::kokkoskernels)
-    message(FATAL_ERROR "KokkosKernels found, but no KokkosKernels::kokkoskernels target available — modern Kokkos should provide this")
-  endif()
-else()
-# Use a KokkosKernels from an upstream project
-  if(TARGET KokkosKernels::kokkoskernels)
-    message(STATUS "KokkosKernels included from upstream project.")
-  else()
-    message(FATAL_ERROR "KOKKOS_KERNELS_IN_MIRCO=OFF but no KokkosKernels target was available in the upstream project.")
-  endif()
-endif()
-
-# Print details on the Kokkos-Kernels configuration
-if(KOKKOS_KERNELS_IN_MIRCO)
-  if(KokkosKernels_FOUND)
-    message("\nFound KokkosKernels! Here are the details:")
-    get_target_property(KokkosKernels_INCLUDE_DIRS KokkosKernels::kokkoskernels INTERFACE_INCLUDE_DIRECTORIES)
-    message("   KokkosKernels_INCLUDE_DIRS = ${KokkosKernels_INCLUDE_DIRS}")
-    get_target_property(KokkosKernels_COMPILE_DEFINITIONS KokkosKernels::kokkoskernels INTERFACE_COMPILE_DEFINITIONS)
-    message("   KokkosKernels_COMPILE_DEFINITIONS = ${KokkosKernels_COMPILE_DEFINITIONS}")
-    get_target_property(KokkosKernels_COMPILE_OPTIONS KokkosKernels::kokkoskernels INTERFACE_COMPILE_OPTIONS)
-    message("   KokkosKernels_COMPILE_OPTIONS = ${KokkosKernels_COMPILE_OPTIONS}")
-    message("End of KokkosKernels details\n")
-  else()
-    message(FATAL_ERROR "Could not find KokkosKernels!")
-  endif()
-endif()
-
-
 
 
 
@@ -198,7 +201,7 @@ add_library(mirco_needsKokkoskernels
   src/mirco_nonlinearsolver_kokkos.cpp
   )
 target_link_libraries(mirco_needsKokkoskernels PRIVATE Trilinos::all_selected_libs OpenMP::OpenMP_CXX Kokkos::kokkos KokkosKernels::kokkoskernels)
-
+if(KOKKOS_KERNELS_IN_MIRCO)
 # Compile mirco library
 add_library(mirco_core
   #src/mirco_linearsolver.cpp

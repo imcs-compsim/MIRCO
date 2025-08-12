@@ -2,7 +2,7 @@
 #define SRC_NONLINEARSOLVER_KOKKOS_H_
 
 #include <Kokkos_Core.hpp>
-// tmp
+
 #include "tmpHelpers/kokkosIntegration.hpp"
 
 namespace MIRCO

@@ -20,8 +20,7 @@
 void MIRCO::Evaluate(double& pressure, const double Delta, const double LateralLength,
     const double GridSize, const double Tolerance, const int MaxIteration,
     const double CompositeYoungs, const bool WarmStartingFlag,
-    const double ElasticComplianceCorrection,
-    const Teuchos::SerialDenseMatrix<int, double>& topology, const double zmax,
+    const double ElasticComplianceCorrection, const ViewMatrix_d topology, const double zmax,
     const ViewVector_d meshgrid_d, const bool PressureGreenFunFlag)
 {
   // Initialise the area vector and force vector. Each element containing the
@@ -44,8 +43,6 @@ void MIRCO::Evaluate(double& pressure, const double Delta, const double LateralL
   ViewVector_d xvf_d, yvf_d;
   // Contact force at (xvf,yvf) predicted in the previous iteration.
   ViewVector_d pf_d;
-
-  ViewMatrix_d topology_d = toKokkos(topology);
 
   // Initialise the error in force
   double ErrorForce = std::numeric_limits<double>::max();  // # can just do tolerance + 1.0 so you

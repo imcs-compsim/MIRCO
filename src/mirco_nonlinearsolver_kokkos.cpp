@@ -13,7 +13,7 @@ void swap_entries(ViewVectorInt_d v, const int i, const int j)
     auto vi = Kokkos::subview(v, i);
     auto vj = Kokkos::subview(v, j);
 
-    ViewScalarInt_d tmp("tmp");
+    ViewScalarInt_d tmp("swap_entries(); tmp");
 
     Kokkos::deep_copy(tmp, vi);
     Kokkos::deep_copy(vi, vj);
@@ -39,7 +39,7 @@ void MIRCO::NonLinearSolver::solve(const ViewMatrix_d matrix, const ViewVector_d
 
   Kokkos::View<int, Device_Default_t> counterActive(kokkosLabelPrefix + "counterActive");
   Kokkos::deep_copy(counterActive, 0);
-  Kokkos::View<int, Device_Default_t> counterInactive("counterInactive");
+  Kokkos::View<int, Device_Default_t> counterInactive(kokkosLabelPrefix + "counterInactive");
   Kokkos::deep_copy(counterInactive, 0);
   Kokkos::parallel_for(
       n0, KOKKOS_LAMBDA(const int i) {

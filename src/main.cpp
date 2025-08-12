@@ -7,8 +7,8 @@
 
 // #include "mirco_evaluate.h"
 #include "mirco_evaluate_kokkos.h"
-#include "mirco_inputparameters.h"
-#include "mirco_topologyutilities.h"
+#include "mirco_inputparameters_kokkos.h"
+#include "mirco_topologyutilities_kokkos.h"
 
 // tmp
 #include <omp.h>
@@ -43,15 +43,12 @@ int main(int argc, char* argv[])
 
     MIRCO::InputParameters inputParams(inputFileName);
 
-    // Identical Vectors/Matricies, therefore only created one here.
-    ViewVector_d meshgrid = MIRCO::CreateMeshgrid(inputParams.N, inputParams.grid_size);
-
-    auto& topology = *(inputParams.topology);
-    auto max_and_mean = MIRCO::ComputeMaxAndMean(topology);
+    ViewVector_d meshgrid_d = MIRCO::CreateMeshgrid(inputParams.N, inputParams.grid_size);
+    auto maxAndMean = MIRCO::ComputeMaxAndMean(inputParams.topology_d);
 
     // Main evaluation agorithm
     double meanPressure;
-    MIRCO::Evaluate(meanPressure, inputParams, max_and_mean.max_, meshgrid);
+    MIRCO::Evaluate(meanPressure, inputParams, maxAndMean.max, meshgrid_d);
 
     std::cout << "Mean pressure is: " << std::to_string(meanPressure) << std::endl;
 
