@@ -54,3 +54,29 @@ jobs:
           cmake --preset=docker_container ../mirco-src/
           ninja -j 12
           ctest --output-on-failure
+
+  mirco-test_kokkos:
+    name: mirco_test_full_kokkos
+    runs-on: ubuntu-latest
+
+    container:
+      image: ghcr.io/philipoesterlepekrun/mirco-kokkos-dependencies:latest
+
+    env:
+      CTEST_FAIL_ON_WARNING: "1"
+
+    steps:
+      - name: Checkout code with submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          path: mirco-src
+          fetch-depth: 0  # Necessary for full git history and tags
+
+      - name: Build and test
+        run: |
+          mkdir mirco-build
+          cd mirco-build
+          cmake --preset=docker_container_kokkos ../mirco-src/
+          ninja -j 12
+          ctest --output-on-failure
