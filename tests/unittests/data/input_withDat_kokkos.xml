@@ -1,0 +1,20 @@
+<mirco_input>
+  <WarmStartingFlag type="bool" value="true"/>
+  <RandomTopologyFlag type="bool" value="false"/>
+  <TopologyFilePath type="string" value="topologyN5.dat"/>
+  <MaxIteration type="int" value="100"/>
+  <PressureGreenFunFlag type="bool" value="true"/>
+  <parameters>
+    <material_parameters>
+      <E1 type="double" value="1"/>
+      <nu1 type="double" value="0.3"/>
+      <E2 type="double" value="1"/>
+      <nu2 type="double" value="0.3"/>
+    </material_parameters>
+    <geometrical_parameters>
+      <LateralLength type="double" value="1000.0"/>
+      <Delta type="double" value="15.0"/>
+      <Tolerance type="double" value="0.01"/>
+    </geometrical_parameters>
+  </parameters>
+</mirco_input>

@@ -27,7 +27,7 @@ namespace
 
 namespace MIRCO
 {
-  void nonlinearSolve(const ViewMatrix_d matrix, const ViewVector_d b0_d, ViewVector_d& p_d,
+  void nonlinearSolve(const ViewMatrix_d matrix_d, const ViewVector_d b0_d, ViewVector_d& p_d,
       int& activeSetSize, double nnlstol, int maxiter)
   {
     using minloc_t = Kokkos::MinLoc<double, int, MemorySpace_ofDefaultExec_t>;
@@ -136,7 +136,7 @@ namespace MIRCO
                 for (int j = 0; j < activeSetSize; ++j)
                 {
                   const int col = activeInactiveSet(j);
-                  H_compact_d(i, j) = matrix(row, col);
+                  H_compact_d(i, j) = matrix_d(row, col);
                 }
               });
 
@@ -150,7 +150,7 @@ namespace MIRCO
           Kokkos::parallel_for(
               1, KOKKOS_LAMBDA(const int) {
                 const int ii = activeInactiveSet(0);
-                b0s_compact_d(0) = b0_d(ii) / matrix(ii, ii);
+                b0s_compact_d(0) = b0_d(ii) / matrix_d(ii, ii);
               });
         }
 
@@ -172,7 +172,7 @@ namespace MIRCO
               n0, KOKKOS_LAMBDA(const int i) {
                 double sum = 0.0;
                 for (int j = 0; j < activeSetSize; ++j)
-                  sum += matrix(i, activeInactiveSet(j)) * b0s_compact_d(j);
+                  sum += matrix_d(i, activeInactiveSet(j)) * b0s_compact_d(j);
                 w_d(i) = sum - b0_d(i);
               });
 

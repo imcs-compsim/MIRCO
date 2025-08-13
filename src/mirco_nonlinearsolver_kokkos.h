@@ -10,13 +10,15 @@ namespace MIRCO
    * algorithm (Algorithm 3) from (Bemporad & Paggi, 2015)
    * https://doi.org/10.1016/j.ijsolstr.2015.06.005
    *
-   * @param[in] matrix Influence coefficient matrix (Discrete version of Green Function)
-   * @param[in] b0 Indentation value of the half space at the predicted points of contact.
-   * @param[in, out] p_d contact forces vector _{l(i,j)} predicted in the previous iteration but
-   * are a part of currect predicted contact set.
-   * @param[out] w Gap between the point on the topology and the half space
+   * @param[in] matrix_d Influence coefficient matrix (Discrete version of Green Function)
+   * @param[in] b0_d Indentation value of the half space at the predicted points of contact
+   * @param[in, out] p_d contact forces vector
+   * @param[out] activeSetSize size of the active set
+   * @param[in] nnlstol tolerance of the nonlinear solver; \epsilon in (Bemporad & Paggi, 2015)
+   * @param[in] maxiter maximum number of total iterations of the innermost loop of the nonlinear
+   * solver
    */
-  void nonlinearSolve(const ViewMatrix_d matrix, const ViewVector_d b0_d, ViewVector_d& p_d,
+  void nonlinearSolve(const ViewMatrix_d matrix_d, const ViewVector_d b0_d, ViewVector_d& p_d,
       int& activeSetSize, double nnlstol = 1.0e-08, int maxiter = 10000);
 }  // namespace MIRCO
 

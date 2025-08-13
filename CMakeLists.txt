@@ -357,7 +357,6 @@ if(GTEST_IN_MIRCO)
   else()
     add_executable(tests
       tests/unittests/test_kokkos.cpp
-      tests/unittests/nonlinear_solver_test_kokkos.cpp
       )
   endif()
 
@@ -373,5 +372,9 @@ if(GTEST_IN_MIRCO)
 
   gtest_discover_tests(tests)
 
-  include(TestingFramework.cmake)
+  if(NOT USE_KOKKOS_CODE)
+    include(TestingFramework.cmake)
+  else()
+    include(TestingFramework_kokkos.cmake)
+  endif()
 endif()

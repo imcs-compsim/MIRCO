@@ -14,12 +14,12 @@ int main(int argc, char* argv[])
 
   Kokkos::initialize(argc, argv);
   {
-    int threads_in_use = ExecSpace_Default_t::concurrency();
-    std::cout << "\nthreads_in_use=" << threads_in_use << "\n";
-    std::cout << "\nExecSpace_Default= " << typeid(ExecSpace_Default_t).name() << "\n";
-    std::cout << "\nExecSpace_DefaultHost= " << typeid(ExecSpace_DefaultHost_t).name() << "\n\n";
-    std::cout << "\nMemorySpace_Host_t= " << typeid(MemorySpace_Host_t).name() << "\n";
-    std::cout << "\nMemorySpace_ofDefaultExec_t= " << typeid(MemorySpace_ofDefaultExec_t).name()
+    std::cout << "-- Kokkos info --\n";
+    std::cout << "threads_in_use=" << ExecSpace_Default_t::concurrency() << "\n";
+    std::cout << "ExecSpace_Default= " << typeid(ExecSpace_Default_t).name() << "\n";
+    std::cout << "ExecSpace_DefaultHost= " << typeid(ExecSpace_DefaultHost_t).name() << "\n";
+    std::cout << "MemorySpace_Host_t= " << typeid(MemorySpace_Host_t).name() << "\n";
+    std::cout << "MemorySpace_ofDefaultExec_t= " << typeid(MemorySpace_ofDefaultExec_t).name()
               << "\n\n";
 
     if (argc != 2) std::runtime_error("The code expects (only) an input file as argument");
@@ -42,7 +42,7 @@ int main(int argc, char* argv[])
     const auto finish = std::chrono::high_resolution_clock::now();
     const double elapsedTime =
         std::chrono::duration_cast<std::chrono::duration<double>>(finish - start).count();
-    std::cout << "Elapsed time is: " + std::to_string(elapsedTime) + "s." << std::endl;
+    std::cout << "Elapsed time is: " + std::to_string(elapsedTime) + "s" << std::endl;
 
     // Test for correct output if the result_description is given in the input file
     {
