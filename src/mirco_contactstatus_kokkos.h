@@ -1,9 +1,10 @@
-#ifndef SRC_CONTACTSTATUS_H_
-#define SRC_CONTACTSTATUS_H_
+#ifndef SRC_CONTACTSTATUS_KOKKOS_H_
+#define SRC_CONTACTSTATUS_KOKKOS_H_
+
+#include "mirco_kokkostypes_kokkos.h"
 
 namespace MIRCO
 {
-  #include "mirco_kokkostypes_kokkos.h"
   /**
    * @brief The aim of this function is to compute to nodes in contact in the current iteration
    *
@@ -35,4 +36,4 @@ namespace MIRCO
       const double GridSize, const double LateralLength, const bool PressureGreenFunFlag);
 }  // namespace MIRCO
 
-#endif  // SRC_CONTACTSTATUS_H_
+#endif  // SRC_CONTACTSTATUS_KOKKOS_H_

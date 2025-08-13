@@ -105,8 +105,8 @@ if(NOT USE_KOKKOS_CODE)
       message(FATAL_ERROR "Could not find Trilinos!")
     endif()
   endif()
-  
-  
+
+
   # Find OpenMP
   find_package(OpenMP REQUIRED)
 
@@ -240,9 +240,14 @@ else() #if(USE_KOKKOS_CODE)
       message(FATAL_ERROR "Could not find KokkosKernels!")
     endif()
   endif()
-  
-  #//#
-  #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -O3")
+
+  # Find OpenMPI
+  find_package(MPI REQUIRED)
+
+  # Compiler flags: delay this modification after MPI was found. Otherwise,
+  # trying to compile with MPI can give warnings.
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -O3")
+
 
   # File(s) which need(s) Kokkos-Kernels
   add_library(mirco_needKK
@@ -252,7 +257,6 @@ else() #if(USE_KOKKOS_CODE)
 
   # Compile mirco library
   add_library(mirco_core
-    src/mirco_kokkostypes_kokkos.h
     src/mirco_evaluate_kokkos.cpp
     src/mirco_matrixsetup_kokkos.cpp
     src/mirco_contactpredictors_kokkos.cpp
@@ -265,21 +269,27 @@ else() #if(USE_KOKKOS_CODE)
     src/mirco_topology_kokkos.cpp
     src/mirco_topologyutilities_kokkos.cpp
     )
-  target_link_libraries(mirco_topology PRIVATE Kokkos::kokkos)
+  target_link_libraries(mirco_topology PUBLIC Kokkos::kokkos)
 
   add_library(mirco_inputparameters
     src/mirco_inputparameters_kokkos.cpp
     )
-  target_link_libraries(mirco_inputparameters PRIVATE mirco_utils mirco_topology)
-  target_link_libraries(mirco_inputparameters PUBLIC .........xmlreader..//#.......)
+  target_link_libraries(mirco_inputparameters PRIVATE mirco_topology)
+
+  add_library(pugixml STATIC
+    extern/pugixml/src/pugixml.cpp
+    )
+  target_include_directories(pugixml PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/extern/pugixml/src/>
+    $<INSTALL_INTERFACE:include/pugixml/>
+    )
+  add_library(mirco_inputparameters_fromxml
+    src/mirco_inputparameters_fromxml_kokkos.cpp
+    )
+  target_link_libraries(mirco_inputparameters_fromxml PRIVATE mirco_utils pugixml Kokkos::kokkos)
 
   add_library(mirco_lib INTERFACE)
-  target_link_libraries(mirco_lib INTERFACE mirco_utils mirco_needKK mirco_core mirco_topology mirco_inputparameters)
-  target_link_libraries(mirco_lib
-    Kokkos::kokkos
-    KokkosKernels::kokkoskernels
-    .........xmlreader..//#.......
-    )
+  target_link_libraries(mirco_lib INTERFACE mirco_utils mirco_needKK mirco_core mirco_topology mirco_inputparameters mirco_inputparameters_fromxml MPI::MPI_CXX)
 
   # All _kokkos header files
   file(GLOB_RECURSE HEADER_FILES
@@ -288,7 +298,7 @@ else() #if(USE_KOKKOS_CODE)
 
   # Compile mirco itself
   add_executable(mirco src/main_kokkos.cpp)
-  
+
 endif()
 
 target_include_directories(mirco_lib INTERFACE
@@ -300,13 +310,20 @@ add_library(mirco::mirco_lib ALIAS mirco_lib)
 
 
 
-target_link_libraries(mirco PUBLIC mirco::mirco_lib)
+target_link_libraries(mirco PUBLIC mirco::mirco_lib pugixml)
 
 # Install mirco (to be used as a library by other codes)
-install(TARGETS mirco_lib mirco_core mirco_io mirco_utils mirco_topology
-  EXPORT mirco_libTargets
-  ARCHIVE LIBRARY PUBLIC_HEADER
-  )
+if(NOT USE_KOKKOS_CODE)
+  install(TARGETS mirco_lib mirco_core mirco_io mirco_utils mirco_topology
+    EXPORT mirco_libTargets
+    ARCHIVE LIBRARY PUBLIC_HEADER
+    )
+else()
+  install(TARGETS mirco_lib mirco_utils mirco_needKK mirco_core mirco_topology mirco_inputparameters mirco_inputparameters_fromxml pugixml
+    EXPORT mirco_libTargets
+    ARCHIVE LIBRARY PUBLIC_HEADER
+    )
+endif()
 
 install(EXPORT mirco_libTargets
   NAMESPACE mirco::

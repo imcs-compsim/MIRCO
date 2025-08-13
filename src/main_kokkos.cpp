@@ -1,22 +1,17 @@
-#include <Teuchos_ParameterList.hpp>
-#include <Teuchos_RCP.hpp>
-#include <Teuchos_XMLParameterListHelpers.hpp>
 #include <chrono>
 #include <iostream>
+#include <pugixml.hpp>
 #include <string>
 
-// #include "mirco_evaluate.h"
 #include "mirco_evaluate_kokkos.h"
 #include "mirco_inputparameters_kokkos.h"
-#include "mirco_topologyutilities_kokkos.h"
-
-// tmp
-#include <omp.h>
 #include "mirco_kokkostypes_kokkos.h"
+#include "mirco_topologyutilities_kokkos.h"
 
 int main(int argc, char* argv[])
 {
-#if (kokkosElseOpenMP)
+  using namespace MIRCO;
+
   Kokkos::initialize(argc, argv);
   {
     int threads_in_use = ExecSpace_Default_t::concurrency();
@@ -26,14 +21,8 @@ int main(int argc, char* argv[])
     std::cout << "\nMemorySpace_Host_t= " << typeid(MemorySpace_Host_t).name() << "\n";
     std::cout << "\nMemorySpace_ofDefaultExec_t= " << typeid(MemorySpace_ofDefaultExec_t).name()
               << "\n\n";
-#else
-  int max_threads = omp_get_max_threads();
-  std::cout << "OPENMP omp_get_max_threads=" << max_threads << "\n\n";
-#endif
-    TimerRegistry::globalInstance().start();
 
-    TEUCHOS_TEST_FOR_EXCEPTION(
-        argc != 2, std::invalid_argument, "The code expects (only) an input file as argument");
+    if (argc != 2) std::runtime_error("The code expects (only) an input file as argument");
     // reading the input file name from the command line
     std::string inputFileName = argv[1];
 
@@ -56,24 +45,23 @@ int main(int argc, char* argv[])
     std::cout << "Elapsed time is: " + std::to_string(elapsedTime) + "s." << std::endl;
 
     // Test for correct output if the result_description is given in the input file
-    Teuchos::RCP<Teuchos::ParameterList> parameterList = Teuchos::rcp(new Teuchos::ParameterList());
-    Teuchos::updateParametersFromXmlFile(inputFileName, parameterList.ptr());
-    if (parameterList->isSublist("result_description"))
     {
-      Teuchos::ParameterList& result_description = parameterList->sublist("result_description");
-      double ExpectedPressure = result_description.get<double>("ExpectedPressure");
-      double ExpectedPressureTolerance =
-          result_description.get<double>("ExpectedPressureTolerance");
-      if (std::abs(meanPressure - ExpectedPressure) > ExpectedPressureTolerance)
+      pugi::xml_document doc;
+      doc.load_file(inputFileName.c_str());
+      auto result_description = doc.child("mirco_input").child("result_description");
+      if (result_description)
       {
-        std::cerr << "The output pressure is incorrect" << std::endl;
-        return EXIT_FAILURE;
+        const double ExpectedPressure =
+            std::stod(result_description.child("ExpectedPressure").attribute("value").value());
+        const double ExpectedPressureTolerance = std::stod(
+            result_description.child("ExpectedPressureTolerance").attribute("value").value());
+        if (std::abs(meanPressure - ExpectedPressure) > ExpectedPressureTolerance)
+        {
+          std::cerr << "The output pressure does not match the expected result" << std::endl;
+          return EXIT_FAILURE;
+        }
       }
     }
-
-    std::cout << TimerRegistry::globalInstance().timingReportStr(true);
-#if (kokkosElseOpenMP)
   }
   Kokkos::finalize();
-#endif
 }

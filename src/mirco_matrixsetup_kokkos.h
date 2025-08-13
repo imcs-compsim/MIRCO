@@ -1,11 +1,12 @@
 #ifndef SRC_MATRIXSETUP_KOKKOS_H_
 #define SRC_MATRIXSETUP_KOKKOS_H_
 
+#include "mirco_kokkostypes_kokkos.h"
+
 namespace MIRCO
 {
   namespace MatrixGeneration
   {
-    #include "mirco_kokkostypes_kokkos.h"
     /**
      * @brief The aim of this function is to create the influence coefficient matrix (Discrete
      * version of Green function)
@@ -20,9 +21,8 @@ namespace MIRCO
      *
      * @return Influence coefficient matrix (Discrete version of Green Function) (usually denoted H)
      */
-    ViewMatrix_d SetupMatrix(const ViewVector_d xv0, const ViewVector_d yv0,
-    const double GridSize, const double CompositeYoungs, const int systemsize,
-    const bool PressureGreenFunFlag);
+    ViewMatrix_d SetupMatrix(const ViewVector_d xv0, const ViewVector_d yv0, const double GridSize,
+        const double CompositeYoungs, const int systemsize, const bool PressureGreenFunFlag);
   };  // namespace MatrixGeneration
 }  // namespace MIRCO
 

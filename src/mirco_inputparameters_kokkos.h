@@ -1,9 +1,12 @@
-#ifndef SRC_INPUTPARAMETERS_H_
-#define SRC_INPUTPARAMETERS_H_
+#ifndef SRC_INPUTPARAMETERS_KOKKOS_H_
+#define SRC_INPUTPARAMETERS_KOKKOS_H_
+
+#include <string>
+
+#include "mirco_kokkostypes_kokkos.h"
 
 namespace MIRCO
 {
-  #include "mirco_kokkostypes_kokkos.h"
   /**
    * @brief This struct stores the input parameters and topology
    *
@@ -81,4 +84,4 @@ namespace MIRCO
   };
 }  // namespace MIRCO
 
-#endif  // SRC_INPUTPARAMETERS_H_
+#endif  // SRC_INPUTPARAMETERS_KOKKOS_H_

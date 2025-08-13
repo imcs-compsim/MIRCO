@@ -1,11 +1,11 @@
 #ifndef SRC_EVALUATE_KOKKOS_H_
 #define SRC_EVALUATE_KOKKOS_H_
 
-#include "mirco_inputparameters.h"
+#include "mirco_inputparameters_kokkos.h"
+#include "mirco_kokkostypes_kokkos.h"
 
 namespace MIRCO
 {
-  #include "mirco_kokkostypes_kokkos.h"
   /**
    * @brief Relate the far-field displacement with pressure
    *
@@ -44,7 +44,8 @@ namespace MIRCO
   {
     Evaluate(pressure, inputParams.delta, inputParams.lateral_length, inputParams.grid_size,
         inputParams.tolerance, inputParams.max_iteration, inputParams.composite_youngs,
-        inputParams.warm_starting_flag, inputParams.elastic_compliance_correction, inputParams.topology_d, zmax, meshgrid_d, inputParams.pressure_green_funct_flag);
+        inputParams.warm_starting_flag, inputParams.elastic_compliance_correction,
+        inputParams.topology_d, zmax, meshgrid_d, inputParams.pressure_green_funct_flag);
   }
 }  // namespace MIRCO
 

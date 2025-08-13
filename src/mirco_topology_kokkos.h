@@ -1,11 +1,12 @@
-#ifndef SRC_TOPOLOGY_H_
-#define SRC_TOPOLOGY_H_
+#ifndef SRC_TOPOLOGY_KOKKOS_H_
+#define SRC_TOPOLOGY_KOKKOS_H_
 
 #include <string>
 
+#include "mirco_kokkostypes_kokkos.h"
+
 namespace MIRCO
 {
-  #include "mirco_kokkostypes_kokkos.h"
   /**
    * @brief Construct a Surface object by reading topology from an input (.dat) file.
    *
@@ -34,4 +35,4 @@ namespace MIRCO
 
 }  // namespace MIRCO
 
-#endif  // SRC_TOPOLOGY_H_
+#endif  // SRC_TOPOLOGY_KOKKOS_H_

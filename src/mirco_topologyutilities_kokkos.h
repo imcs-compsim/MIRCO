@@ -1,9 +1,10 @@
-#ifndef SRC_TOPOLOGYUTILITIES_H_
-#define SRC_TOPOLOGYUTILITIES_H_
+#ifndef SRC_TOPOLOGYUTILITIES_KOKKOS_H_
+#define SRC_TOPOLOGYUTILITIES_KOKKOS_H_
+
+#include "mirco_kokkostypes_kokkos.h"
 
 namespace MIRCO
 {
-  #include "mirco_kokkostypes_kokkos.h"
   /**
    * @brief Create a Meshgrid vector of the surface
    *
@@ -31,7 +32,7 @@ namespace MIRCO
    *
    * @param topology Topology matrix containing heights
    */
-  MIRCO::TopologyMaxAndMean MIRCO::ComputeMaxAndMean(const ViewMatrix_d& topology_d);
+  TopologyMaxAndMean ComputeMaxAndMean(ViewMatrix_d topology_d);
 }  // namespace MIRCO
 
-#endif  // SRC_TOPOLOGYUTILITIES_H_
+#endif  // SRC_TOPOLOGYUTILITIES_KOKKOS_H_

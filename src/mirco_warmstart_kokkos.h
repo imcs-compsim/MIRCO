@@ -1,9 +1,10 @@
 #ifndef SRC_WARMSTART_KOKKOS_H_
 #define SRC_WARMSTART_KOKKOS_H_
 
+#include "mirco_kokkostypes_kokkos.h"
+
 namespace MIRCO
 {
-  #include "mirco_kokkostypes_kokkos.h"
   /**
    * @brief This function is used to determine the nodes which were in contact in the last iteration
    * from the current contact set. This helps in making an initial guess of the nodes in contact in

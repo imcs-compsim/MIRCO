@@ -2,26 +2,30 @@
 
 #include <algorithm>
 
-ViewVector_h MIRCO::Warmstart(const ViewVector_h& xv0, const ViewVector_h& yv0,
-    const ViewVector_h& xvf, const ViewVector_h& yvf, const ViewVector_h& pf)
+namespace MIRCO
 {
-  // TODO: If possible, convert this algorithm into running in a parallel kernel so that device
-  // views can be used
-  const auto n = static_cast<size_t>(xv0.extent(0));
-  ViewVector_h p0("MIRCO::Warmstart(); p0", n);
-
-  for (size_t i = 0; i < n; ++i)
+  ViewVector_h Warmstart(const ViewVector_h& xv0, const ViewVector_h& yv0, const ViewVector_h& xvf,
+      const ViewVector_h& yvf, const ViewVector_h& pf)
   {
-    auto it_x = std::find(xvf.data(), xvf.data() + xvf.extent(0), xv0(i));
-    auto it_y = std::find(yvf.data(), yvf.data() + yvf.extent(0), yv0(i));
+    // TODO: If possible, convert this algorithm into running in a parallel kernel so that device
+    // views can be used
+    const auto n = static_cast<size_t>(xv0.extent(0));
+    ViewVector_h p0("MIRCO::Warmstart(); p0", n);
 
-    if (it_x != xvf.data() + xvf.extent(0) && it_y != yvf.data() + yvf.extent(0) &&
-        (it_x - xvf.data()) == (it_y - yvf.data()))
+    for (size_t i = 0; i < n; ++i)
     {
-      size_t j = it_x - xvf.data();
-      p0(i) = pf(j);
+      auto it_x = std::find(xvf.data(), xvf.data() + xvf.extent(0), xv0(i));
+      auto it_y = std::find(yvf.data(), yvf.data() + yvf.extent(0), yv0(i));
+
+      if (it_x != xvf.data() + xvf.extent(0) && it_y != yvf.data() + yvf.extent(0) &&
+          (it_x - xvf.data()) == (it_y - yvf.data()))
+      {
+        size_t j = it_x - xvf.data();
+        p0(i) = pf(j);
+      }
     }
+
+    return p0;
   }
 
-  return p0;
-}
+}  // namespace MIRCO

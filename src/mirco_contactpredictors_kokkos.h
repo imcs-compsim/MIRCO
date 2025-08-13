@@ -1,9 +1,10 @@
 #ifndef SRC_CONTACTPREDICTORS_KOKKOS_H_
 #define SRC_CONTACTPREDICTORS_KOKKOS_H_
 
+#include "mirco_kokkostypes_kokkos.h"
+
 namespace MIRCO
 {
-  #include "mirco_kokkostypes_kokkos.h"
   /**
    * @brief The aim of this function is to determine all the points, for which the gap is bigger
    * than the displacement of the rigid indenter, cannot be in contact and thus are not checked in
