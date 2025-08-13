@@ -6,8 +6,6 @@ namespace MIRCO
       double zmax, double Delta, double w_el, const ViewVector_d meshgrid,
       const ViewMatrix_d topology)
   {
-    // # TODO:m see if this parallization is even needed or just makes it less efficient
-
     n0 = 0;
 
     double value = zmax - Delta - w_el;
@@ -23,12 +21,10 @@ namespace MIRCO
         },
         n0);
 
-    Kokkos::View<int *, Device_Default_t> row("row", n0);
-    Kokkos::View<int *, Device_Default_t> col("col", n0);
+    ViewVectorInt_d row("row", n0);
+    ViewVectorInt_d col("col", n0);
 
-    // # might need to do int* but just of size 1, because we need a ptr on device
-    /// Kokkos::View<int, Device_Default_t> counter("counter");
-    Kokkos::View<int *, Device_Default_t> counter("counter", 1);
+    ViewVectorInt_d counter("counter", 1);
     Kokkos::deep_copy(counter, 0);
 
     Kokkos::parallel_for(
@@ -55,7 +51,7 @@ namespace MIRCO
           xv0(i) = meshgrid(ci);
           yv0(i) = meshgrid(ri);
 
-          // b0 = \overbar{u} + w_el
+          // Note: b0 = \overbar{u} + w_el
           b0(i) = Delta + w_el - (zmax - topology(ri, ci));
         });
   }

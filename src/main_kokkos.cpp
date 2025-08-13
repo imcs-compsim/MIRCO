@@ -23,7 +23,7 @@ int main(int argc, char* argv[])
               << "\n\n";
 
     if (argc != 2) std::runtime_error("The code expects (only) an input file as argument");
-    // reading the input file name from the command line
+    // Read the input file name from the command line
     std::string inputFileName = argv[1];
 
     const auto start = std::chrono::high_resolution_clock::now();

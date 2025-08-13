@@ -36,7 +36,7 @@
         "CMAKE_C_COMPILER_LAUNCHER": "ccache",
         "CMAKE_CXX_FLAGS": "",
         "USE_KOKKOS_CODE": "ON",
-        "Kokkos_DIR": "/opt/mirco-dependencies/kokkos/",
+        "Kokkos_DIR": "/opt/mirco-dependencies/kokkos",
         "KokkosKernels_DIR": "/opt/mirco-dependencies/kokkos-kernels",
         "KOKKOS_IN_MIRCO": "ON",
         "KOKKOS_KERNELS_IN_MIRCO": "ON",

@@ -30,6 +30,8 @@ $CMAKE_COMMAND \
   -D CMAKE_CXX_COMPILER=g++ \
   -D CMAKE_INSTALL_PREFIX:STRING=$INSTALL_DIR \
   \
+  -D Kokkos_ROOT=$INSTALL_DIR/../kokkos \
+  \
   -D KokkosKernels_ENABLE_TPL_BLAS=ON \
   -D KokkosKernels_ENABLE_TPL_LAPACK=ON \
   \

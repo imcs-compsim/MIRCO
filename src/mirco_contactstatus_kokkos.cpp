@@ -12,13 +12,12 @@ namespace MIRCO
     yvf = ViewVector_d("new xvf", activeSetSize);
     pf_d = ViewVector_d("new xvf", activeSetSize);
     int n0 = p_d.extent(0);
-    // @} Parallelizing this slows down program, so removed it.
 
     Kokkos::View<int*, Device_Default_t> counter("counter", 1);
     Kokkos::deep_copy(counter, 0);
 
     Kokkos::parallel_for(
-        "", Kokkos::RangePolicy<ExecSpace_Default_t>(0, n0), KOKKOS_LAMBDA(const int i) {
+        n0, KOKKOS_LAMBDA(const int i) {
           if (p_d(i) != 0)
           {
             const int pos = Kokkos::atomic_fetch_add(&counter(0), 1);
@@ -39,14 +38,13 @@ namespace MIRCO
 
     if (PressureGreenFunFlag)
       Kokkos::parallel_reduce(
-          "", activeSetSize,
+          activeSetSize,
           KOKKOS_LAMBDA(const int i, double& local_sum) { local_sum += pf_d(i) * GridSize2; },
           totalForce);
     else
       Kokkos::parallel_reduce(
-          "", activeSetSize,
-          KOKKOS_LAMBDA(const int i, double& local_sum) { local_sum += pf_d(i); }, totalForce);
-
+          activeSetSize, KOKKOS_LAMBDA(const int i, double& local_sum) { local_sum += pf_d(i); },
+          totalForce);
 
     contactArea = activeSetSize * (GridSize2 / LateralLength * LateralLength);
   }

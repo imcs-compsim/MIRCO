@@ -54,11 +54,11 @@ RUN mkdir -p ${INSTALL_DIR}
 COPY dependencies /dependencies
 
 # Install Trilinos 2022_Q1
-RUN /dependencies/trilinos/install.sh ${INSTALL_DIR}/trilinos
+RUN /dependencies/trilinos/install.sh ${INSTALL_DIR}trilinos
 
 # Install Kokkos and Kokkos-Kernels
-RUN /dependencies/kokkos/install.sh ${INSTALL_DIR}/kokkos
-RUN /dependencies/kokkos-kernels/install.sh ${INSTALL_DIR}/kokkos-kernels
+RUN /dependencies/kokkos/install.sh ${INSTALL_DIR}kokkos
+RUN /dependencies/kokkos-kernels/install.sh ${INSTALL_DIR}kokkos-kernels
 
 # Add dependencies hash
 # The label is added at the end because the label causes a cache miss

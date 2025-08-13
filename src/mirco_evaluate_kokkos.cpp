@@ -27,21 +27,17 @@ namespace MIRCO
     pressure = 0.0;
     double w_el = 0.0;
 
-    // Initialise number of iteration, k, and initial number of predicted contact
-    // nodes, n0.
-    int k = 0;  ///, n0 = 0;//#local to while scope
+    // Initialise number of iterations
+    int k = 0;
 
-    // Coordinates of the points predicted to be in contact.
-    /// std::vector<double> xv0, yv0;//# this should not be declared here as it is local to the
-    /// while loop
     // Coordinates of the points in contact in the previous iteration.
     ViewVector_d xvf_d, yvf_d;
     // Contact force at (xvf,yvf) predicted in the previous iteration.
     ViewVector_d pf_d;
 
     // Initialise the error in force
-    double ErrorForce = std::numeric_limits<double>::max();  // # can just do tolerance + 1.0 so you
-                                                             // dont need to include numeric_limits
+    double ErrorForce = std::numeric_limits<double>::max();
+
     while (ErrorForce > Tolerance && k < MaxIteration)
     {
       // Initial number of predicted contact nodes.
@@ -50,17 +46,9 @@ namespace MIRCO
       ViewVector_d xv0_d, yv0_d;
 
       // Indentation value of the half space at the predicted points of contact.
-      // b0(i) = Delta + w_el - (zmax - topology(ri, ci));
-      //                        ^\xi_{max}  ^ \xi             in Bemporad 2015
-      // w_el = force0[k] / ElasticComplianceCorrection;
-      // elastic_compliance_correction_ = LateralLength * composite_youngs_ / shape_factor_; where
-      // LateralLength is the side length of the whole big (FEM) element (projected onto boundary),
-      // which contains a bunch of smaller BEM elements (see Mayr 2019)
-      // cf: \overbar{u} would be Delta - (zmax - topology(ri, ci))         without the w_el
       ViewVector_d b0_d;  // # change to ViewVector_d/h xv0, yv0;
 
       // // First predictor for contact set
-      // # xv0 and xy0 and b0 are cleared, so are only out and not in; n0 is only out
       MIRCO::ContactSetPredictor(n0, xv0_d, yv0_d, b0_d, zmax, Delta, w_el, meshgrid_d, topology_d);
 
       // Second predictor for contact set
@@ -68,9 +56,6 @@ namespace MIRCO
       // x0 --> contact forces at (xvf,yvf) predicted in the previous iteration but
       // are a part of currect predicted contact set. x0 is calculated in the
       // Warmstart function to be used in the NNLS to accelerate the simulation.
-
-
-
       ViewVector_d p0p_d;
       if (WarmStartingFlag && k > 0)
       {
@@ -90,35 +75,21 @@ namespace MIRCO
           p0p_d = ViewVector_d("InitialGuessPredictor", n0, 0.0);
         }
       }
-
-
       // }
+
       auto H_d = MIRCO::MatrixGeneration::SetupMatrix(
           xv0_d, yv0_d, GridSize, CompositeYoungs, n0, PressureGreenFunFlag);
 
-
-      // ## we have at this point used the indexing of xv0 and such. index 0 of a quantity like p0_d
-      // is wherever that xv0 active set starts
-
-      // {
       // Defined as (u - u(bar)) in (Bemporad & Paggi, 2015)
       // Gap between the point on the topology and the half space
-      /// ViewVector_d w_d;
+      // ViewVector_d w_d;
 
       int activeSetSize;
       // use Nonlinear solver --> Non-Negative Least Squares (NNLS) as in
       // (Bemporad & Paggi, 2015)
-      // ## here, we make an active set that holds in no particular order the references to the
-      // indices. but the thing is that p_d inside of this function, as the non-compacted vector,
-      // still holds
-      MIRCO::nonlinearSolve(H_d, b0_d, p0p_d, activeSetSize);  /// w_d);
-      // #Q Why is x0 (or y0...) a matrix with 1 column and not just a vector. there is no reason i
-      // think
+      MIRCO::nonlinearSolve(H_d, b0_d, p0p_d, activeSetSize);
 
-      // Compute number of contact node
-      // # TODO: this function, I think, we can actually just integrate into nonlinear solve and it
-      // will all be more efficient because we already have a compact form basically in nonlinear
-      // solve
+      // Compute number of contact nodes
       MIRCO::ComputeContactNodes(xvf_d, yvf_d, pf_d, activeSetSize, p0p_d, xv0_d, yv0_d);
 
       // Compute total contact force and contact area
