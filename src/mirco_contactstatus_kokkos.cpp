@@ -1,8 +1,6 @@
 #include "mirco_contactstatus_kokkos.h"
 
-#include <Teuchos_SerialDenseMatrix.hpp>
 #include <cmath>
-#include <vector>
 
 void MIRCO::ComputeContactNodes(ViewVector_d& xvf, ViewVector_d& yvf, ViewVector_d& pf_d,
     const int activeSetSize, const ViewVector_d p_d, const ViewVector_d xv0, const ViewVector_d yv0)

@@ -27,7 +27,7 @@ const std::map<int, double> shape_factors_force{{1, 0.778958541513360}, {2, 0.80
     {3, 0.826126871395416}, {4, 0.841369158110513}, {5, 0.851733020725652}, {6, 0.858342234203154},
     {7, 0.862368243479785}, {8, 0.864741597831785}};
 
-inline int NFromResolution(int resolution) { return (1 << resolution) + 1; }
+inline int getNFromResolution(int resolution) { return (1 << resolution) + 1; }
 double InterpolatedShapeFactor(const std::map<int, double>& shapeFactors, int N)
 {
   const double resolution = log2(N - 1);

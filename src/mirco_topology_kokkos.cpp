@@ -4,7 +4,6 @@
 #include <ctime>
 #include <fstream>
 #include <random>
-#include <string>
 
 ViewMatrix_h MIRCO::CreateSurfaceFromFile(const std::string& filepath, int& dimension)
 {

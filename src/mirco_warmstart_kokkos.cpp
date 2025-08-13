@@ -1,6 +1,5 @@
 #include "mirco_warmstart_kokkos.h"
 
-#include <Teuchos_SerialDenseMatrix.hpp>
 #include <algorithm>
 
 ViewVector_h MIRCO::Warmstart(const ViewVector_h& xv0, const ViewVector_h& yv0,
@@ -9,7 +8,7 @@ ViewVector_h MIRCO::Warmstart(const ViewVector_h& xv0, const ViewVector_h& yv0,
   // TODO: If possible, convert this algorithm into running in a parallel kernel so that device
   // views can be used
   const auto n = static_cast<size_t>(xv0.extent(0));
-  ViewVector_h p0("p0", n);
+  ViewVector_h p0("MIRCO::Warmstart(); p0", n);
 
   for (size_t i = 0; i < n; ++i)
   {

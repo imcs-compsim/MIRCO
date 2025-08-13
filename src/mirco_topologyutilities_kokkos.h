@@ -1,12 +1,9 @@
 #ifndef SRC_TOPOLOGYUTILITIES_H_
 #define SRC_TOPOLOGYUTILITIES_H_
 
-#include <Kokkos_Core.hpp>
-
-#include "tmpHelpers/kokkosIntegration.hpp"
-
 namespace MIRCO
 {
+  #include "mirco_kokkostypes_kokkos.h"
   /**
    * @brief Create a Meshgrid vector of the surface
    *

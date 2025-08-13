@@ -1,16 +1,11 @@
 #ifndef SRC_EVALUATE_KOKKOS_H_
 #define SRC_EVALUATE_KOKKOS_H_
 
-#include <Kokkos_Core.hpp>
-#include <Teuchos_SerialDenseMatrix.hpp>
-
 #include "mirco_inputparameters.h"
-// tmp
-#include "tmpHelpers/Timer.hpp"
-#include "tmpHelpers/kokkosIntegration.hpp"
 
 namespace MIRCO
 {
+  #include "mirco_kokkostypes_kokkos.h"
   /**
    * @brief Relate the far-field displacement with pressure
    *
@@ -32,7 +27,7 @@ namespace MIRCO
   void Evaluate(double& pressure, const double Delta, const double LateralLength,
       const double GridSize, const double Tolerance, const int MaxIteration,
       const double CompositeYoungs, const bool WarmStartingFlag,
-      const double ElasticComplianceCorrection, const ViewMatrix_d topology, const double zmax,
+      const double ElasticComplianceCorrection, const ViewMatrix_d topology_d, const double zmax,
       const ViewVector_d meshgrid_d, const bool PressureGreenFunFlag);
 
   /**
@@ -49,8 +44,7 @@ namespace MIRCO
   {
     Evaluate(pressure, inputParams.delta, inputParams.lateral_length, inputParams.grid_size,
         inputParams.tolerance, inputParams.max_iteration, inputParams.composite_youngs,
-        inputParams.warm_starting_flag, inputParams.elastic_compliance_correction,
-        *(inputParams.topology), zmax, meshgrid_d, inputParams.pressure_green_funct_flag);
+        inputParams.warm_starting_flag, inputParams.elastic_compliance_correction, inputParams.topology_d, zmax, meshgrid_d, inputParams.pressure_green_funct_flag);
   }
 }  // namespace MIRCO
 

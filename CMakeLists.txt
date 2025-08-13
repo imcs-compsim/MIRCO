@@ -39,74 +39,134 @@ if(GTEST_IN_MIRCO)
   add_subdirectory("extern/googletest")
 endif()
 
-option(TRILINOS_IN_MIRCO "Find the Trilinos library in the MIRCO project. If set to OFF, use a library from an upstream project" ON)
+option(USE_KOKKOS_CODE "Use the Kokkos variant of MIRCO, which also requires Kokkos-Kernels. If set to OFF, the standard OpenMP-based implementation will be used" ON)
 
-if(TRILINOS_IN_MIRCO)
-  set(CMAKE_PREFIX_PATH ${TRILINOS_PATH} ${CMAKE_PREFIX_PATH})
-  find_package(Trilinos REQUIRED HINTS ${TRILINOS_PATH} COMPONENTS Teuchos)
+# Utilities which need require no libraries (hence this is the same regardless of USE_KOKKOS_CODE)
+add_library(mirco_utils
+  src/mirco_filesystem_utils.cpp
+  )
 
-  # handle the case of Trililnos < 14.0 by faking the interface target
-  if(Trilinos_FOUND AND NOT TARGET Trilinos::all_selected_libs)
-    # In preparation for newer Trilinos releases, create a target
-    # Trilinos::all_selected_libs with the correct dependencies
-    add_library(Trilinos::all_selected_libs IMPORTED INTERFACE)
-    target_include_directories(
-      Trilinos::all_selected_libs
-      SYSTEM
-      INTERFACE ${Trilinos_INCLUDE_DIRS}
-      INTERFACE ${Trilinos_TPL_INCLUDE_DIRS}
-    )
-    target_link_libraries(
-      Trilinos::all_selected_libs INTERFACE ${Trilinos_LIBRARIES} ${Trilinos_TPL_LIBRARIES}
-    )
-  endif()
-else()
-  # Use a Trilinos which has been found in an upstream project. This mechanism only supports the interface target.
-  if(TARGET Trilinos::all_selected_libs)
-    message(STATUS "Trilinos included from upstream project.")
+if(NOT USE_KOKKOS_CODE)
+
+  option(TRILINOS_IN_MIRCO "Find the Trilinos library in the MIRCO project. If set to OFF, use a library from an upstream project" ON)
+
+  if(TRILINOS_IN_MIRCO)
+    set(CMAKE_PREFIX_PATH ${TRILINOS_PATH} ${CMAKE_PREFIX_PATH})
+    find_package(Trilinos REQUIRED HINTS ${TRILINOS_PATH} COMPONENTS Teuchos)
+
+    # handle the case of Trililnos < 14.0 by faking the interface target
+    if(Trilinos_FOUND AND NOT TARGET Trilinos::all_selected_libs)
+      # In preparation for newer Trilinos releases, create a target
+      # Trilinos::all_selected_libs with the correct dependencies
+      add_library(Trilinos::all_selected_libs IMPORTED INTERFACE)
+      target_include_directories(
+        Trilinos::all_selected_libs
+        SYSTEM
+        INTERFACE ${Trilinos_INCLUDE_DIRS}
+        INTERFACE ${Trilinos_TPL_INCLUDE_DIRS}
+      )
+      target_link_libraries(
+        Trilinos::all_selected_libs INTERFACE ${Trilinos_LIBRARIES} ${Trilinos_TPL_LIBRARIES}
+      )
+    endif()
   else()
-    message(FATAL_ERROR "TRILINOS_IN_MIRCO=OFF but no Trilinos target was available in the upstream project.")
+    # Use a Trilinos which has been found in an upstream project. This mechanism only supports the interface target.
+    if(TARGET Trilinos::all_selected_libs)
+      message(STATUS "Trilinos included from upstream project.")
+    else()
+      message(FATAL_ERROR "TRILINOS_IN_MIRCO=OFF but no Trilinos target was available in the upstream project.")
+    endif()
   endif()
-endif()
 
-# Print details on the Trilinos configuration
-if(TRILINOS_IN_MIRCO)
-  if(Trilinos_FOUND)
-    message("\nFound Trilinos!  Here are the details: ")
-    message("   Trilinos_DIR = ${Trilinos_DIR}")
-    message("   Trilinos_VERSION = ${Trilinos_VERSION}")
-    message("   Trilinos_PACKAGE_LIST = ${Trilinos_PACKAGE_LIST}")
-    message("   Trilinos_LIBRARIES = ${Trilinos_LIBRARIES}")
-    message("   Trilinos_INCLUDE_DIRS = ${Trilinos_INCLUDE_DIRS}")
-    message("   Trilinos_TPL_LIST = ${Trilinos_TPL_LIST}")
-    message("   Trilinos_TPL_INCLUDE_DIRS = ${Trilinos_TPL_INCLUDE_DIRS}")
-    message("   Trilinos_TPL_LIBRARIES = ${Trilinos_TPL_LIBRARIES}")
-    message("   Trilinos_BUILD_SHARED_LIBS = ${Trilinos_BUILD_SHARED_LIBS}")
-    message("   Trilinos_CXX_COMPILER = ${Trilinos_CXX_COMPILER}")
-    message("   Trilinos_C_COMPILER = ${Trilinos_C_COMPILER}")
-    message("   Trilinos_Fortran_COMPILER = ${Trilinos_Fortran_COMPILER}")
-    message("   Trilinos_CXX_COMPILER_FLAGS = ${Trilinos_CXX_COMPILER_FLAGS}")
-    message("   Trilinos_C_COMPILER_FLAGS = ${Trilinos_C_COMPILER_FLAGS}")
-    message("   Trilinos_Fortran_COMPILER_FLAGS = ${Trilinos_Fortran_COMPILER_FLAGS}")
-    message("   Trilinos_LINKER = ${Trilinos_LINKER}")
-    message("   Trilinos_EXTRA_LD_FLAGS = ${Trilinos_EXTRA_LD_FLAGS}")
-    message("   Trilinos_AR = ${Trilinos_AR}")
-    message("End of Trilinos details\n")
-  else()
-    message(FATAL_ERROR "Could not find Trilinos!")
+  # Print details on the Trilinos configuration
+  if(TRILINOS_IN_MIRCO)
+    if(Trilinos_FOUND)
+      message("\nFound Trilinos!  Here are the details: ")
+      message("   Trilinos_DIR = ${Trilinos_DIR}")
+      message("   Trilinos_VERSION = ${Trilinos_VERSION}")
+      message("   Trilinos_PACKAGE_LIST = ${Trilinos_PACKAGE_LIST}")
+      message("   Trilinos_LIBRARIES = ${Trilinos_LIBRARIES}")
+      message("   Trilinos_INCLUDE_DIRS = ${Trilinos_INCLUDE_DIRS}")
+      message("   Trilinos_TPL_LIST = ${Trilinos_TPL_LIST}")
+      message("   Trilinos_TPL_INCLUDE_DIRS = ${Trilinos_TPL_INCLUDE_DIRS}")
+      message("   Trilinos_TPL_LIBRARIES = ${Trilinos_TPL_LIBRARIES}")
+      message("   Trilinos_BUILD_SHARED_LIBS = ${Trilinos_BUILD_SHARED_LIBS}")
+      message("   Trilinos_CXX_COMPILER = ${Trilinos_CXX_COMPILER}")
+      message("   Trilinos_C_COMPILER = ${Trilinos_C_COMPILER}")
+      message("   Trilinos_Fortran_COMPILER = ${Trilinos_Fortran_COMPILER}")
+      message("   Trilinos_CXX_COMPILER_FLAGS = ${Trilinos_CXX_COMPILER_FLAGS}")
+      message("   Trilinos_C_COMPILER_FLAGS = ${Trilinos_C_COMPILER_FLAGS}")
+      message("   Trilinos_Fortran_COMPILER_FLAGS = ${Trilinos_Fortran_COMPILER_FLAGS}")
+      message("   Trilinos_LINKER = ${Trilinos_LINKER}")
+      message("   Trilinos_EXTRA_LD_FLAGS = ${Trilinos_EXTRA_LD_FLAGS}")
+      message("   Trilinos_AR = ${Trilinos_AR}")
+      message("End of Trilinos details\n")
+    else()
+      message(FATAL_ERROR "Could not find Trilinos!")
+    endif()
   endif()
-endif()
+  
+  
+  # Find OpenMP
+  find_package(OpenMP REQUIRED)
 
+  # Find OpenMPI
+  find_package(MPI REQUIRED)
 
+  # Compiler flags: delay this modification after MPI was found. Otherwise,
+  # trying to compile with MPI can give warnings.
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -O3")
 
+  # Compile mirco library
+  add_library(mirco_core
+    src/mirco_linearsolver.cpp
+    src/mirco_nonlinearsolver.cpp
+    src/mirco_matrixsetup.cpp
+    src/mirco_warmstart.cpp
+    src/mirco_evaluate.cpp
+    src/mirco_topologyutilities.cpp
+    src/mirco_contactpredictors.cpp
+    src/mirco_contactstatus.cpp
+    )
+  target_link_libraries(mirco_core PUBLIC Trilinos::all_selected_libs OpenMP::OpenMP_CXX)
 
+  add_library(mirco_topology
+    src/mirco_topology.cpp
+    )
+  target_link_libraries(mirco_topology PRIVATE Trilinos::all_selected_libs)
 
+  add_library(mirco_io
+    src/mirco_inputparameters.cpp
+    )
+  target_link_libraries(mirco_io PRIVATE mirco_utils mirco_topology)
+  target_link_libraries(mirco_io PUBLIC Trilinos::all_selected_libs)
 
-# Kokkos
-option(USE_KOKKOS_CODE "Use the Kokkos variant of MIRCO. If set to OFF, the standard OpenMP-based implementation will be used" ON)
+  add_library(mirco_utils
+    src/mirco_filesystem_utils.cpp
+    )
 
-if(USE_KOKKOS_CODE)
+  add_library(mirco_lib INTERFACE)
+  target_link_libraries(mirco_lib INTERFACE mirco_core mirco_io mirco_utils mirco_topology)
+  target_link_libraries(mirco_lib
+    INTERFACE OpenMP::OpenMP_CXX
+    Trilinos::all_selected_libs
+    MPI::MPI_CXX
+    )
 
+  # All standard/original header files (i.e. without _kokkos)
+  file(GLOB_RECURSE HEADER_FILES
+    "${PROJECT_SOURCE_DIR}/src/*.h"
+  )
+  foreach(f ${HEADER_FILES})
+    if(f MATCHES "_kokkos\\.h$")
+      list(REMOVE_ITEM HEADER_FILES ${f})
+    endif()
+  endforeach()
+
+  # Compile mirco itself
+  add_executable(mirco src/main.cpp)
+
+else() #if(USE_KOKKOS_CODE)
   option(KOKKOS_IN_MIRCO "Find Kokkos in the MIRCO project. If set to OFF, use the Kokkos installation from an upstream project" ON)
 
   if(KOKKOS_IN_MIRCO)
@@ -180,73 +240,56 @@ if(USE_KOKKOS_CODE)
       message(FATAL_ERROR "Could not find KokkosKernels!")
     endif()
   endif()
+  
+  #//#
+  #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -O3")
 
+  # File(s) which need(s) Kokkos-Kernels
+  add_library(mirco_needKK
+    src/mirco_nonlinearsolver_kokkos.cpp
+    )
+  target_link_libraries(mirco_needKK PRIVATE Kokkos::kokkos KokkosKernels::kokkoskernels)
+
+  # Compile mirco library
+  add_library(mirco_core
+    src/mirco_kokkostypes_kokkos.h
+    src/mirco_evaluate_kokkos.cpp
+    src/mirco_matrixsetup_kokkos.cpp
+    src/mirco_contactpredictors_kokkos.cpp
+    src/mirco_contactstatus_kokkos.cpp
+    src/mirco_warmstart_kokkos.cpp
+    )
+  target_link_libraries(mirco_core PUBLIC Kokkos::kokkos)
+
+  add_library(mirco_topology
+    src/mirco_topology_kokkos.cpp
+    src/mirco_topologyutilities_kokkos.cpp
+    )
+  target_link_libraries(mirco_topology PRIVATE Kokkos::kokkos)
+
+  add_library(mirco_inputparameters
+    src/mirco_inputparameters_kokkos.cpp
+    )
+  target_link_libraries(mirco_inputparameters PRIVATE mirco_utils mirco_topology)
+  target_link_libraries(mirco_inputparameters PUBLIC .........xmlreader..//#.......)
+
+  add_library(mirco_lib INTERFACE)
+  target_link_libraries(mirco_lib INTERFACE mirco_utils mirco_needKK mirco_core mirco_topology mirco_inputparameters)
+  target_link_libraries(mirco_lib
+    Kokkos::kokkos
+    KokkosKernels::kokkoskernels
+    .........xmlreader..//#.......
+    )
+
+  # All _kokkos header files
+  file(GLOB_RECURSE HEADER_FILES
+    "${PROJECT_SOURCE_DIR}/src/*_kokkos.h"
+  )
+
+  # Compile mirco itself
+  add_executable(mirco src/main_kokkos.cpp)
+  
 endif()
-
-
-
-
-# Find OpenMP
-find_package(OpenMP REQUIRED)
-
-# Find OpenMPI
-find_package(MPI REQUIRED)
-
-# Compiler flags: delay this modification after MPI was found. Otherwise,
-# trying to compile with MPI can give warnings.
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -O3")
-
-
-add_library(mirco_needsKokkoskernels
-  src/mirco_nonlinearsolver_kokkos.cpp
-  )
-target_link_libraries(mirco_needsKokkoskernels PRIVATE Trilinos::all_selected_libs OpenMP::OpenMP_CXX Kokkos::kokkos KokkosKernels::kokkoskernels)
-if(KOKKOS_KERNELS_IN_MIRCO)
-# Compile mirco library
-add_library(mirco_core
-  #src/mirco_linearsolver.cpp
-  #src/mirco_nonlinearsolver.cpp
-  #src/mirco_matrixsetup.cpp
-  src/mirco_matrixsetup_kokkos.cpp
-  #src/mirco_warmstart.cpp
-  src/mirco_warmstart_kokkos.cpp
-  #src/mirco_evaluate.cpp
-  src/mirco_evaluate_kokkos.cpp
-  src/mirco_topologyutilities.cpp
-  #src/mirco_contactpredictors.cpp
-  src/mirco_contactpredictors_kokkos.cpp
-  #src/mirco_contactstatus.cpp
-  src/mirco_contactstatus_kokkos.cpp
-  )
-target_link_libraries(mirco_core PUBLIC Trilinos::all_selected_libs OpenMP::OpenMP_CXX Kokkos::kokkos mirco_needsKokkoskernels)
-
-add_library(mirco_topology
-  src/mirco_topology.cpp
-  )
-target_link_libraries(mirco_topology PUBLIC Trilinos::all_selected_libs Kokkos::kokkos)
-
-add_library(tmpHelpers
-  src/tmpHelpers/Timer.cpp
-  )
-target_link_libraries(tmpHelpers PUBLIC Trilinos::all_selected_libs Kokkos::kokkos) # should be Kokkos directly, but this is tmp anyways
-
-add_library(mirco_io
-  src/mirco_inputparameters.cpp
-  )
-target_link_libraries(mirco_io PRIVATE mirco_utils mirco_topology)
-target_link_libraries(mirco_io PUBLIC Trilinos::all_selected_libs)
-
-add_library(mirco_utils
-  src/mirco_filesystem_utils.cpp
-  )
-
-add_library(mirco_lib INTERFACE)
-target_link_libraries(mirco_lib INTERFACE mirco_core mirco_io mirco_utils mirco_topology tmpHelpers)
-target_link_libraries(mirco_lib
-  INTERFACE OpenMP::OpenMP_CXX
-  Trilinos::all_selected_libs
-  MPI::MPI_CXX
-  )
 
 target_include_directories(mirco_lib INTERFACE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/>
@@ -255,12 +298,12 @@ target_include_directories(mirco_lib INTERFACE
 
 add_library(mirco::mirco_lib ALIAS mirco_lib)
 
-# Compile mirco itself
-add_executable(mirco src/main.cpp)
+
+
 target_link_libraries(mirco PUBLIC mirco::mirco_lib)
 
 # Install mirco (to be used as a library by other codes)
-install(TARGETS mirco_lib mirco_core mirco_needsKokkoskernels mirco_io mirco_utils mirco_topology tmpHelpers
+install(TARGETS mirco_lib mirco_core mirco_io mirco_utils mirco_topology
   EXPORT mirco_libTargets
   ARCHIVE LIBRARY PUBLIC_HEADER
   )
@@ -281,7 +324,7 @@ install(FILES
   DESTINATION lib/cmake/mirco
   )
 
-install(DIRECTORY ${PROJECT_SOURCE_DIR}/src/ DESTINATION include/mirco FILES_MATCHING PATTERN "*.h")
+install(FILES ${HEADER_FILES} DESTINATION include/mirco)
 
 option(GTEST_IN_MIRCO "Enable GoogleTest in MIRCO" ON)
 # Compile unittest executable
@@ -289,10 +332,17 @@ if(GTEST_IN_MIRCO)
   enable_testing()
   include(GoogleTest)
 
-  add_executable(tests
-    tests/unittests/test.cpp
-    tests/unittests/nonlinear_solver_test.cpp
-    )
+  if(NOT USE_KOKKOS_CODE)
+    add_executable(tests
+      tests/unittests/test.cpp
+      tests/unittests/nonlinear_solver_test.cpp
+      )
+  else()
+    add_executable(tests
+      tests/unittests/test_kokkos.cpp
+      tests/unittests/nonlinear_solver_test_kokkos.cpp
+      )
+  endif()
 
   target_link_libraries(tests PUBLIC mirco::mirco_lib gtest)
 

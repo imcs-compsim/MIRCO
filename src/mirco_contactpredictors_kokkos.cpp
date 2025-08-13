@@ -1,10 +1,5 @@
 #include "mirco_contactpredictors_kokkos.h"
 
-#include <Teuchos_SerialDenseMatrix.hpp>
-#include <vector>
-
-#include "mirco_warmstart_kokkos.h"
-
 void MIRCO::ContactSetPredictor(int &n0, ViewVector_d &xv0, ViewVector_d &yv0, ViewVector_d &b0,
     double zmax, double Delta, double w_el, const ViewVector_d meshgrid,
     const ViewMatrix_d topology)

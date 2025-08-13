@@ -2,16 +2,13 @@
 
 #include <math.h>
 
-#include <Teuchos_SerialDenseMatrix.hpp>
-#include <vector>
-
 ViewMatrix_d MIRCO::MatrixGeneration::SetupMatrix(const ViewVector_d xv0, const ViewVector_d yv0,
     const double GridSize, const double CompositeYoungs, const int systemsize,
     const bool PressureGreenFunFlag)
 {
   constexpr double pi = M_PI;
 
-  ViewMatrix_d H_d("H", xv0.size(), xv0.size());
+  ViewMatrix_d H_d("MIRCO::MatrixGeneration::SetupMatrix; H_d", xv0.size(), xv0.size());
   if (PressureGreenFunFlag)
   {
     // The pressure-based Green's function is based on the work of Pohrt and Li (2014)
@@ -21,8 +18,7 @@ ViewMatrix_d MIRCO::MatrixGeneration::SetupMatrix(const ViewVector_d xv0, const 
     // The paper uses a decoupled shear modulus and Poisson's ratio. We use a composite Young's
     // modulus here, instead.
 
-    Kokkos::parallel_for(
-        "H full", Kokkos::MDRangePolicy<Kokkos::Rank<2>>({0, 0}, {systemsize, systemsize}),
+    Kokkos::parallel_for(Kokkos::MDRangePolicy<Kokkos::Rank<2>>({0, 0}, {systemsize, systemsize}),
         KOKKOS_LAMBDA(const int i, const int j) {
           double k = xv0(i) - xv0(j) + GridSize / 2;
           double l = xv0(i) - xv0(j) - GridSize / 2;
@@ -45,8 +41,7 @@ ViewMatrix_d MIRCO::MatrixGeneration::SetupMatrix(const ViewVector_d xv0, const 
     const double C = 1 / (CompositeYoungs * pi * raggio);
 
     // TODO: For better effiency, try using teams instead of MDRangePolicy
-    Kokkos::parallel_for(
-        "H off-diag", Kokkos::MDRangePolicy<Kokkos::Rank<2>>({0, 0}, {systemsize, systemsize}),
+    Kokkos::parallel_for(Kokkos::MDRangePolicy<Kokkos::Rank<2>>({0, 0}, {systemsize, systemsize}),
         KOKKOS_LAMBDA(const int i, const int j) {
           if (j >= i) return;
           const double tmp1 = xv0(j) - xv0(i);
@@ -57,15 +52,11 @@ ViewMatrix_d MIRCO::MatrixGeneration::SetupMatrix(const ViewVector_d xv0, const 
           H_d(j, i) = tmp3;
         });
 
-    Kokkos::parallel_for(
-        "H diag", systemsize,
+    Kokkos::parallel_for(systemsize,
         KOKKOS_LAMBDA(
-            const int i) {  // Kokkos::RangePolicy(0, systemsize), KOKKOS_LAMBDA(const int i) {
+            const int i) {
           H_d(i, i) = C;
         });
-
-    /* for better effiency, try using teams://# TODO
-     */
   }
 
   return H_d;

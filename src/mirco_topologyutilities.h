@@ -9,7 +9,7 @@
 #include <Kokkos_Core.hpp>
 // tmp
 #include "tmpHelpers/Timer.hpp"
-#include "tmpHelpers/kokkosIntegration.hpp"
+#include "mirco_kokkostypes_kokkos.h"
 
 namespace MIRCO
 {

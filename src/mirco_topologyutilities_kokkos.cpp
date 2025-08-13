@@ -1,6 +1,5 @@
 #include "mirco_topologyutilities_kokkos.h"
 
-#include <Teuchos_SerialDenseMatrix.hpp>
 #include <cmath>
 
 ViewVector_d MIRCO::CreateMeshgrid(const int ngrid, const double GridSize)

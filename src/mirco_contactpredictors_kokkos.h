@@ -1,15 +1,9 @@
 #ifndef SRC_CONTACTPREDICTORS_KOKKOS_H_
 #define SRC_CONTACTPREDICTORS_KOKKOS_H_
 
-#include <Kokkos_Core.hpp>
-#include <Teuchos_SerialDenseMatrix.hpp>
-#include <vector>
-// tmp
-#include "tmpHelpers/Timer.hpp"
-#include "tmpHelpers/kokkosIntegration.hpp"
-
 namespace MIRCO
 {
+  #include "mirco_kokkostypes_kokkos.h"
   /**
    * @brief The aim of this function is to determine all the points, for which the gap is bigger
    * than the displacement of the rigid indenter, cannot be in contact and thus are not checked in

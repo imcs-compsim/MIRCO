@@ -3,11 +3,9 @@
 
 #include <string>
 
-#include "tmpHelpers/kokkosIntegration.hpp"
-
 namespace MIRCO
 {
-
+  #include "mirco_kokkostypes_kokkos.h"
   /**
    * @brief Construct a Surface object by reading topology from an input (.dat) file.
    *

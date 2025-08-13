@@ -1,10 +1,11 @@
 #include "mirco_nonlinearsolver_kokkos.h"
 
+#include "mirco_kokkostypes_kokkos.h"
 #include <KokkosLapack_gesv.hpp>
 
-void swap_entries(ViewVectorInt_d v, const int i, const int j)
+void swapEntries(ViewVectorInt_d v, const int i, const int j)
 {
-  if constexpr (HOSTONLY)
+  if constexpr (std::is_same<MemorySpace_Host_t, MemorySpace_ofDefaultExec_t>())
   {
     std::swap(v(i), v(j));
   }
@@ -13,7 +14,7 @@ void swap_entries(ViewVectorInt_d v, const int i, const int j)
     auto vi = Kokkos::subview(v, i);
     auto vj = Kokkos::subview(v, j);
 
-    ViewScalarInt_d tmp("swap_entries(); tmp");
+    ViewScalarInt_d tmp("swapEntries(); tmp");
 
     Kokkos::deep_copy(tmp, vi);
     Kokkos::deep_copy(vi, vj);
@@ -21,7 +22,7 @@ void swap_entries(ViewVectorInt_d v, const int i, const int j)
   }
 }
 
-void MIRCO::NonLinearSolver::solve(const ViewMatrix_d matrix, const ViewVector_d b0_d,
+void MIRCO::nonlinearSolve(const ViewMatrix_d matrix, const ViewVector_d b0_d,
     ViewVector_d& p_d, int& activeSetSize, double nnlstol, int maxiter)
 {
   using minloc_t = Kokkos::MinLoc<double, int, MemorySpace_ofDefaultExec_t>;
@@ -106,7 +107,7 @@ void MIRCO::NonLinearSolver::solve(const ViewMatrix_d matrix, const ViewVector_d
       minloc_value_t minloc_w_iInactive;
       Kokkos::deep_copy(minloc_w_iInactive, minloc_w_iInactive_d);
 
-      swap_entries(activeInactiveSet, minloc_w_iInactive.loc, activeSetSize);
+      swapEntries(activeInactiveSet, minloc_w_iInactive.loc, activeSetSize);
       ++activeSetSize;
     }
     else
@@ -206,9 +207,9 @@ void MIRCO::NonLinearSolver::solve(const ViewMatrix_d matrix, const ViewVector_d
         if (minloc_alpha_i.loc > -1)
         {
           Kokkos::deep_copy(Kokkos::subview(p_d, activeInactiveSet(minloc_alpha_i.loc)), 0.0);
-          // Note: `swap_entries()` may not be very efficient on GPU because it does not use
+          // Note: `swapEntries()` may not be very efficient on GPU because it does not use
           // `Kokkos::kokkos_swap()`, as that can only be used in parallel lambda
-          swap_entries(activeInactiveSet, minloc_alpha_i.loc, --activeSetSize);
+          swapEntries(activeInactiveSet, minloc_alpha_i.loc, --activeSetSize);
         }
       }
     }

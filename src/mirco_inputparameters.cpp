@@ -6,7 +6,7 @@
 #include <string>
 
 #include "mirco_filesystem_utils.h"
-#include "mirco_topology.h"
+#include "mirco_topology_kokkos.h"
 
 // Shape factors (See section 3.3 of https://doi.org/10.1007/s00466-019-01791-3)
 // These are the shape factors to calculate the elastic compliance correction of the micro-scale
@@ -27,8 +27,8 @@ const std::map<int, double> shape_factors_force{{1, 0.778958541513360}, {2, 0.80
     {3, 0.826126871395416}, {4, 0.841369158110513}, {5, 0.851733020725652}, {6, 0.858342234203154},
     {7, 0.862368243479785}, {8, 0.864741597831785}};
 
-inline int NFromResolution(int resolution) { return (1 << resolution) + 1; }
-double InterpolatedShapeFactor(const std::map<int, double>& shapeFactors, int N)
+inline int getNFromResolution(int resolution) { return (1 << resolution) + 1; }
+double interpolatedShapeFactor(const std::map<int, double>& shapeFactors, int N)
 {
   const double resolution = log2(N - 1);
   const int resFloor = static_cast<int>(std::floor(resolution));
@@ -101,7 +101,7 @@ MIRCO::InputParameters::InputParameters(double E1, double E2, double nu1, double
 
   composite_youngs = pow(((1 - pow(nu1, 2)) / E1 + (1 - pow(nu2, 2)) / E2), -1);
   elastic_compliance_correction = LateralLength * composite_youngs / shape_factor;
-  N = NFromResolution(Resolution);
+  N = (1 << Resolution) + 1;
   grid_size = LateralLength / N;
 }
 
@@ -121,11 +121,11 @@ MIRCO::InputParameters::InputParameters(double E1, double E2, double nu1, double
   // interpolation needed
   if (PressureGreenFunFlag)
   {
-    shape_factor = InterpolatedShapeFactor(shape_factors_pressure, N);
+    shape_factor = interpolatedShapeFactor(shape_factors_pressure, N);
   }
   else
   {
-    shape_factor = InterpolatedShapeFactor(shape_factors_force, N);
+    shape_factor = interpolatedShapeFactor(shape_factors_force, N);
   }
 
   composite_youngs = pow(((1 - pow(nu1, 2)) / E1 + (1 - pow(nu2, 2)) / E2), -1);

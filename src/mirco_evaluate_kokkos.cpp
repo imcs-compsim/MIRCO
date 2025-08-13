@@ -1,15 +1,10 @@
 #include "mirco_evaluate_kokkos.h"
 
-#include <omp.h>
 #include <unistd.h>
 
-#include <Teuchos_Assert.hpp>
-#include <Teuchos_SerialDenseMatrix.hpp>
-#include <Teuchos_SerialDenseSolver.hpp>
 #include <cmath>
 #include <cstdio>
 #include <ctime>
-#include <vector>
 
 #include "mirco_contactpredictors_kokkos.h"
 #include "mirco_contactstatus_kokkos.h"
@@ -20,7 +15,7 @@
 void MIRCO::Evaluate(double& pressure, const double Delta, const double LateralLength,
     const double GridSize, const double Tolerance, const int MaxIteration,
     const double CompositeYoungs, const bool WarmStartingFlag,
-    const double ElasticComplianceCorrection, const ViewMatrix_d topology, const double zmax,
+    const double ElasticComplianceCorrection, const ViewMatrix_d topology_d, const double zmax,
     const ViewVector_d meshgrid_d, const bool PressureGreenFunFlag)
 {
   // Initialise the area vector and force vector. Each element containing the
@@ -116,7 +111,7 @@ void MIRCO::Evaluate(double& pressure, const double Delta, const double LateralL
     // ## here, we make an active set that holds in no particular order the references to the
     // indices. but the thing is that p_d inside of this function, as the non-compacted vector,
     // still holds
-    MIRCO::NonLinearSolver::solve(H_d, b0_d, p0p_d, activeSetSize);  /// w_d);
+    MIRCO::nonlinearSolve(H_d, b0_d, p0p_d, activeSetSize);  /// w_d);
     // #Q Why is x0 (or y0...) a matrix with 1 column and not just a vector. there is no reason i
     // think
 
@@ -146,12 +141,12 @@ void MIRCO::Evaluate(double& pressure, const double Delta, const double LateralL
     k += 1;
   }
 
-  TEUCHOS_TEST_FOR_EXCEPTION(ErrorForce > Tolerance, std::out_of_range,
-      "The solution did not converge in the maximum number of iternations defined");
+  if(ErrorForce > Tolerance)
+    std::runtime_error("The solution did not converge in the maximum number of iterations");
 
   // Calculate the final force value at the end of the iteration.
   const double finalForce = totalForceVector[k - 1];
-
+  
   // Mean pressure
   pressure = finalForce / (LateralLength * LateralLength);
 }

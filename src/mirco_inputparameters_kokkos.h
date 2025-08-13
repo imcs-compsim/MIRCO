@@ -1,14 +1,9 @@
 #ifndef SRC_INPUTPARAMETERS_H_
 #define SRC_INPUTPARAMETERS_H_
 
-#include <Teuchos_SerialDenseMatrix.hpp>
-#include <memory>
-#include <string>
-
-#include "tmpHelpers/kokkosIntegration.hpp"
-
 namespace MIRCO
 {
+  #include "mirco_kokkostypes_kokkos.h"
   /**
    * @brief This struct stores the input parameters and topology
    *

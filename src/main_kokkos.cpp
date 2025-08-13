@@ -12,8 +12,6 @@
 
 // tmp
 #include <omp.h>
-
-#include "tmpHelpers/Timer.hpp"
 #include "mirco_kokkostypes_kokkos.h"
 
 int main(int argc, char* argv[])

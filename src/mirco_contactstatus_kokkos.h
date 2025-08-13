@@ -1,16 +1,9 @@
 #ifndef SRC_CONTACTSTATUS_H_
 #define SRC_CONTACTSTATUS_H_
 
-#include <Kokkos_Core.hpp>
-#include <Teuchos_SerialDenseMatrix.hpp>
-#include <cmath>
-#include <vector>
-// tmp
-#include "tmpHelpers/Timer.hpp"
-#include "tmpHelpers/kokkosIntegration.hpp"
-
 namespace MIRCO
 {
+  #include "mirco_kokkostypes_kokkos.h"
   /**
    * @brief The aim of this function is to compute to nodes in contact in the current iteration
    *
