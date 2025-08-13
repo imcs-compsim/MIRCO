@@ -1,4 +1,3 @@
-#include <map>
 #include <pugixml.hpp>
 
 #include "mirco_filesystem_utils.h"

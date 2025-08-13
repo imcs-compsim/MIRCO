@@ -6,12 +6,11 @@ namespace MIRCO
 {
   ViewVector_d CreateMeshgrid(const int ngrid, const double GridSize)
   {
-    ViewVector_d meshgrid("meshgrid", ngrid);
+    ViewVector_d meshgrid("CreateMeshgrid(); meshgrid", ngrid);
 
     const double GridSize_2 = GridSize / 2;
     Kokkos::parallel_for(
-        "Create meshgrid", ngrid,
-        KOKKOS_LAMBDA(const int i) { meshgrid(i) = GridSize_2 + i * GridSize; });
+        ngrid, KOKKOS_LAMBDA(const int i) { meshgrid(i) = GridSize_2 + i * GridSize; });
 
     return meshgrid;
   }
