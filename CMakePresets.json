@@ -11,8 +11,6 @@
         "CMAKE_C_COMPILER": "gcc",
         "CMAKE_C_COMPILER_LAUNCHER": "ccache",
         "CMAKE_CXX_FLAGS": "",
-        "TRILINOS_PATH": "",
-        "TRILINOS_IN_MIRCO": "ON",
         "GTEST_IN_MIRCO": "ON"
       }
     },
@@ -23,6 +21,7 @@
         ".base"
       ],
       "cacheVariables": {
+        "USE_KOKKOS_CODE": "OFF",
         "TRILINOS_PATH": "/opt/mirco-dependencies/trilinos"
       }
     },
@@ -30,12 +29,12 @@
       "name": "docker_container_kokkos",
       "displayName": "Release build for CI/CD testing in a docker container",
       "cacheVariables": {
+        "USE_KOKKOS_CODE": "ON",
         "CMAKE_BUILD_TYPE": "RELEASE",
         "CMAKE_CXX_COMPILER": "mpicxx",
         "CMAKE_C_COMPILER": "gcc",
         "CMAKE_C_COMPILER_LAUNCHER": "ccache",
         "CMAKE_CXX_FLAGS": "",
-        "USE_KOKKOS_CODE": "ON",
         "Kokkos_DIR": "/opt/mirco-dependencies/kokkos",
         "KokkosKernels_DIR": "/opt/mirco-dependencies/kokkos-kernels",
         "KOKKOS_IN_MIRCO": "ON",
@@ -50,9 +49,11 @@
         ".base"
       ],
       "cacheVariables": {
+        "USE_KOKKOS_CODE": "OFF",
         "CMAKE_CXX_COMPILER_LAUNCHER": "ccache",
         "CMAKE_CXX_FLAGS": "-msse3",
-        "TRILINOS_PATH": "/imcs/public/compsim/lib/2022_2/build/lib/cmake/Trilinos"
+        "TRILINOS_PATH": "/imcs/public/compsim/lib/2022_2/build/lib/cmake/Trilinos",
+        "TRILINOS_IN_MIRCO": "ON"
       }
     },
     {
