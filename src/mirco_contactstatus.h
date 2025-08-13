@@ -10,17 +10,17 @@ namespace MIRCO
   /**
    * @brief The aim of this function is to compute to nodes in contact in the current iteration
    *
-   * @param[out] xvf x-coordinates of the points in contact in the previous iteration.
-   * @param[out] yvf y-coordinates of the points in contact in the previous iteration.
-   * @param[out] pf Contact force at (xvf,yvf) predicted in the previous iteration.
-   * @param[out] nf Number of nodes in contact in the previous iteration
-   * @param[in] y Solution containing force
-   * @param[in] xv0 x-coordinates of the points in contact in the previous iteration.
-   * @param[in] yv0 y-coordinates of the points in contact in the previous iteration.
+   * @param xvf x-coordinates of the points in contact in the previous iteration.
+   * @param yvf y-coordinates of the points in contact in the previous iteration.
+   * @param pf Contact force at (xvf,yvf) predicted in the previous iteration.
+   * @param nf Number of nodes in contact in the previous iteration
+   * @param y Solution containing force
+   * @param xv0 x-coordinates of the points in contact in the previous iteration.
+   * @param yv0 y-coordinates of the points in contact in the previous iteration.
    */
   void ComputeContactNodes(std::vector<double> &xvf, std::vector<double> &yvf,
-      std::vector<double> &pf, int &nf, const Teuchos::SerialDenseMatrix<int, double> y,
-      const std::vector<double> xv0, const std::vector<double> yv0);
+      std::vector<double> &pf, int &nf, Teuchos::SerialDenseMatrix<int, double> y,
+      std::vector<double> xv0, std::vector<double> yv0);
 
   /**
    * @brief The aim of this function is to calulate the contact force and contact area for the

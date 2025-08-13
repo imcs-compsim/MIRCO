@@ -11,10 +11,10 @@ void MIRCO::ContactSetPredictor(int &n0, std::vector<double> &xv0, std::vector<d
 {
   std::vector<int> col, row;
   double value = zmax - Delta - w_el;
-  // row.clear();//#
-  // col.clear();//# completely unecessary
+  row.clear();
+  col.clear();
 
-  // Data is even, guided makes more sense//#we parallize
+  // Data is even, guided makes more sense
   for (int i = 0; i < topology.numCols(); i++)
   {
     for (int j = 0; j < topology.numCols(); j++)

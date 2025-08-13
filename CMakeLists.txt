@@ -141,10 +141,6 @@ if(NOT USE_KOKKOS_CODE)
   target_link_libraries(mirco_io PRIVATE mirco_utils mirco_topology)
   target_link_libraries(mirco_io PUBLIC Trilinos::all_selected_libs)
 
-  add_library(mirco_utils
-    src/mirco_filesystem_utils.cpp
-    )
-
   add_library(mirco_lib INTERFACE)
   target_link_libraries(mirco_lib INTERFACE mirco_core mirco_io mirco_utils mirco_topology)
   target_link_libraries(mirco_lib
@@ -283,6 +279,7 @@ else() #if(USE_KOKKOS_CODE)
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/extern/pugixml/src/>
     $<INSTALL_INTERFACE:include/pugixml/>
     )
+
   add_library(mirco_inputparameters_fromxml
     src/mirco_inputparameters_fromxml_kokkos.cpp
     )
@@ -308,17 +305,18 @@ target_include_directories(mirco_lib INTERFACE
 
 add_library(mirco::mirco_lib ALIAS mirco_lib)
 
-
-
-target_link_libraries(mirco PUBLIC mirco::mirco_lib pugixml)
-
-# Install mirco (to be used as a library by other codes)
 if(NOT USE_KOKKOS_CODE)
+  target_link_libraries(mirco PUBLIC mirco::mirco_lib)
+
+  # Install mirco (to be used as a library by other codes)
   install(TARGETS mirco_lib mirco_core mirco_io mirco_utils mirco_topology
     EXPORT mirco_libTargets
     ARCHIVE LIBRARY PUBLIC_HEADER
     )
 else()
+  target_link_libraries(mirco PUBLIC mirco::mirco_lib pugixml)
+
+  # Install mirco (to be used as a library by other codes)
   install(TARGETS mirco_lib mirco_utils mirco_needKK mirco_core mirco_topology mirco_inputparameters mirco_inputparameters_fromxml pugixml
     EXPORT mirco_libTargets
     ARCHIVE LIBRARY PUBLIC_HEADER

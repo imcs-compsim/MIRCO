@@ -4,16 +4,14 @@
 #include <cmath>
 #include <vector>
 
-ViewVector_d MIRCO::CreateMeshgrid(const int ngrid, const double GridSize)
+std::vector<double> MIRCO::CreateMeshgrid(const int ngrid, const double GridSize)
 {
-  ViewVector_d meshgrid("meshgrid", ngrid);
-  
-  const double GridSize_2 = GridSize/2;
-  Kokkos::parallel_for(
-    "Create meshgrid", ngrid, KOKKOS_LAMBDA(const int i) {
-      meshgrid(i) = GridSize_2 + i * GridSize;
-    });
-    
+  std::vector<double> meshgrid(ngrid);
+#pragma omp parallel for schedule(static, 16)  // Same amount of work -> static
+  for (int i = 0; i < ngrid; i++)
+  {
+    meshgrid[i] = (GridSize / 2) + i * GridSize;
+  }
   return meshgrid;
 }
 

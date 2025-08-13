@@ -39,8 +39,8 @@ namespace MIRCO
    * @param x0 contact forces at (xvf,yvf) predicted in the previous iteration but are a part of
    * currect predicted contact set.
    * @param b0 Indentation value of the half space at the predicted points of contact.
-   * @param xvf Coordinates of the points predicted to be in contact. //#
-   * @param yvf Coordinates of the points predicted to be in contact. //#
+   * @param xvf x-coordinates of the points in contact in the previous iteration.
+   * @param yvf y-coordinates of the points in contact in the previous iteration.
    */
   void InitialGuessPredictor(bool WarmStartingFlag, int k, int n0, const std::vector<double> &xv0,
       const std::vector<double> &yv0, const std::vector<double> &pf,

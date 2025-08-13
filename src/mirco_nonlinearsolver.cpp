@@ -36,7 +36,6 @@ Teuchos::SerialDenseVector<int, double> MIRCO::NonLinearSolver::Solve(
     if (y0(i, 0) >= nnlstol)
     {
       positions.push_back(i);
-      std::cout << "\t" << "line40, i=" << i << "\n";
     }
   }
 

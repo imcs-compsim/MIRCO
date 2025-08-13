@@ -5,15 +5,15 @@
 #include <vector>
 
 void MIRCO::ComputeContactNodes(std::vector<double> &xvf, std::vector<double> &yvf,
-    std::vector<double> &pf, int &nf, const Teuchos::SerialDenseMatrix<int, double> y,
-    const std::vector<double> xv0, const std::vector<double> yv0)
+    std::vector<double> &pf, int &nf, Teuchos::SerialDenseMatrix<int, double> y,
+    std::vector<double> xv0, std::vector<double> yv0)
 {
   xvf.clear();
   xvf.resize(y.numRows());
   yvf.clear();
   yvf.resize(y.numRows());
   pf.resize(y.numRows());
-  nf = 0;
+  int cont = 0;
   // @} Parallelizing this slows down program, so removed it.
 
 #pragma omp for schedule(guided, 16)
@@ -23,13 +23,15 @@ void MIRCO::ComputeContactNodes(std::vector<double> &xvf, std::vector<double> &y
     {
 #pragma omp critical
       {
-        xvf[nf] = xv0[i];
-        yvf[nf] = yv0[i];
-        pf[nf] = y(i, 0);
-        nf += 1;
+        xvf[cont] = xv0[i];
+        yvf[cont] = yv0[i];
+        pf[cont] = y(i, 0);
+        cont += 1;
       }
     }
   }
+
+  nf = cont;
 }
 
 void MIRCO::ComputeContactForceAndArea(std::vector<double> &force0, std::vector<double> &area0,

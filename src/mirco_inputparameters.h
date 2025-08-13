@@ -1,6 +1,7 @@
 #ifndef SRC_INPUTPARAMETERS_H_
 #define SRC_INPUTPARAMETERS_H_
 
+#include <Teuchos_SerialDenseMatrix.hpp>
 #include <memory>
 #include <string>
 

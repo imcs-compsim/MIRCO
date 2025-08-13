@@ -132,7 +132,7 @@ TEST(NonlinearSolverTest, primalvariable)
       Kokkos::create_mirror_view_and_copy(MIRCO::ExecSpace_Default_t(), b0_h);
   int activeSetSize;
 
-  MIRCO::nonlinearSolve(matrix_h, b0_h, p_d, activeSetSize);
+  MIRCO::nonlinearSolve(matrix_d, b0_d, p_d, activeSetSize);
 
   Kokkos::deep_copy(p_h, p_d);
 
