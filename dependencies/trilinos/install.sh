@@ -12,11 +12,7 @@ INSTALL_DIR="$1"
 NPROCS=${NPROCS:=4}
 # git sha from Trilinos repository:
 VERSION="06db4c850654feacabdaed61ee8308219266b6a5"
-#CHECKSUM=""
 
-
-# Location of script to apply patches later
-SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 CMAKE_COMMAND=cmake
 
 git clone https://github.com/trilinos/Trilinos.git

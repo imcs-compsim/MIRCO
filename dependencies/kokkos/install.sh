@@ -12,11 +12,7 @@ INSTALL_DIR="$1"
 NPROCS=${NPROCS:=4}
 # git sha from Kokkos repository:
 VERSION="f11fb0be01b0bcb2d7fa9eda41f2fe79d63e859b"
-#CHECKSUM=""
 
-
-# Location of script to apply patches later
-SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 CMAKE_COMMAND=cmake
 
 git clone https://github.com/kokkos/kokkos.git kokkos
@@ -30,7 +26,6 @@ $CMAKE_COMMAND \
   -D CMAKE_CXX_COMPILER=g++ \
   -D CMAKE_INSTALL_PREFIX:STRING=$INSTALL_DIR \
   \
-  -D Kokkos_ENABLE_SERIAL=ON \
   -D Kokkos_ENABLE_OPENMP=ON \
   \
   ../kokkos
