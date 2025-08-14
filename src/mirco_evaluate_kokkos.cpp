@@ -51,12 +51,12 @@ namespace MIRCO
       // First predictor for contact set
       ContactSetPredictor(n0, xv0_d, yv0_d, b0_d, zmax, Delta, w_el, meshgrid_d, topology_d);
 
+
+      ViewVector_d p_d;
       // Second predictor for contact set
-      // @{
-      // x0 --> contact forces at (xvf,yvf) predicted in the previous iteration but
-      // are a part of currect predicted contact set. x0 is calculated in the
+      // p_d --> contact forces at (xvf,yvf) predicted in the previous iteration but
+      // are a part of currect predicted contact set. p_d is calculated in the
       // Warmstart function to be used in the NNLS to accelerate the simulation.
-      ViewVector_d p0p_d;
       if (WarmStartingFlag && k > 0)
       {
         ViewVector_h p0_h =
@@ -66,16 +66,15 @@ namespace MIRCO
                 Kokkos::create_mirror_view_and_copy(MemorySpace_Host_t(), yvf_d),
                 Kokkos::create_mirror_view_and_copy(MemorySpace_Host_t(), pf_d));
 
-        p0p_d = Kokkos::create_mirror_view_and_copy(MemorySpace_ofDefaultExec_t(), p0_h);
+        p_d = Kokkos::create_mirror_view_and_copy(MemorySpace_ofDefaultExec_t(), p0_h);
       }
       else
       {
         if (b0_d.extent(0) > 0)
         {
-          p0p_d = ViewVector_d("InitialGuessPredictor", n0, 0.0);
+          p_d = ViewVector_d("InitialGuessPredictor", n0, 0.0);
         }
       }
-      // }
 
       auto H_d = MatrixGeneration::SetupMatrix(
           xv0_d, yv0_d, GridSize, CompositeYoungs, n0, PressureGreenFunFlag);
@@ -87,10 +86,10 @@ namespace MIRCO
       int activeSetSize;
       // use Nonlinear solver --> Non-Negative Least Squares (NNLS) as in
       // (Bemporad & Paggi, 2015)
-      nonlinearSolve(H_d, b0_d, p0p_d, activeSetSize);
+      nonlinearSolve(H_d, b0_d, p_d, activeSetSize);
 
       // Compute number of contact nodes
-      ComputeContactNodes(xvf_d, yvf_d, pf_d, activeSetSize, p0p_d, xv0_d, yv0_d);
+      ComputeContactNodes(xvf_d, yvf_d, pf_d, activeSetSize, p_d, xv0_d, yv0_d);
 
       // Compute total contact force and contact area
       double totalForce;
