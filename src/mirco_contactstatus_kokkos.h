@@ -21,8 +21,8 @@ namespace MIRCO
       const ViewVector_d yv0);
 
   /**
-   * @brief The aim of this function is to calulate the contact force and contact area for the
-   * current iteration. Note that the force vector
+   * @brief Calculate the contact force and contact area for the
+   * current iteration.
    *
    * @param[out] totalForce Total force
    * @param[out] contactArea Contact area
