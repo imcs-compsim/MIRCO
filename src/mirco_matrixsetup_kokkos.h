@@ -8,8 +8,7 @@ namespace MIRCO
   namespace MatrixGeneration
   {
     /**
-     * @brief The aim of this function is to create the influence coefficient matrix (Discrete
-     * version of Green function)
+     * @brief Create the influence coefficient matrix (Discrete version of Green's function)
      *
      * @param[in] xv0 x-coordinates of the points in contact in the previous iteration.
      * @param[in] yv0 y-coordinates of the points in contact in the previous iteration.
