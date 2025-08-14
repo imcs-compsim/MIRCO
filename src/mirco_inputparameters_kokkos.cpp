@@ -65,7 +65,6 @@ namespace MIRCO
     composite_youngs = pow(((1 - pow(nu1, 2)) / E1 + (1 - pow(nu2, 2)) / E2), -1);
     elastic_compliance_correction = LateralLength * composite_youngs / shape_factor;
     N = (1 << Resolution) + 1;
-    ;
     grid_size = LateralLength / N;
   }
 
