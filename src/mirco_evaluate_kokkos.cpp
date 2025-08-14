@@ -46,9 +46,9 @@ namespace MIRCO
       ViewVector_d xv0_d, yv0_d;
 
       // Indentation value of the half space at the predicted points of contact.
-      ViewVector_d b0_d;  // # change to ViewVector_d/h xv0, yv0;
+      ViewVector_d b0_d;
 
-      // // First predictor for contact set
+      // First predictor for contact set
       ContactSetPredictor(n0, xv0_d, yv0_d, b0_d, zmax, Delta, w_el, meshgrid_d, topology_d);
 
       // Second predictor for contact set
