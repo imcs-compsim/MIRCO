@@ -31,16 +31,16 @@ namespace MIRCO
       const ViewVector_d meshgrid_d, const bool PressureGreenFunFlag);
 
   /**
-   * @brief Relate the far-field displacement with pressure, taking the parameters from a
-   * MIRCO::InputParameters object
+   * @brief Relate the far-field displacement with pressure, taking the parameters from an
+   * InputParameters object
    *
    * @param[out] pressure Mean pressure
    * @param[in] inputParams Object which holds the input parameters
    * @param[in] zmax Maximum height
    * @param[in] meshgrid_d Meshgrid vector
    */
-  inline void Evaluate(double& pressure, const MIRCO::InputParameters& inputParams,
-      const double zmax, const ViewVector_d meshgrid_d)
+  inline void Evaluate(double& pressure, const InputParameters& inputParams, const double zmax,
+      const ViewVector_d meshgrid_d)
   {
     Evaluate(pressure, inputParams.delta, inputParams.lateral_length, inputParams.grid_size,
         inputParams.tolerance, inputParams.max_iteration, inputParams.composite_youngs,

@@ -17,7 +17,7 @@ namespace MIRCO
   using Device_Default_t = Kokkos::Device<ExecSpace_Default_t, MemorySpace_ofDefaultExec_t>;
 
   // Note: LayoutLeft is column major and is necessary for KokkosLapack::gesv() in
-  // MIRCO::NonLinearSolver::solve(). We have to specify it for views of any rank, even if it is
+  // MIRCO::nonlinearSolve(). We have to specify it for views of any rank, even if it is
   // physically meaningless for rank < 2.
   using ViewVector_h = Kokkos::View<double*, Kokkos::LayoutLeft, Device_Host_t>;
   using ViewMatrix_h = Kokkos::View<double**, Kokkos::LayoutLeft, Device_Host_t>;

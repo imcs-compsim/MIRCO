@@ -49,7 +49,7 @@ namespace MIRCO
       ViewVector_d b0_d;  // # change to ViewVector_d/h xv0, yv0;
 
       // // First predictor for contact set
-      MIRCO::ContactSetPredictor(n0, xv0_d, yv0_d, b0_d, zmax, Delta, w_el, meshgrid_d, topology_d);
+      ContactSetPredictor(n0, xv0_d, yv0_d, b0_d, zmax, Delta, w_el, meshgrid_d, topology_d);
 
       // Second predictor for contact set
       // @{
@@ -60,7 +60,7 @@ namespace MIRCO
       if (WarmStartingFlag && k > 0)
       {
         ViewVector_h p0_h =
-            MIRCO::Warmstart(Kokkos::create_mirror_view_and_copy(MemorySpace_Host_t(), xv0_d),
+            Warmstart(Kokkos::create_mirror_view_and_copy(MemorySpace_Host_t(), xv0_d),
                 Kokkos::create_mirror_view_and_copy(MemorySpace_Host_t(), yv0_d),
                 Kokkos::create_mirror_view_and_copy(MemorySpace_Host_t(), xvf_d),
                 Kokkos::create_mirror_view_and_copy(MemorySpace_Host_t(), yvf_d),
@@ -77,7 +77,7 @@ namespace MIRCO
       }
       // }
 
-      auto H_d = MIRCO::MatrixGeneration::SetupMatrix(
+      auto H_d = MatrixGeneration::SetupMatrix(
           xv0_d, yv0_d, GridSize, CompositeYoungs, n0, PressureGreenFunFlag);
 
       // Defined as (u - u(bar)) in (Bemporad & Paggi, 2015)
@@ -87,15 +87,15 @@ namespace MIRCO
       int activeSetSize;
       // use Nonlinear solver --> Non-Negative Least Squares (NNLS) as in
       // (Bemporad & Paggi, 2015)
-      MIRCO::nonlinearSolve(H_d, b0_d, p0p_d, activeSetSize);
+      nonlinearSolve(H_d, b0_d, p0p_d, activeSetSize);
 
       // Compute number of contact nodes
-      MIRCO::ComputeContactNodes(xvf_d, yvf_d, pf_d, activeSetSize, p0p_d, xv0_d, yv0_d);
+      ComputeContactNodes(xvf_d, yvf_d, pf_d, activeSetSize, p0p_d, xv0_d, yv0_d);
 
       // Compute total contact force and contact area
       double totalForce;
       double contactArea;
-      MIRCO::ComputeContactForceAndArea(
+      ComputeContactForceAndArea(
           totalForce, contactArea, pf_d, GridSize, LateralLength, PressureGreenFunFlag);
 
       totalForceVector.push_back(totalForce);

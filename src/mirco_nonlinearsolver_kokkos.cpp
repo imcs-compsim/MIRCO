@@ -32,7 +32,7 @@ namespace MIRCO
   {
     using minloc_t = Kokkos::MinLoc<double, int, MemorySpace_ofDefaultExec_t>;
     using minloc_value_t = typename minloc_t::value_type;
-    const std::string kokkosLabelPrefix = "MIRCO::NonLinearSolver::Solve(); ";
+    const std::string kokkosLabelPrefix = "nonlinearSolve(); ";
 
     // 2^{-52}; double machine precision, i.e. smallest number such that 1.0 + eps > 1.0
     constexpr double eps = 1.0 / (1ULL << 52);

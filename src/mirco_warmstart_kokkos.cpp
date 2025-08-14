@@ -10,7 +10,7 @@ namespace MIRCO
     // TODO: If possible, convert this algorithm into running in a parallel kernel so that device
     // views can be used
     const auto n = static_cast<size_t>(xv0.extent(0));
-    ViewVector_h p0("MIRCO::Warmstart(); p0", n);
+    ViewVector_h p0("Warmstart(); p0", n);
 
     for (size_t i = 0; i < n; ++i)
     {

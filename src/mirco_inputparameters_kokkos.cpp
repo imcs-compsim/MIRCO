@@ -48,7 +48,7 @@ namespace MIRCO
         warm_starting_flag(WarmStartingFlag),
         pressure_green_funct_flag(PressureGreenFunFlag)
   {
-    auto topology_h = MIRCO::CreateRmgSurface(
+    auto topology_h = CreateRmgSurface(
         Resolution, InitialTopologyStdDeviation, Hurst, RandomSeedFlag, RandomGeneratorSeed);
     topology_d = Kokkos::create_mirror_view_and_copy(ExecSpace_Default_t(), topology_h);
 
@@ -79,7 +79,7 @@ namespace MIRCO
         warm_starting_flag(WarmStartingFlag),
         pressure_green_funct_flag(PressureGreenFunFlag)
   {
-    auto topology_h = MIRCO::CreateSurfaceFromFile(TopologyFilePath, N);
+    auto topology_h = CreateSurfaceFromFile(TopologyFilePath, N);
     topology_d = Kokkos::create_mirror_view_and_copy(ExecSpace_Default_t(), topology_h);
 
     // interpolation needed

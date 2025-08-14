@@ -60,7 +60,7 @@ namespace MIRCO
         0.0, 1.0);  // normal distribution: mean = 0.0, standard deviation = 1.0
 
     int N = pow(2, resolution) + 1;
-    ViewMatrix_h z("MIRCO::CreateRmgSurface(); z", N, N);
+    ViewMatrix_h z("CreateRmgSurface(); z", N, N);
 
     const double scaling_factor = pow(sqrt(2), Hurst);
     double alpha = InitialTopologyStdDeviation * scaling_factor;

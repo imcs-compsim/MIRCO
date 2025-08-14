@@ -10,7 +10,7 @@ namespace MIRCO
   {
     constexpr double pi = M_PI;
 
-    ViewMatrix_d H_d("MIRCO::MatrixGeneration::SetupMatrix; H_d", xv0.size(), xv0.size());
+    ViewMatrix_d H_d("MatrixGeneration::SetupMatrix(); H_d", xv0.size(), xv0.size());
     if (PressureGreenFunFlag)
     {
       // The pressure-based Green's function is based on the work of Pohrt and Li (2014)

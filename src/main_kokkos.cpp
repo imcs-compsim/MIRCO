@@ -8,10 +8,10 @@
 #include "mirco_kokkostypes_kokkos.h"
 #include "mirco_topologyutilities_kokkos.h"
 
+using namespace MIRCO;
+
 int main(int argc, char* argv[])
 {
-  using namespace MIRCO;
-
   Kokkos::initialize(argc, argv);
   {
     std::cout << "-- Kokkos info --\n";
@@ -28,14 +28,14 @@ int main(int argc, char* argv[])
 
     const auto start = std::chrono::high_resolution_clock::now();
 
-    MIRCO::InputParameters inputParams(inputFileName);
+    InputParameters inputParams(inputFileName);
 
-    ViewVector_d meshgrid_d = MIRCO::CreateMeshgrid(inputParams.N, inputParams.grid_size);
-    auto maxAndMean = MIRCO::ComputeMaxAndMean(inputParams.topology_d);
+    ViewVector_d meshgrid_d = CreateMeshgrid(inputParams.N, inputParams.grid_size);
+    auto maxAndMean = ComputeMaxAndMean(inputParams.topology_d);
 
     // Main evaluation agorithm
     double meanPressure;
-    MIRCO::Evaluate(meanPressure, inputParams, maxAndMean.max, meshgrid_d);
+    Evaluate(meanPressure, inputParams, maxAndMean.max, meshgrid_d);
 
     std::cout << "Mean pressure is: " << std::to_string(meanPressure) << std::endl;
 
