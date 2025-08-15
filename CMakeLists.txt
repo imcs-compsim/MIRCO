@@ -154,7 +154,7 @@ if(NOT USE_KOKKOS_CODE)
     "${PROJECT_SOURCE_DIR}/src/*.h"
   )
   foreach(f ${HEADER_FILES})
-    if(f MATCHES "_kokkos\\.h$")
+    if(${f} MATCHES ".*_kokkos.*")
       list(REMOVE_ITEM HEADER_FILES ${f})
     endif()
   endforeach()
