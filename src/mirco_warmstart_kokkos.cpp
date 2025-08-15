@@ -17,6 +17,7 @@ namespace MIRCO
       auto it_x = std::find(xvf.data(), xvf.data() + xvf.extent(0), xv0(i));
       auto it_y = std::find(yvf.data(), yvf.data() + yvf.extent(0), yv0(i));
 
+      // if(it x exists && it y exists &&)
       if (it_x != xvf.data() + xvf.extent(0) && it_y != yvf.data() + yvf.extent(0) &&
           (it_x - xvf.data()) == (it_y - yvf.data()))
       {

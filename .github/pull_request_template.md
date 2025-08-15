@@ -11,7 +11,7 @@ Assignees: Assign yourself.
 -->
 
 <!--
-Reviewer: Assign a developer who is qualified to review your changes. 
+Reviewer: Assign a developer who is qualified to review your changes.
 -->
 
 ## Description and Context

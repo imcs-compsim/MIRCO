@@ -7,7 +7,7 @@ namespace MIRCO
 {
   /**
    * @brief Solve the non-linear problem using a Non-Negative Least Squares (NNLS)
-   * 
+   *
    * This implementation follows the Non-Negative Least Squares (NNLS)
    * algorithm (Algorithm 3) from (Bemporad & Paggi, 2015)
    * https://doi.org/10.1016/j.ijsolstr.2015.06.005
