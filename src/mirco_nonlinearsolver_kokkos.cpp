@@ -35,7 +35,7 @@ namespace MIRCO
     const std::string kokkosLabelPrefix = "nonlinearSolve(); ";
 
     // 2^{-52}; double machine precision, i.e. smallest number such that 1.0 + eps > 1.0
-    constexpr double eps = 1.0 / (1ULL << 52);
+    constexpr double eps = std::numeric_limits<double>::epsilon();
 
     const int n0 = b0_d.extent(0);
 
@@ -70,7 +70,7 @@ namespace MIRCO
     }
 
     int iter = 0;
-    while (1)
+    while (true)
     {
       if ((init && (activeSetSize == n0)) || iter >= maxiter) break;
       Kokkos::View<minloc_value_t, MemorySpace_ofDefaultExec_t> minloc_w_i_d(
@@ -118,7 +118,7 @@ namespace MIRCO
       else
         init = true;
 
-      while (2)
+      while (true)
       {
         ++iter;
 

@@ -10,6 +10,8 @@ namespace MIRCO
   {
     constexpr double pi = M_PI;
 
+    const double frac_GridSize_2 = GridSize / 2;
+
     ViewMatrix_d H_d("MatrixGeneration::SetupMatrix(); H_d", xv0.size(), xv0.size());
     if (PressureGreenFunFlag)
     {
@@ -20,13 +22,15 @@ namespace MIRCO
       // The paper uses a decoupled shear modulus and Poisson's ratio. We use a composite Young's
       // modulus here, instead.
 
+      // Note: KOKKOS_LAMBDA will automatically capture const variables from the outer scope into
+      // device-space from host-space (but not non-const variables!)
       Kokkos::parallel_for(
           Kokkos::MDRangePolicy<Kokkos::Rank<2>>({0, 0}, {systemsize, systemsize}),
           KOKKOS_LAMBDA(const int i, const int j) {
-            double k = xv0(i) - xv0(j) + GridSize / 2;
-            double l = xv0(i) - xv0(j) - GridSize / 2;
-            double m = yv0(i) - yv0(j) + GridSize / 2;
-            double n = yv0(i) - yv0(j) - GridSize / 2;
+            double k = xv0(i) - xv0(j) + frac_GridSize_2;
+            double l = xv0(i) - xv0(j) - frac_GridSize_2;
+            double m = yv0(i) - yv0(j) + frac_GridSize_2;
+            double n = yv0(i) - yv0(j) - frac_GridSize_2;
 
             H_d(i, j) = 1 / (pi * CompositeYoungs) *
                         (k * log((sqrt(k * k + m * m) + m) / (sqrt(k * k + n * n) + n)) +
@@ -38,10 +42,7 @@ namespace MIRCO
 
     else
     {
-      // KOKKOS_LAMBDA will automatically capture const variables into device-space from host-space,
-      // but not non-const variables
-      const double raggio = GridSize / 2;
-      const double C = 1 / (CompositeYoungs * pi * raggio);
+      const double C = 1 / (CompositeYoungs * pi * frac_GridSize_2);
 
       // TODO: For better effiency, try using teams instead of MDRangePolicy
       Kokkos::parallel_for(
@@ -51,7 +52,7 @@ namespace MIRCO
             const double tmp1 = xv0(j) - xv0(i);
             const double tmp2 = yv0(j) - yv0(i);
             const double r = sqrt(tmp1 * tmp1 + tmp2 * tmp2);
-            const double tmp3 = C * asin(raggio / r);
+            const double tmp3 = C * asin(frac_GridSize_2 / r);
             H_d(i, j) = tmp3;
             H_d(j, i) = tmp3;
           });
