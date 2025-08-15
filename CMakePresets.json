@@ -27,7 +27,7 @@
     },
     {
       "name": "docker_container_kokkos",
-      "displayName": "Release build for CI/CD testing in a docker container",
+      "displayName": "Release build using Kokkos for CI/CD testing in a docker container",
       "cacheVariables": {
         "USE_KOKKOS_CODE": "ON",
         "CMAKE_BUILD_TYPE": "RELEASE",
