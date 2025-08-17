@@ -43,9 +43,9 @@ namespace MIRCO
 
     ViewVectorInt_d activeInactiveSet(kokkosLabelPrefix + "activeInactiveSet", n0);
 
-    Kokkos::View<int, Device_Default_t> counterActive(kokkosLabelPrefix + "counterActive");
+    ViewScalarInt_d counterActive(kokkosLabelPrefix + "counterActive");
     Kokkos::deep_copy(counterActive, 0);
-    Kokkos::View<int, Device_Default_t> counterInactive(kokkosLabelPrefix + "counterInactive");
+    ViewScalarInt_d counterInactive(kokkosLabelPrefix + "counterInactive");
     Kokkos::deep_copy(counterInactive, 0);
     Kokkos::parallel_for(
         n0, KOKKOS_LAMBDA(const int i) {
@@ -66,8 +66,7 @@ namespace MIRCO
     {
       init = true;
       // Hp - b0 for p = 0
-      Kokkos::parallel_for(
-          n0, KOKKOS_LAMBDA(const int i) { w_d(i) = -b0_d(i); });
+      Kokkos::parallel_for(n0, KOKKOS_LAMBDA(const int i) { w_d(i) = -b0_d(i); });
     }
 
     int iter = 0;

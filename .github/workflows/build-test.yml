@@ -34,14 +34,14 @@ jobs:
     runs-on: ubuntu-latest
 
     container:
-      image: ghcr.io/rshaw026/mirco-dependencies:latest
+      image: ghcr.io/philipoesterlepekrun/mirco-kokkos-dependencies:latest
 
     env:
       CTEST_FAIL_ON_WARNING: "1"
 
     steps:
       - name: Checkout code with submodules
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           submodules: recursive
           path: mirco-src

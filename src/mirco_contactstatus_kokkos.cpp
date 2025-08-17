@@ -13,7 +13,7 @@ namespace MIRCO
     pf_d = ViewVector_d("new xvf", activeSetSize);
     int n0 = p_d.extent(0);
 
-    Kokkos::View<int*, Device_Default_t> counter("counter", 1);
+    ViewVectorInt_d counter("counter", 1);
     Kokkos::deep_copy(counter, 0);
 
     Kokkos::parallel_for(

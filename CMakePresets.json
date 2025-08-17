@@ -7,7 +7,7 @@
       "generator": "Ninja",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RELEASE",
-        "CMAKE_CXX_COMPILER": "mpicxx",
+        "CMAKE_CXX_COMPILER": "g++",
         "CMAKE_C_COMPILER": "gcc",
         "CMAKE_C_COMPILER_LAUNCHER": "ccache",
         "CMAKE_CXX_FLAGS": "",
@@ -28,18 +28,15 @@
     {
       "name": "docker_container_kokkos",
       "displayName": "Release build using Kokkos for CI/CD testing in a docker container",
+      "inherits": [
+        ".base"
+      ],
       "cacheVariables": {
         "USE_KOKKOS_CODE": "ON",
-        "CMAKE_BUILD_TYPE": "RELEASE",
-        "CMAKE_CXX_COMPILER": "mpicxx",
-        "CMAKE_C_COMPILER": "gcc",
-        "CMAKE_C_COMPILER_LAUNCHER": "ccache",
-        "CMAKE_CXX_FLAGS": "",
-        "Kokkos_DIR": "/opt/mirco-dependencies/kokkos_install",
-        "KokkosKernels_DIR": "/opt/mirco-dependencies/kokkos-kernels_install",
+        "KOKKOS_PATH": "/opt/mirco-dependencies/kokkos_install",
+        "KOKKOS_KERNELS_PATH": "/opt/mirco-dependencies/kokkos-kernels_install",
         "KOKKOS_IN_MIRCO": "ON",
-        "KOKKOS_KERNELS_IN_MIRCO": "ON",
-        "GTEST_IN_MIRCO": "ON"
+        "KOKKOS_KERNELS_IN_MIRCO": "ON"
       }
     },
     {

@@ -106,7 +106,6 @@ if(NOT USE_KOKKOS_CODE)
     endif()
   endif()
 
-
   # Find OpenMP
   find_package(OpenMP REQUIRED)
 
@@ -163,18 +162,13 @@ if(NOT USE_KOKKOS_CODE)
   add_executable(mirco src/main.cpp)
 
 else() #if(USE_KOKKOS_CODE)
+  # Kokkos
   option(KOKKOS_IN_MIRCO "Find Kokkos in the MIRCO project. If set to OFF, use the Kokkos installation from an upstream project" ON)
-
   if(KOKKOS_IN_MIRCO)
     set(CMAKE_PREFIX_PATH ${KOKKOS_PATH} ${CMAKE_PREFIX_PATH})
     find_package(Kokkos REQUIRED)
-
-    # Optionally, mimic the interface target logic for older or minimal installations (unlikely needed, but here's the symmetry)
-    if(Kokkos_FOUND AND NOT TARGET Kokkos::kokkos)
-      message(FATAL_ERROR "Kokkos found, but no Kokkos::kokkos target available — modern Kokkos should provide this")
-    endif()
   else()
-  # Use a Kokkos from an upstream project
+    # Use a Kokkos from an upstream project
     if(TARGET Kokkos::kokkos)
       message(STATUS "Kokkos included from upstream project.")
     else()
@@ -198,20 +192,11 @@ else() #if(USE_KOKKOS_CODE)
     endif()
   endif()
 
-
   # Kokkos-Kernels
-
   option(KOKKOS_KERNELS_IN_MIRCO "Find Kokkos-Kernels in the MIRCO project. If set to OFF, use the Kokkos-Kernels installation from an upstream project" ON)
-
   if(KOKKOS_KERNELS_IN_MIRCO)
     set(CMAKE_PREFIX_PATH ${KOKKOS_KERNELS_PATH} ${CMAKE_PREFIX_PATH})
-    set(KokkosKernels_DIR "${KOKKOS_KERNELS_PATH}/lib/cmake/KokkosKernels")
     find_package(KokkosKernels REQUIRED)
-
-    # Optionally, mimic the interface target logic for older or minimal installations (unlikely needed, but here's the symmetry)
-    if(KokkosKernels_FOUND AND NOT TARGET KokkosKernels::kokkoskernels)
-      message(FATAL_ERROR "KokkosKernels found, but no KokkosKernels::kokkoskernels target available — modern Kokkos should provide this")
-    endif()
   else()
   # Use a KokkosKernels from an upstream project
     if(TARGET KokkosKernels::kokkoskernels)
@@ -237,12 +222,8 @@ else() #if(USE_KOKKOS_CODE)
     endif()
   endif()
 
-  # Find OpenMPI
-  find_package(MPI REQUIRED)
-
-  # Compiler flags: delay this modification after MPI was found. Otherwise,
-  # trying to compile with MPI can give warnings.
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -O3")
+  # Unlike Trilinos, Kokkos does not automatically set the RPATH in case of shared libs, so we set it manually. This will be
+  set(CMAKE_BUILD_RPATH "${KOKKOS_PATH}/lib";"${KOKKOS_KERNELS_PATH}/lib")
 
 
   # File(s) which need(s) Kokkos-Kernels
@@ -259,7 +240,7 @@ else() #if(USE_KOKKOS_CODE)
     src/mirco_contactstatus_kokkos.cpp
     src/mirco_warmstart_kokkos.cpp
     )
-  target_link_libraries(mirco_core PUBLIC Kokkos::kokkos)
+  target_link_libraries(mirco_core PUBLIC Kokkos::kokkos mirco_needKK)
 
   add_library(mirco_topology
     src/mirco_topology_kokkos.cpp
@@ -286,7 +267,7 @@ else() #if(USE_KOKKOS_CODE)
   target_link_libraries(mirco_inputparameters_fromxml PRIVATE mirco_utils pugixml Kokkos::kokkos)
 
   add_library(mirco_lib INTERFACE)
-  target_link_libraries(mirco_lib INTERFACE mirco_utils mirco_needKK mirco_core mirco_topology mirco_inputparameters mirco_inputparameters_fromxml MPI::MPI_CXX)
+  target_link_libraries(mirco_lib INTERFACE mirco_utils mirco_needKK mirco_core mirco_topology mirco_inputparameters)
 
   # All _kokkos header files
   file(GLOB_RECURSE HEADER_FILES
@@ -314,10 +295,10 @@ if(NOT USE_KOKKOS_CODE)
     ARCHIVE LIBRARY PUBLIC_HEADER
     )
 else()
-  target_link_libraries(mirco PUBLIC mirco::mirco_lib pugixml)
+  target_link_libraries(mirco PUBLIC mirco::mirco_lib mirco_inputparameters_fromxml pugixml)
 
   # Install mirco (to be used as a library by other codes)
-  install(TARGETS mirco_lib mirco_utils mirco_needKK mirco_core mirco_topology mirco_inputparameters mirco_inputparameters_fromxml pugixml
+  install(TARGETS mirco_lib mirco_utils mirco_needKK mirco_core mirco_topology mirco_inputparameters
     EXPORT mirco_libTargets
     ARCHIVE LIBRARY PUBLIC_HEADER
     )
@@ -352,13 +333,13 @@ if(GTEST_IN_MIRCO)
       tests/unittests/test.cpp
       tests/unittests/nonlinear_solver_test.cpp
       )
+    target_link_libraries(tests PUBLIC mirco::mirco_lib gtest)
   else()
     add_executable(tests
       tests/unittests/test_kokkos.cpp
       )
+    target_link_libraries(tests PUBLIC mirco::mirco_lib mirco_inputparameters_fromxml gtest)
   endif()
-
-  target_link_libraries(tests PUBLIC mirco::mirco_lib gtest)
 
   # Copy tests/unittests/data folder to the build dir
   add_custom_command(
