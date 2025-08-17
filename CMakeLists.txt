@@ -222,10 +222,6 @@ else() #if(USE_KOKKOS_CODE)
     endif()
   endif()
 
-  # Unlike Trilinos, Kokkos does not automatically set the RPATH in case of shared libs, so we set it manually. This will be
-  set(CMAKE_BUILD_RPATH "${KOKKOS_PATH}/lib";"${KOKKOS_KERNELS_PATH}/lib")
-
-
   # File(s) which need(s) Kokkos-Kernels
   add_library(mirco_needKK
     src/mirco_nonlinearsolver_kokkos.cpp
