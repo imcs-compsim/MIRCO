@@ -57,8 +57,7 @@ namespace MIRCO
             H_d(j, i) = tmp3;
           });
 
-      Kokkos::parallel_for(
-          systemsize, KOKKOS_LAMBDA(const int i) { H_d(i, i) = C; });
+      Kokkos::parallel_for(systemsize, KOKKOS_LAMBDA(const int i) { H_d(i, i) = C; });
     }
 
     return H_d;

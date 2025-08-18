@@ -25,7 +25,7 @@ jobs:
           git diff > clang_format.patch
           if [ -s clang_format.patch ]
           then
-            echo "Formatting incorrect. Run 'find src/ tests/ -iname *.h -o -iname *.c -o -iname *.cpp -o -iname *.hpp | xargs clang-format -style=file -i -fallback-style=none' in your local source directory and push it."
+            echo "Formatting incorrect. Run 'source create-mirco-python-venv.sh&&find src/ tests/ -iname *.h -o -iname *.c -o -iname *.cpp -o -iname *.hpp | xargs clang-format -style=file -i -fallback-style=none&&deactivate' in your local source directory and push it."
             exit 1
           fi
 

@@ -66,8 +66,7 @@ namespace MIRCO
     {
       init = true;
       // Hp - b0 for p = 0
-      Kokkos::parallel_for(
-          n0, KOKKOS_LAMBDA(const int i) { w_d(i) = -b0_d(i); });
+      Kokkos::parallel_for(n0, KOKKOS_LAMBDA(const int i) { w_d(i) = -b0_d(i); });
     }
 
     int iter = 0;
