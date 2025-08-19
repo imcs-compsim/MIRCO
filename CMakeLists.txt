@@ -41,11 +41,6 @@ endif()
 
 option(USE_KOKKOS_CODE "Use the Kokkos variant of MIRCO, which also requires Kokkos-Kernels. If set to OFF, the standard OpenMP-based implementation will be used" ON)
 
-# Utilities which need require no libraries (hence this is the same regardless of USE_KOKKOS_CODE)
-add_library(mirco_utils
-  src/mirco_filesystem_utils.cpp
-  )
-
 if(NOT USE_KOKKOS_CODE)
 
   option(TRILINOS_IN_MIRCO "Find the Trilinos library in the MIRCO project. If set to OFF, use a library from an upstream project" ON)
@@ -133,6 +128,10 @@ if(NOT USE_KOKKOS_CODE)
     src/mirco_topology.cpp
     )
   target_link_libraries(mirco_topology PRIVATE Trilinos::all_selected_libs)
+
+  add_library(mirco_utils
+    src/mirco_filesystem_utils.cpp
+    )
 
   add_library(mirco_io
     src/mirco_inputparameters.cpp
@@ -249,21 +248,23 @@ else() #if(USE_KOKKOS_CODE)
     )
   target_link_libraries(mirco_inputparameters PRIVATE mirco_topology)
 
-  add_library(pugixml STATIC
-    extern/pugixml/src/pugixml.cpp
-    )
-  target_include_directories(pugixml PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/extern/pugixml/src/>
-    $<INSTALL_INTERFACE:include/pugixml/>
-    )
+  #Fetch rapidyaml (ryml) directly
+  include(FetchContent)
+  FetchContent_Declare(rapidyaml GIT_REPOSITORY https://github.com/biojppm/rapidyaml.git GIT_TAG 47ec2fa184209687c20fd5bc05621e1cb1200311)
+  FetchContent_MakeAvailable(rapidyaml)
 
-  add_library(mirco_inputparameters_fromxml
-    src/mirco_inputparameters_fromxml_kokkos.cpp
+  add_library(mirco_utils
+    src/mirco_utils_kokkos.cpp
     )
-  target_link_libraries(mirco_inputparameters_fromxml PRIVATE mirco_utils pugixml Kokkos::kokkos)
+  target_link_libraries(mirco_utils PUBLIC ryml)
+
+  add_library(mirco_inputparameters_yaml
+    src/mirco_inputparameters_yaml_kokkos.cpp
+    )
+  target_link_libraries(mirco_inputparameters_yaml PRIVATE mirco_utils Kokkos::kokkos)
 
   add_library(mirco_lib INTERFACE)
-  target_link_libraries(mirco_lib INTERFACE mirco_utils mirco_needKK mirco_core mirco_topology mirco_inputparameters)
+  target_link_libraries(mirco_lib INTERFACE mirco_needKK mirco_core mirco_topology mirco_inputparameters)
 
   # All _kokkos header files
   file(GLOB_RECURSE HEADER_FILES
@@ -291,10 +292,10 @@ if(NOT USE_KOKKOS_CODE)
     ARCHIVE LIBRARY PUBLIC_HEADER
     )
 else()
-  target_link_libraries(mirco PUBLIC mirco::mirco_lib mirco_inputparameters_fromxml pugixml)
+  target_link_libraries(mirco PUBLIC mirco::mirco_lib mirco_inputparameters_yaml mirco_utils)
 
   # Install mirco (to be used as a library by other codes)
-  install(TARGETS mirco_lib mirco_utils mirco_needKK mirco_core mirco_topology mirco_inputparameters
+  install(TARGETS mirco_lib mirco_needKK mirco_core mirco_topology mirco_inputparameters
     EXPORT mirco_libTargets
     ARCHIVE LIBRARY PUBLIC_HEADER
     )
@@ -334,7 +335,7 @@ if(GTEST_IN_MIRCO)
     add_executable(tests
       tests/unittests/test_kokkos.cpp
       )
-    target_link_libraries(tests PUBLIC mirco::mirco_lib mirco_inputparameters_fromxml gtest)
+    target_link_libraries(tests PUBLIC mirco::mirco_lib mirco_inputparameters_yaml mirco_utils gtest)
   endif()
 
   # Copy tests/unittests/data folder to the build dir

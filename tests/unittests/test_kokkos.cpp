@@ -3,11 +3,11 @@
 
 #include <vector>
 
-#include "../../src/mirco_filesystem_utils.h"
 #include "../../src/mirco_inputparameters_kokkos.h"
 #include "../../src/mirco_kokkostypes_kokkos.h"
 #include "../../src/mirco_nonlinearsolver_kokkos.h"
 #include "../../src/mirco_topology_kokkos.h"
+#include "../../src/mirco_utils_kokkos.h"
 #include "../../src/mirco_warmstart_kokkos.h"
 
 TEST(NonlinearSolverTest, primalvariable)
@@ -151,7 +151,7 @@ TEST(FilesystemUtils, createrelativepath)
 {
   std::string targetfilename = "input.dat";
   std::string sourcefilename = "../inputfiles/sourceinput.json";
-  MIRCO::UTILS::ChangeRelativePath(targetfilename, sourcefilename);
+  MIRCO::Utils::changeRelativePath(targetfilename, sourcefilename);
   EXPECT_EQ(targetfilename, "../inputfiles/input.dat");
 }
 
@@ -159,7 +159,7 @@ TEST(FilesystemUtils, keepabsolutepath)
 {
   std::string targetfilename = "/root_dir/home/user/Input/input.dat";
   std::string sourcefilename = "../inputfiles/sourceinput.json";
-  MIRCO::UTILS::ChangeRelativePath(targetfilename, sourcefilename);
+  MIRCO::Utils::changeRelativePath(targetfilename, sourcefilename);
   EXPECT_EQ(targetfilename, "/root_dir/home/user/Input/input.dat");
 }
 
@@ -212,9 +212,9 @@ TEST(topology, readFromFile)
   EXPECT_NEAR(outsurf_h(4, 3), 9.8243100e+01, 1e-06);
 }
 
-TEST(inputParameters, readFromXmlFile_rmg)
+TEST(inputParameters, yaml_rmg)
 {
-  std::string inputFilePath = "test/data/input_res2_rmg_kokkos.xml";
+  std::string inputFilePath = "test/data/input_res2_rmg.yaml";
   MIRCO::InputParameters inputParams(inputFilePath);
 
   MIRCO::ViewMatrix_d topology_d = inputParams.topology_d;
@@ -228,9 +228,9 @@ TEST(inputParameters, readFromXmlFile_rmg)
   EXPECT_NEAR(inputParams.grid_size, 200, 1e-04);
   EXPECT_NEAR(inputParams.composite_youngs, 0.549451, 1e-04);
 }
-TEST(inputParameters, readFromXmlFile_dat)
+TEST(inputParameters, yaml_dat)
 {
-  std::string inputFilePath = "test/data/input_withDat_kokkos.xml";
+  std::string inputFilePath = "test/data/input_withDat.yaml";
   MIRCO::InputParameters inputParams(inputFilePath);
 
   MIRCO::ViewMatrix_d topology_d = inputParams.topology_d;

@@ -1,0 +1,16 @@
+mirco_input:
+  WarmStartingFlag: true
+  RandomTopologyFlag: false
+  TopologyFilePath: topologyN5.dat
+  MaxIteration: 100
+  PressureGreenFunFlag: true
+  parameters:
+    material_parameters:
+      E1: 1
+      nu1: 0.3
+      E2: 1
+      nu2: 0.3
+    geometrical_parameters:
+      LateralLength: 1000.0
+      Delta: 15.0
+      Tolerance: 0.01

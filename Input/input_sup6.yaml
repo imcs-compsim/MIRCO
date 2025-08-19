@@ -1,0 +1,23 @@
+mirco_input:
+  WarmStartingFlag: true
+  RandomTopologyFlag: true
+  RandomSeedFlag: false
+  RandomGeneratorSeed: 95
+  MaxIteration: 100
+  PressureGreenFunFlag: false
+  parameters:
+    material_parameters:
+      E1: 1
+      nu1: 0.3
+      E2: 1
+      nu2: 0.3
+    geometrical_parameters:
+      LateralLength: 1000.0
+      Resolution: 6
+      HurstExponent: 0.7
+      InitialTopologyStdDeviation: 20.0
+      Delta: 10.0
+      Tolerance: 0.01
+  result_description:
+    ExpectedPressure: 0.0005942101230076477
+    ExpectedPressureTolerance: 1e-10

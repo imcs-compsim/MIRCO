@@ -7,7 +7,7 @@ macro(mirco_framework_test name_of_input_file)
 endmacro(mirco_framework_test)
 
 # List of tests
-mirco_framework_test(input_sup2_kokkos.xml)
-mirco_framework_test(input_sup5_kokkos.xml)
-mirco_framework_test(input_sup6_kokkos.xml)
-mirco_framework_test(input_sup7_kokkos.xml)
+mirco_framework_test(input_sup2.yaml)
+mirco_framework_test(input_sup5.yaml)
+mirco_framework_test(input_sup6.yaml)
+mirco_framework_test(input_sup7.yaml)
