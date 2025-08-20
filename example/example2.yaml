@@ -1,0 +1,21 @@
+mirco_input:
+  WarmStartingFlag: true
+  RandomTopologyFlag: true
+  RandomSeedFlag: false
+  RandomGeneratorSeed: 95
+  TopologyFilePath: sup2.dat
+  MaxIteration: 100
+  PressureGreenFunFlag: true
+  parameters:
+    material_parameters:
+      E1: 1
+      nu1: 0.3
+      E2: 1
+      nu2: 0.3
+    geometrical_parameters:
+      LateralLength: 1000.0
+      Resolution: 8
+      HurstExponent: 0.7
+      InitialTopologyStdDeviation: 20.0
+      Delta: 100.0
+      Tolerance: 0.01
