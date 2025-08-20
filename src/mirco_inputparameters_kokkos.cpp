@@ -62,7 +62,7 @@ namespace MIRCO
       shape_factor = shape_factors_force.at(Resolution);
     }
 
-    composite_youngs = pow(((1 - pow(nu1, 2)) / E1 + (1 - pow(nu2, 2)) / E2), -1);
+    composite_youngs = 1.0 / ((1 - nu1 * nu1) / E1 + (1 - nu2 * nu2) / E2);
     elastic_compliance_correction = LateralLength * composite_youngs / shape_factor;
     N = (1 << Resolution) + 1;
     grid_size = LateralLength / N;
@@ -91,7 +91,7 @@ namespace MIRCO
       shape_factor = InterpolatedShapeFactor(shape_factors_force, N);
     }
 
-    composite_youngs = pow(((1 - pow(nu1, 2)) / E1 + (1 - pow(nu2, 2)) / E2), -1);
+    composite_youngs = 1.0 / ((1 - nu1 * nu1) / E1 + (1 - nu2 * nu2) / E2);
     elastic_compliance_correction = LateralLength * composite_youngs / shape_factor;
     grid_size = LateralLength / N;
   }

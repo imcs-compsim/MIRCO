@@ -4,29 +4,27 @@
 
 namespace MIRCO
 {
-  ViewVector_h Warmstart(const ViewVector_h& xv0, const ViewVector_h& yv0, const ViewVector_h& xvf,
-      const ViewVector_h& yvf, const ViewVector_h& pf)
+  ViewVector_d Warmstart(
+      const ViewVector_d& activeSet0_d, const ViewVector_d& activeSetf_d, const ViewVector_d& pf_d)
   {
-    // TODO: If possible, convert this algorithm into running in a parallel kernel so that device
-    // views can be used
-    const auto n = static_cast<size_t>(xv0.extent(0));
-    ViewVector_h p0("Warmstart(); p0", n);
+    const int n0 = activeSet0_d.extent(0);
+    const int nf = activeSetf_d.extent(0);
+    ViewVector_d p0_d("Warmstart(); p0", n0);
 
-    for (size_t i = 0; i < n; ++i)
-    {
-      auto it_x = std::find(xvf.data(), xvf.data() + xvf.extent(0), xv0(i));
-      auto it_y = std::find(yvf.data(), yvf.data() + yvf.extent(0), yv0(i));
+    Kokkos::parallel_for(
+        n0, KOKKOS_LAMBDA(const int i) {
+          const int a0_i = activeSet0_d(i);
+          for (int j = 0; j < nf; ++j)
+          {
+            if (activeSetf_d(j) == a0_i)
+            {
+              p0_d(i) = pf_d(j);
+              break;
+            }
+          }
+        });
 
-      // if(it x exists && it y exists &&)
-      if (it_x != xvf.data() + xvf.extent(0) && it_y != yvf.data() + yvf.extent(0) &&
-          (it_x - xvf.data()) == (it_y - yvf.data()))
-      {
-        size_t j = it_x - xvf.data();
-        p0(i) = pf(j);
-      }
-    }
-
-    return p0;
+    return p0_d;
   }
 
 }  // namespace MIRCO

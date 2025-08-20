@@ -59,10 +59,10 @@ namespace MIRCO
     std::normal_distribution<double> distribution(
         0.0, 1.0);  // normal distribution: mean = 0.0, standard deviation = 1.0
 
-    int N = pow(2, resolution) + 1;
+    int N = (1 << resolution) + 1;
     ViewMatrix_h z("CreateRmgSurface(); z", N, N);
 
-    const double scaling_factor = pow(sqrt(2), Hurst);
+    const double scaling_factor = pow(2.0, 0.5 * Hurst);
     double alpha = InitialTopologyStdDeviation * scaling_factor;
 
     const int D_0 = N - 1;

@@ -27,8 +27,8 @@ namespace
 
 namespace MIRCO
 {
-  void nonlinearSolve(const ViewMatrix_d matrix_d, const ViewVector_d b0_d, ViewVector_d& p_d,
-      int& activeSetSize, double nnlstol, int maxiter)
+  void nonlinearSolve(ViewVector_d& p_d, ViewVector_d& activeSet, const ViewVector_d activeSet0_d,
+      const ViewMatrix_d matrix_d, const ViewVector_d b0_d, double nnlstol, int maxiter)
   {
     using minloc_t = Kokkos::MinLoc<double, int, MemorySpace_ofDefaultExec_t>;
     using minloc_value_t = typename minloc_t::value_type;
@@ -59,6 +59,7 @@ namespace MIRCO
             activeInactiveSet(n0 - 1 - (Kokkos::atomic_fetch_add(&counterInactive(), 1))) = i;
           }
         });
+    int activeSetSize;
     Kokkos::deep_copy(activeSetSize, counterActive);
 
     bool init = false;
@@ -219,6 +220,15 @@ namespace MIRCO
         }
       }
     }
+    // Construct the final active set (the lower half of activeInactiveSet)
+    // #
+    // # WAIT NO THIS IS WRONG; THIS TAKES INDEX FROM SUBSET OF THE GIVEN ACTIVE SET HERE, BUT WE
+    // NEED TO USE
+    activeSet = ViewVector_d(kokkosLabelPrefix + "activeSet", activeSetSize);
+    Kokkos::parallel_for(
+        activeSetSize, KOKKOS_LAMBDA(const int i) {
+          activeSet(activeSetSize) = activeSet0_d(activeInactiveSet(activeSetSize));
+        });
   }
 
 }  // namespace MIRCO

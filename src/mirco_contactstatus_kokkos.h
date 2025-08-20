@@ -6,21 +6,6 @@
 namespace MIRCO
 {
   /**
-   * @brief The aim of this function is to compute to nodes in contact in the current iteration
-   *
-   * @param[out] xvf x-coordinates of the points in contact in the previous iteration.
-   * @param[out] yvf y-coordinates of the points in contact in the previous iteration.
-   * @param[out] pf Contact force at (xvf,yvf) predicted in the previous iteration.
-   * @param[out] nf Number of nodes in contact in the previous iteration
-   * @param[in] y Solution containing force
-   * @param[in] xv0 x-coordinates of the points in contact in the previous iteration.
-   * @param[in] yv0 y-coordinates of the points in contact in the previous iteration.
-   */
-  void ComputeContactNodes(ViewVector_d& xvf, ViewVector_d& yvf, ViewVector_d& pf_d,
-      const int activeSetSize, const ViewVector_d p_d, const ViewVector_d xv0,
-      const ViewVector_d yv0);
-
-  /**
    * @brief Calculate the contact force and contact area for the
    * current iteration.
    *

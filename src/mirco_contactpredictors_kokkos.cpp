@@ -2,57 +2,43 @@
 
 namespace MIRCO
 {
-  void ContactSetPredictor(int &n0, ViewVector_d &xv0, ViewVector_d &yv0, ViewVector_d &b0,
-      double zmax, double Delta, double w_el, const ViewVector_d meshgrid,
-      const ViewMatrix_d topology)
+  void ContactSetPredictor(ViewVector_d& activeSet0_d, ViewVector_d& xv0_d, ViewVector_d& yv0_d,
+      ViewVector_d& b0, double zmax, double Delta, double w_el, const ViewMatrix_d topology_d,
+      const ViewVector_d meshgrid_d)
   {
-    n0 = 0;
+    const int N = topology_d.extent(0);
 
-    double value = zmax - Delta - w_el;
-
-    int N = topology.extent(0);
-
+    const double critValue = zmax - Delta - w_el;
+    int n0 = 0;
     Kokkos::parallel_reduce(
-        "ContactSetPredictor0", N * N,
-        KOKKOS_LAMBDA(int idx, int &local_sum) {
-          int i = idx / N;
-          int j = idx % N;
-          if (topology(i, j) >= value) local_sum++;
+        N * N,
+        KOKKOS_LAMBDA(const int a, int& local_sum) {
+          if (topology_d(a / N, a % N) >= critValue) local_sum++;
         },
         n0);
 
-    ViewVectorInt_d row("row", n0);
-    ViewVectorInt_d col("col", n0);
-
-    ViewVectorInt_d counter("counter", 1);
-    Kokkos::deep_copy(counter, 0);
-
-    Kokkos::parallel_for(
-        "ContactSetPredictor1", N * N, KOKKOS_LAMBDA(int idx) {
-          int i = idx / N;
-          int j = idx % N;
-          if (topology(i, j) >= value)
-          {
-            int pos = Kokkos::atomic_fetch_add(&counter(0), 1);
-            row(pos) = i;
-            col(pos) = j;
-          }
-        });
-
-    xv0 = ViewVector_d("xv0", n0);
-    yv0 = ViewVector_d("yv0", n0);
+    activeSet0_d = ViewVector_d("activeSet0_d", n0);
+    xv0_d = ViewVector_d("xv0_d", n0);
+    yv0_d = ViewVector_d("yv0_d", n0);
     b0 = ViewVector_d("b0", n0);
 
+    ViewScalarInt_d counter("ContactSetPredictor(); counter");
+    Kokkos::deep_copy(counter, 0);
+    const double Dwz = Delta + w_el - zmax;
     Kokkos::parallel_for(
-        "ContactSetPredictor2", n0, KOKKOS_LAMBDA(int i) {
-          int ci = col(i);
-          int ri = row(i);
-
-          xv0(i) = meshgrid(ci);
-          yv0(i) = meshgrid(ri);
-
-          // Note: b0 = \overbar{u} + w_el
-          b0(i) = Delta + w_el - (zmax - topology(ri, ci));
+        N * N, KOKKOS_LAMBDA(const int a) {
+          const int i = a / N;
+          const int j = a % N;
+          const double topology_a = topology_d(i, j);
+          if (topology_a >= critValue)
+          {
+            const int aa = Kokkos::atomic_fetch_add(&counter(), 1);
+            activeSet0_d(aa) = i;
+            xv0_d(aa) = meshgrid_d(j);
+            yv0_d(aa) = meshgrid_d(i);
+            // Note: b0 = \overbar{u} + w_el = Delta + w_el - (zmax - topology_a);
+            b0(a) = Dwz + topology_a;
+          }
         });
   }
 

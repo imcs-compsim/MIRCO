@@ -4,30 +4,6 @@
 
 namespace MIRCO
 {
-  void ComputeContactNodes(ViewVector_d& xvf, ViewVector_d& yvf, ViewVector_d& pf_d,
-      const int activeSetSize, const ViewVector_d p_d, const ViewVector_d xv0,
-      const ViewVector_d yv0)
-  {
-    xvf = ViewVector_d("new xvf", activeSetSize);
-    yvf = ViewVector_d("new xvf", activeSetSize);
-    pf_d = ViewVector_d("new xvf", activeSetSize);
-    int n0 = p_d.extent(0);
-
-    ViewVectorInt_d counter("counter", 1);
-    Kokkos::deep_copy(counter, 0);
-
-    Kokkos::parallel_for(
-        n0, KOKKOS_LAMBDA(const int i) {
-          if (p_d(i) != 0)
-          {
-            const int pos = Kokkos::atomic_fetch_add(&counter(0), 1);
-            xvf(pos) = xv0(i);
-            yvf(pos) = yv0(i);
-            pf_d(pos) = p_d(i);
-          }
-        });
-  }
-
   void ComputeContactForceAndArea(double& totalForce, double& contactArea, const ViewVector_d pf_d,
       const double GridSize, const double LateralLength, const bool PressureGreenFunFlag)
   {

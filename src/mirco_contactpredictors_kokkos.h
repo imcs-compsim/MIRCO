@@ -10,19 +10,21 @@ namespace MIRCO
    * than the displacement of the rigid indenter, cannot be in contact and thus are not checked in
    * nonlinear solve
    *
-   * @param[out] n0 Number of nodes predicted to be in contact
-   * @param[out] xv0 x-coordinates of the points in contact in the previous iteration.
-   * @param[out] yv0 y-coordinates of the points in contact in the previous iteration.
-   * @param[out] b0 Indentation value of the half space at the predicted points of contact.
+   * @param[out] activeSet0_d Points predicted to be in contact in the current iteration
+   * @param[out] xv0_d x-coordinate of the points predicted to be in contact in the current
+   * iteration
+   * @param[out] yv0_d y-coordinate of the points predicted to be in contact in the current
+   * iteration
+   * @param[out] b0 Indentation value of the half space at the predicted points of contact
    * @param[in] zmax Maximum height of the topology
    * @param[in] Delta Far-field displacement (Gap)
    * @param[in] w_el Elastic correction
-   * @param[in] meshgrid Meshgrid
-   * @param[in] topology Topology matrix containing heights
+   * @param[in] topology_d Topology matrix containing heights
+   * @param[in] meshgrid_d Meshgrid (coordinates in one direction)
    */
-  void ContactSetPredictor(int &n0, ViewVector_d &xv0, ViewVector_d &yv0, ViewVector_d &b0,
-      double zmax, double Delta, double w_el, const ViewVector_d meshgrid,
-      const ViewMatrix_d topology);
+  void ContactSetPredictor(ViewVector_d& activeSet0_d, ViewVector_d& xv0_d, ViewVector_d& yv0_d,
+      ViewVector_d& b0, double zmax, double Delta, double w_el, const ViewMatrix_d topology_d,
+      const ViewVector_d meshgrid_d);
 }  // namespace MIRCO
 
 #endif  // SRC_CONTACTPREDICTORS_KOKKOS_H_
