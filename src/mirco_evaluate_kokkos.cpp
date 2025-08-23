@@ -24,16 +24,14 @@ namespace MIRCO
     // area and force calculated at every iteration.
     std::vector<double> totalForceVector;
     std::vector<double> contactAreaVector;
-    pressure = 0.0;
     double w_el = 0.0;
 
     // Initialise number of iterations
     int k = 0;
 
-    // Coordinates of the points in contact in the previous iteration.
-    /// #ViewVector_d xvf_d, yvf_d;
-    // Points in contact in the previous iteration
-    ViewVector_d activeSetf_d;
+    // Points in contact in the previous iteration (only needed for warmstart)
+    ViewVectorInt_d activeSetf_d;
+
     // Contact force at (xvf,yvf) predicted in the previous iteration.
     ViewVector_d pf_d;
 
@@ -42,11 +40,10 @@ namespace MIRCO
 
     while (ErrorForce > Tolerance && k < MaxIteration)
     {
-      // Indices oints predicted to be in contact
-      ViewVector_d activeSet0_d;
+      // Indices of the points predicted to be in contact
+      ViewVectorInt_d activeSet0_d;
       // Coordinates of the points predicted to be in contact
       ViewVector_d xv0_d, yv0_d;
-
       // Indentation value of the half space at the predicted points of contact
       ViewVector_d b0_d;
 
@@ -57,22 +54,18 @@ namespace MIRCO
       // Initial number of predicted contact nodes.
       const int n0 = activeSet0_d.extent(0);
 
-
-      ViewVector_d p_d;
+      ViewVector_d p0_d;
       // Second predictor for contact set
       // p_d --> contact forces at (xvf,yvf) predicted in the previous iteration but
       // are a part of currect predicted contact set. p_d is calculated in the
       // Warmstart function to be used in the NNLS to accelerate the simulation.
       if (WarmStartingFlag && k > 0)
       {
-        p_d = Warmstart(activeSet0_d, activeSetf_d, pf_d);
+        p0_d = Warmstart(activeSet0_d, activeSetf_d, pf_d);
       }
       else
       {
-        if (b0_d.extent(0) > 0)
-        {
-          p_d = ViewVector_d("InitialGuessPredictor", n0, 0.0);
-        }
+        p0_d = ViewVector_d("p0_d", n0, 0.0);
       }
 
       auto H_d = MatrixGeneration::SetupMatrix(
@@ -82,17 +75,15 @@ namespace MIRCO
       // Gap between the point on the topology and the half space
       // ViewVector_d w_d;
 
-      int activeSetSize;
       // use Nonlinear solver --> Non-Negative Least Squares (NNLS) as in
       // (Bemporad & Paggi, 2015)
-      nonlinearSolve(p_d, activeSetf_d, activeSet0_d, H_d, b0_d);
+      nonlinearSolve(pf_d, activeSetf_d, p0_d, activeSet0_d, H_d, b0_d);
 
       // Compute total contact force and contact area
       double totalForce;
       double contactArea;
       ComputeContactForceAndArea(
           totalForce, contactArea, pf_d, GridSize, LateralLength, PressureGreenFunFlag);
-
       totalForceVector.push_back(totalForce);
       contactAreaVector.push_back(contactArea);
 
@@ -104,7 +95,8 @@ namespace MIRCO
       {
         ErrorForce = abs(totalForceVector[k] - totalForceVector[k - 1]) / totalForceVector[k];
       }
-      k += 1;
+
+      ++k;
     }
 
     if (ErrorForce > Tolerance)

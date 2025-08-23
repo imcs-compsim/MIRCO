@@ -17,8 +17,8 @@ namespace MIRCO
    * @return p0_d vector of contact forces predicted in the previous iteration but which are a part
    * of the currect predicted contact set (warmstart prediction)
    */
-  ViewVector_d Warmstart(
-      const ViewVector_d& activeSet0_d, const ViewVector_d& activeSetf_d, const ViewVector_d& pf);
+  ViewVector_d Warmstart(const ViewVectorInt_d& activeSet0_d, const ViewVectorInt_d& activeSetf_d,
+      const ViewVector_d& pf);
 }  // namespace MIRCO
 
 #endif  // SRC_WARMSTART_KOKKOS_H_

@@ -12,7 +12,7 @@
 
 TEST(NonlinearSolverTest, primalvariable)
 {
-  MIRCO::ViewMatrix_h matrix_h("", 9, 9);
+  MIRCO::ViewMatrix_h matrix_h("matrix_h", 9, 9);
   matrix_h(0, 0) = 0.00381971863420549;
   matrix_h(1, 0) = 0.0020;
   matrix_h(2, 0) = 0.000965167479061995;
@@ -103,7 +103,7 @@ TEST(NonlinearSolverTest, primalvariable)
   matrix_h(7, 8) = 0.00200000000000000;
   matrix_h(8, 8) = 0.00381971863420549;
 
-  MIRCO::ViewVector_h b0_h("", 9);
+  MIRCO::ViewVector_h b0_h("b0_h", 9);
   b0_h(0) = 1357.42803841637;
   b0_h(1) = 1330.45347724905;
   b0_h(2) = 1357.42803841637;
@@ -114,37 +114,43 @@ TEST(NonlinearSolverTest, primalvariable)
   b0_h(7) = 1411.27792115093;
   b0_h(8) = 1357.42803841637;
 
-  MIRCO::ViewVector_h p_h("", 9);
-  p_h(0) = 161643.031767534;
-  p_h(1) = 43277.7916790043;
-  p_h(2) = 162132.580424512;
-  p_h(3) = 54559.4126169668;
-  p_h(4) = 10518.1563067329;
-  p_h(5) = 53208.9583111822;
-  p_h(6) = 147203.068996657;
-  p_h(7) = 83111.4417592719;
-  p_h(8) = 147692.617653634;
+  MIRCO::ViewVector_h p0_h("p0_h", 9);
+  p0_h(0) = 161643.031767534;
+  p0_h(1) = 43277.7916790043;
+  p0_h(2) = 162132.580424512;
+  p0_h(3) = 54559.4126169668;
+  p0_h(4) = 10518.1563067329;
+  p0_h(5) = 53208.9583111822;
+  p0_h(6) = 147203.068996657;
+  p0_h(7) = 83111.4417592719;
+  p0_h(8) = 147692.617653634;
 
   MIRCO::ViewMatrix_d matrix_d =
       Kokkos::create_mirror_view_and_copy(MIRCO::ExecSpace_Default_t(), matrix_h);
-  MIRCO::ViewVector_d p_d = Kokkos::create_mirror_view_and_copy(MIRCO::ExecSpace_Default_t(), p_h);
+  MIRCO::ViewVector_d p0_d =
+      Kokkos::create_mirror_view_and_copy(MIRCO::ExecSpace_Default_t(), p0_h);
   MIRCO::ViewVector_d b0_d =
       Kokkos::create_mirror_view_and_copy(MIRCO::ExecSpace_Default_t(), b0_h);
-  int activeSetSize;
 
-  MIRCO::nonlinearSolve(matrix_d, b0_d, p_d, activeSetSize);
+  MIRCO::ViewVectorInt_d activeSet0_d("activeSet0_d", 9);
+  Kokkos::parallel_for(9, KOKKOS_LAMBDA(const int i) { activeSet0_d(i) = i; });
 
-  Kokkos::deep_copy(p_h, p_d);
+  MIRCO::ViewVector_d pf_d;
+  MIRCO::ViewVectorInt_d activeSetf_d;
 
-  EXPECT_NEAR(p_h(0), 163213.374921086, 1e-06);
-  EXPECT_NEAR(p_h(1), 43877.9231473546, 1e-06);
-  EXPECT_NEAR(p_h(2), 163702.923578063, 1e-06);
-  EXPECT_NEAR(p_h(3), 55159.5440853170, 1e-06);
-  EXPECT_NEAR(p_h(4), 10542.1713862417, 1e-06);
-  EXPECT_NEAR(p_h(5), 53809.0897795325, 1e-06);
-  EXPECT_NEAR(p_h(6), 148773.412150208, 1e-06);
-  EXPECT_NEAR(p_h(7), 83711.5732276221, 1e-06);
-  EXPECT_NEAR(p_h(8), 149262.960807186, 1e-06);
+  MIRCO::nonlinearSolve(pf_d, activeSetf_d, p0_d, activeSet0_d, matrix_d, b0_d);
+
+  Kokkos::deep_copy(p0_h, p0_d);
+
+  EXPECT_NEAR(p0_h(0), 163213.374921086, 1e-06);
+  EXPECT_NEAR(p0_h(1), 43877.9231473546, 1e-06);
+  EXPECT_NEAR(p0_h(2), 163702.923578063, 1e-06);
+  EXPECT_NEAR(p0_h(3), 55159.5440853170, 1e-06);
+  EXPECT_NEAR(p0_h(4), 10542.1713862417, 1e-06);
+  EXPECT_NEAR(p0_h(5), 53809.0897795325, 1e-06);
+  EXPECT_NEAR(p0_h(6), 148773.412150208, 1e-06);
+  EXPECT_NEAR(p0_h(7), 83711.5732276221, 1e-06);
+  EXPECT_NEAR(p0_h(8), 149262.960807186, 1e-06);
 }
 
 TEST(FilesystemUtils, createrelativepath)
@@ -290,72 +296,70 @@ TEST(inputParameters, directInput_dat)
 
 TEST(warmstarting, warmstart)
 {
-  MIRCO::ViewVector_h xv0("", 3);
-  MIRCO::ViewVector_h yv0("", 3);
-  MIRCO::ViewVector_h xvf("", 2);
-  MIRCO::ViewVector_h yvf("", 2);
-  MIRCO::ViewVector_h pf("", 2);
+  using ViewVectorInt_h = Kokkos::View<int*, Kokkos::LayoutLeft, MIRCO::ExecSpace_DefaultHost_t>;
+  ViewVectorInt_h activeSet0_h("activeSet0_h", 3);
+  ViewVectorInt_h activeSetf_h("activeSetf_h", 2);
+  MIRCO::ViewVector_h pf_h("", 2);
 
-  xv0(0) = 1;
-  xv0(1) = 3;
-  xv0(2) = 5;
+  activeSet0_h(0) = 12;
+  activeSet0_h(1) = 34;
+  activeSet0_h(2) = 56;
 
-  yv0(0) = 2;
-  yv0(1) = 4;
-  yv0(2) = 6;
+  activeSetf_h(0) = 12;
+  activeSetf_h(1) = 56;
 
-  xvf(0) = 1;
-  xvf(1) = 5;
+  pf_h(0) = 10;
+  pf_h(1) = 30;
 
-  yvf(0) = 2;
-  yvf(1) = 6;
+  MIRCO::ViewVectorInt_d activeSet0_d =
+      Kokkos::create_mirror_view_and_copy(MIRCO::MemorySpace_ofDefaultExec_t(), activeSet0_h);
+  MIRCO::ViewVectorInt_d activeSetf_d =
+      Kokkos::create_mirror_view_and_copy(MIRCO::MemorySpace_ofDefaultExec_t(), activeSetf_h);
+  MIRCO::ViewVector_d pf_d =
+      Kokkos::create_mirror_view_and_copy(MIRCO::MemorySpace_ofDefaultExec_t(), pf_h);
 
-  pf(0) = 10;
-  pf(1) = 30;
+  MIRCO::ViewVector_d p0_d = MIRCO::Warmstart(activeSet0_d, activeSetf_d, pf_d);
+  MIRCO::ViewVector_d p0_h = Kokkos::create_mirror_view_and_copy(MIRCO::MemorySpace_Host_t(), p0_d);
 
-  MIRCO::ViewVector_h x0 = MIRCO::Warmstart(xv0, yv0, xvf, yvf, pf);
-
-  EXPECT_EQ(x0(0), 10);
-  EXPECT_EQ(x0(1), 0);
-  EXPECT_EQ(x0(2), 30);
+  EXPECT_EQ(p0_h(0), 10);
+  EXPECT_EQ(p0_h(1), 0);
+  EXPECT_EQ(p0_h(2), 30);
 }
 
 TEST(warmstarting, warmstart2)
 {
-  MIRCO::ViewVector_h xv0("", 3);
-  MIRCO::ViewVector_h yv0("", 3);
-  MIRCO::ViewVector_h xvf("", 4);
-  MIRCO::ViewVector_h yvf("", 4);
-  MIRCO::ViewVector_h pf("", 4);
+  using ViewVectorInt_h = Kokkos::View<int*, Kokkos::LayoutLeft, MIRCO::ExecSpace_DefaultHost_t>;
+  ViewVectorInt_h activeSet0_h("activeSet0_h", 3);
+  ViewVectorInt_h activeSetf_h("activeSetf_h", 4);
+  MIRCO::ViewVector_h pf_h("", 4);
 
-  xv0(0) = 1;
-  xv0(1) = 3;
-  xv0(2) = 5;
+  activeSet0_h(0) = 12;
+  activeSet0_h(1) = 34;
+  activeSet0_h(2) = 56;
 
-  yv0(0) = 2;
-  yv0(1) = 4;
-  yv0(2) = 6;
+  activeSetf_h(0) = 12;
+  activeSetf_h(1) = 78;
+  activeSetf_h(2) = 910;
+  activeSetf_h(3) = 56;
 
-  xvf(0) = 1;
-  xvf(1) = 7;
-  xvf(2) = 9;
-  xvf(3) = 5;
+  pf_h(0) = 10;
+  pf_h(1) = 50;
+  pf_h(2) = 70;
+  pf_h(3) = 30;
 
-  yvf(0) = 2;
-  yvf(1) = 8;
-  yvf(2) = 10;
-  yvf(3) = 6;
+  MIRCO::ViewVectorInt_d activeSet0_d =
+      Kokkos::create_mirror_view_and_copy(MIRCO::MemorySpace_ofDefaultExec_t(), activeSet0_h);
+  MIRCO::ViewVectorInt_d activeSetf_d =
+      Kokkos::create_mirror_view_and_copy(MIRCO::MemorySpace_ofDefaultExec_t(), activeSetf_h);
+  MIRCO::ViewVector_d pf_d =
+      Kokkos::create_mirror_view_and_copy(MIRCO::MemorySpace_ofDefaultExec_t(), pf_h);
 
-  pf(0) = 10;
-  pf(1) = 50;
-  pf(2) = 70;
-  pf(3) = 30;
+  MIRCO::ViewVector_d p0_d = MIRCO::Warmstart(activeSet0_d, activeSetf_d, pf_d);
+  MIRCO::ViewVector_d p0_h = Kokkos::create_mirror_view_and_copy(MIRCO::MemorySpace_Host_t(), p0_d);
 
-  MIRCO::ViewVector_h x0 = MIRCO::Warmstart(xv0, yv0, xvf, yvf, pf);
-
-  EXPECT_EQ(x0(0), 10);
-  EXPECT_EQ(x0(1), 0);
-  EXPECT_EQ(x0(2), 30);
+  EXPECT_EQ(p0_h(0), 10);
+  EXPECT_EQ(p0_h(1), 0);
+  EXPECT_EQ(p0_h(2), 30);
 }
 
 int main(int argc, char** argv)

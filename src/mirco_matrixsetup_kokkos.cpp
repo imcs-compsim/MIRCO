@@ -43,7 +43,7 @@ namespace MIRCO
     {
       const double C = 1 / (CompositeYoungs * pi * frac_GridSize_2);
 
-      // TODO: For better effiency, try using teams instead of MDRangePolicy
+      // TODO: For potentially better performance, try using teams instead of MDRangePolicy
       Kokkos::parallel_for(
           Kokkos::MDRangePolicy<Kokkos::Rank<2>>({0, 0}, {systemsize, systemsize}),
           KOKKOS_LAMBDA(const int i, const int j) {

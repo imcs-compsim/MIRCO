@@ -4,8 +4,8 @@
 
 namespace MIRCO
 {
-  ViewVector_d Warmstart(
-      const ViewVector_d& activeSet0_d, const ViewVector_d& activeSetf_d, const ViewVector_d& pf_d)
+  ViewVector_d Warmstart(const ViewVectorInt_d& activeSet0_d, const ViewVectorInt_d& activeSetf_d,
+      const ViewVector_d& pf_d)
   {
     const int n0 = activeSet0_d.extent(0);
     const int nf = activeSetf_d.extent(0);

@@ -27,8 +27,9 @@ namespace
 
 namespace MIRCO
 {
-  void nonlinearSolve(ViewVector_d& p_d, ViewVector_d& activeSet, const ViewVector_d activeSet0_d,
-      const ViewMatrix_d matrix_d, const ViewVector_d b0_d, double nnlstol, int maxiter)
+  void nonlinearSolve(ViewVector_d& pf_d, ViewVectorInt_d& activeSetf_d, ViewVector_d& p_d,
+      const ViewVectorInt_d activeSet0_d, const ViewMatrix_d matrix_d, const ViewVector_d b0_d,
+      double nnlstol, int maxiter)
   {
     using minloc_t = Kokkos::MinLoc<double, int, MemorySpace_ofDefaultExec_t>;
     using minloc_value_t = typename minloc_t::value_type;
@@ -220,14 +221,14 @@ namespace MIRCO
         }
       }
     }
-    // Construct the final active set (the lower half of activeInactiveSet)
-    // #
-    // # WAIT NO THIS IS WRONG; THIS TAKES INDEX FROM SUBSET OF THE GIVEN ACTIVE SET HERE, BUT WE
-    // NEED TO USE
-    activeSet = ViewVector_d(kokkosLabelPrefix + "activeSet", activeSetSize);
+    // Construct the final active set (the lower half of activeInactiveSet), as well as the compact
+    // final pressure vector
+    activeSetf_d = ViewVectorInt_d(kokkosLabelPrefix + "activeSet", activeSetSize);
+    pf_d = ViewVector_d("pf_d", activeSetSize);
     Kokkos::parallel_for(
         activeSetSize, KOKKOS_LAMBDA(const int i) {
-          activeSet(activeSetSize) = activeSet0_d(activeInactiveSet(activeSetSize));
+          activeSetf_d(i) = activeSet0_d(activeInactiveSet(i));
+          pf_d(i) = p_d(activeInactiveSet(i));
         });
   }
 

@@ -248,7 +248,7 @@ else() #if(USE_KOKKOS_CODE)
     )
   target_link_libraries(mirco_inputparameters PRIVATE mirco_topology)
 
-  #Fetch rapidyaml (ryml) directly
+  # Fetch rapidyaml (ryml) directly
   include(FetchContent)
   FetchContent_Declare(rapidyaml GIT_REPOSITORY https://github.com/biojppm/rapidyaml.git GIT_TAG 47ec2fa184209687c20fd5bc05621e1cb1200311)
   FetchContent_MakeAvailable(rapidyaml)

@@ -22,7 +22,7 @@ namespace MIRCO
    * @param[in] topology_d Topology matrix containing heights
    * @param[in] meshgrid_d Meshgrid (coordinates in one direction)
    */
-  void ContactSetPredictor(ViewVector_d& activeSet0_d, ViewVector_d& xv0_d, ViewVector_d& yv0_d,
+  void ContactSetPredictor(ViewVectorInt_d& activeSet0_d, ViewVector_d& xv0_d, ViewVector_d& yv0_d,
       ViewVector_d& b0, double zmax, double Delta, double w_el, const ViewMatrix_d topology_d,
       const ViewVector_d meshgrid_d);
 }  // namespace MIRCO
