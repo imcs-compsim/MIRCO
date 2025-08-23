@@ -1,237 +1,235 @@
-#include "mirco_nonlinearsolver.h"
+#include <KokkosLapack_gesv.hpp>
 
-#include <Teuchos_SerialDenseMatrix.hpp>
-#include <Teuchos_SerialDenseVector.hpp>
-#include <Teuchos_SerialSymDenseMatrix.hpp>
-#include <vector>
+#include "mirco_nonlinearsolver_kokkos.h"
 
-#include "mirco_linearsolver.h"
-
-Teuchos::SerialDenseVector<int, double> MIRCO::NonLinearSolver::Solve(
-    const Teuchos::SerialDenseMatrix<int, double>& matrix, const std::vector<double>& b0,
-    const Teuchos::SerialDenseMatrix<int, double>& y0, Teuchos::SerialDenseMatrix<int, double>& w)
+namespace
 {
-  double nnlstol = 1.0000e-08;
-  double maxiter = 10000;
-  double eps = 2.2204e-16;
-  double alphai = 0;
-  double alpha = 100000000;
-  int iter = 0;
-  bool init = false;
-  const int n0 = b0.size();
-  Teuchos::SerialDenseMatrix<int, double> s0;
-  std::vector<int> P(n0);
-  Teuchos::SerialDenseVector<int, double> vector_x, vector_b;
-  Teuchos::SerialSymDenseMatrix<int, double> solverMatrix;
-
-  // Initialize contact force solution
-  Teuchos::SerialDenseVector<int, double> y;
-  y.size(n0);
-  y.putScalar(0.0);
-
-  // Initialize active set
-  std::vector<int> positions;
-  for (int i = 0; i < y0.numRows(); i++)
+  using namespace MIRCO;
+  void swapEntries(ViewVectorInt_d v, const int i, const int j)
   {
-    if (y0(i, 0) >= nnlstol)
+    if constexpr (std::is_same<MemorySpace_Host_t, MemorySpace_ofDefaultExec_t>())
     {
-      positions.push_back(i);
-    }
-  }
-
-  int counter = 0;
-  counter = positions.size();
-  w.reshape(n0, 1);
-  w.putScalar(0.0);
-
-  if (counter == 0)
-  {
-#pragma omp parallel for schedule(static, 16)  // Always same workload -> static
-    for (int x = 0; x < n0; x++)
-    {
-      w(x, 0) = -b0[x];
-    }
-
-    init = false;
-  }
-  else
-  {
-#pragma omp parallel for schedule(static, 16)  // Always same workload -> static
-    for (int i = 0; i < counter; i++)
-    {
-      P[i] = positions[i];
-    }
-
-    init = true;
-  }
-
-  s0.shape(n0, 1);
-  bool aux1 = true, aux2 = true;
-
-  // New searching algorithm
-  std::vector<double> values, newValues;
-  std::vector<int> poss, newPositions;
-  double minValue = w(0, 0);
-  int minPosition = 0;
-
-  while (aux1 == true)
-  {
-    // @{
-    for (int i = 0; i < w.numRows(); i++)
-    {
-      values.push_back(w(i, 0));
-      poss.push_back(i);
-    }
-
-    // Get all values bigger than initial one
-    while (values.size() > 1)
-    {
-      for (unsigned long int i = 1; i < values.size(); i++)
-      {
-        if (values[i] < values[0])
-        {
-          newValues.push_back(values[i]);
-          newPositions.push_back(poss[i]);
-        }
-      }
-
-      if (newValues.size() == 0)
-      {
-        newValues.push_back(values[0]);
-        newPositions.push_back(poss[0]);
-      }
-
-      values = newValues;
-      poss = newPositions;
-      newValues.clear();
-      newPositions.clear();
-    }
-    minValue = values[0];
-    minPosition = poss[0];
-    values.clear();
-    poss.clear();
-    // }
-
-    if (((counter == n0) || (minValue > -nnlstol) || (iter >= maxiter)) && (init == false))
-    {
-      aux1 = false;
+      std::swap(v(i), v(j));
     }
     else
     {
-      if (init == false)
-      {
-        P[counter] = minPosition;
-        counter += 1;
-      }
-      else
-      {
-        init = false;
-      }
-    }
+      auto vi = Kokkos::subview(v, i);
+      auto vj = Kokkos::subview(v, j);
 
-    int j = 0;
-    aux2 = true;
-    while (aux2 == true)
-    {
-      iter++;
-      vector_b.size(counter);
-      solverMatrix.shape(counter);
+      ViewScalarInt_d tmp("swapEntries(); tmp");
 
-#pragma omp parallel for schedule(static, 16)  // Always same workload -> Static!
-      for (int x = 0; x < counter; x++)
-      {
-        vector_b(x) = b0[P[x]];
-
-        for (int z = 0; z < counter; z++)
-        {
-          if (x >= z)
-            solverMatrix(x, z) = matrix(P[x], P[z]);
-          else
-            solverMatrix(z, x) = matrix(P[x], P[z]);
-        }
-      }
-      // Solving solverMatrix*vector_x=vector_b
-      vector_x = MIRCO::LinearSolver::Solve(solverMatrix, vector_b);
-
-#pragma omp parallel for schedule(static, 16)  // Always same workload -> Static!
-      for (int x = 0; x < counter; x++)
-      {
-        s0(P[x], 0) = vector_x(x);
-      }
-
-      bool allBigger = true;
-#pragma omp parallel for schedule(static, 16)  // Always same workload -> Static!
-      for (int x = 0; x < counter; x++)
-      {
-        if (s0(P[x], 0) < nnlstol)
-        {
-          allBigger = false;
-        }
-      }
-
-      if (allBigger == true)
-      {
-        aux2 = false;
-#pragma omp parallel for schedule(guided, 16)
-        for (int x = 0; x < counter; x++)
-        {
-          y(P[x]) = s0(P[x], 0);
-        }
-        w.scale(0.0);
-#pragma omp parallel for schedule(dynamic, 16)
-        for (int a = 0; a < matrix.numRows(); a++)
-        {
-          w(a, 0) = 0;
-          for (int b = 0; b < counter; b++)
-          {
-            w(a, 0) += (matrix(a, P[b]) * y(P[b]));
-          }
-          w(a, 0) -= b0[a];
-        }
-      }
-      else
-      {
-        j = 0;
-        alpha = 1.0e8;
-
-        // Searching for minimum value with index position
-#pragma omp parallel
-        {
-          int jP = 0;
-          double alphaP = alpha;
-#pragma omp parallel for schedule(guided, 16)  // Even, guided seems fitting
-          for (int i = 0; i < counter; i++)
-          {
-            if (s0(P[i], 0) < nnlstol)
-            {
-              alphai = y(P[i]) / (eps + y(P[i]) - s0(P[i], 0));
-              if (alphai < alphaP)
-              {
-                alphaP = alphai;
-                jP = i;
-              }
-            }
-          }
-#pragma omp critical
-          {
-            alpha = alphaP;
-            j = jP;
-          }
-        }
-
-        // TODO: WHAT BELONGS TO THIS LOOP?????????????????????
-#pragma omp parallel for schedule(guided, 16)
-        for (int a = 0; a < counter; a++) y(P[a]) = y(P[a]) + alpha * (s0(P[a], 0) - y(P[a]));
-        if (j > 0)
-        {
-          // jth entry in P leaves active set
-          s0(P[j], 0) = 0;
-          P.erase(P.begin() + j);
-#pragma omp atomic  // Necessary?
-          counter -= 1;
-        }
-      }
+      Kokkos::deep_copy(tmp, vi);
+      Kokkos::deep_copy(vi, vj);
+      Kokkos::deep_copy(vj, tmp);
     }
   }
-  return y;
-}
+}  // namespace
+
+namespace MIRCO
+{
+  void nonlinearSolve(ViewVector_d& pf_d, ViewVectorInt_d& activeSetf_d, ViewVector_d& p_d,
+      const ViewVectorInt_d activeSet0_d, const ViewMatrix_d matrix_d, const ViewVector_d b0_d,
+      double nnlstol, int maxiter)
+  {
+    using minloc_t = Kokkos::MinLoc<double, int, MemorySpace_ofDefaultExec_t>;
+    using minloc_value_t = typename minloc_t::value_type;
+    const std::string kokkosLabelPrefix = "nonlinearSolve(); ";
+
+    // 2^{-52}; double machine precision, i.e. smallest number such that 1.0 + eps > 1.0
+    constexpr double eps = std::numeric_limits<double>::epsilon();
+
+    const int n0 = b0_d.extent(0);
+
+    ViewVector_d w_d("w_d", n0);
+
+    ViewVectorInt_d activeInactiveSet(kokkosLabelPrefix + "activeInactiveSet", n0);
+
+    ViewScalarInt_d counterActive(kokkosLabelPrefix + "counterActive");
+    Kokkos::deep_copy(counterActive, 0);
+    ViewScalarInt_d counterInactive(kokkosLabelPrefix + "counterInactive");
+    Kokkos::deep_copy(counterInactive, 0);
+    Kokkos::parallel_for(
+        n0, KOKKOS_LAMBDA(const int i) {
+          if (p_d(i) >= nnlstol)
+          {
+            // Note: atomic_fetch_add() returns the old value
+            activeInactiveSet(Kokkos::atomic_fetch_add(&counterActive(), 1)) = i;
+          }
+          else
+          {
+            activeInactiveSet(n0 - 1 - (Kokkos::atomic_fetch_add(&counterInactive(), 1))) = i;
+          }
+        });
+    int activeSetSize;
+    Kokkos::deep_copy(activeSetSize, counterActive);
+
+    bool init = false;
+    if (activeSetSize == 0)
+    {
+      init = true;
+      // Hp - b0 for p = 0
+      Kokkos::parallel_for(n0, KOKKOS_LAMBDA(const int i) { w_d(i) = -b0_d(i); });
+    }
+
+    int iter = 0;
+    while (true)
+    {
+      if ((init && (activeSetSize == n0)) || iter >= maxiter) break;
+      Kokkos::View<minloc_value_t, MemorySpace_ofDefaultExec_t> minloc_w_i_d(
+          kokkosLabelPrefix + "minloc_w_i_d");
+
+      Kokkos::parallel_reduce(
+          n0,
+          KOKKOS_LAMBDA(const int i, minloc_value_t& ml) {
+            const double wi = w_d(i);
+            if (wi < ml.val)
+            {
+              ml.val = wi;
+              ml.loc = i;
+            }
+          },
+          minloc_t(minloc_w_i_d));
+
+      minloc_value_t minloc_w_i;
+      Kokkos::deep_copy(minloc_w_i, minloc_w_i_d);
+
+      if (init && (minloc_w_i.val >= -nnlstol)) break;
+
+      if (init)
+      {
+        Kokkos::View<minloc_value_t, MemorySpace_ofDefaultExec_t> minloc_w_iInactive_d(
+            kokkosLabelPrefix + "minloc_w_iInactive_d");
+        Kokkos::parallel_reduce(
+            Kokkos::RangePolicy<ExecSpace_Default_t>(activeSetSize, n0),
+            KOKKOS_LAMBDA(const int i, minloc_value_t& ml) {
+              const double wi = w_d(activeInactiveSet(i));
+              if (wi < ml.val)
+              {
+                ml.val = wi;
+                ml.loc = i;
+              }
+            },
+            minloc_t(minloc_w_iInactive_d));
+
+        minloc_value_t minloc_w_iInactive;
+        Kokkos::deep_copy(minloc_w_iInactive, minloc_w_iInactive_d);
+
+        swapEntries(activeInactiveSet, minloc_w_iInactive.loc, activeSetSize);
+        ++activeSetSize;
+      }
+      else
+        init = true;
+
+      while (true)
+      {
+        ++iter;
+
+        // Compact versions of H and b0, i.e. H_I and \overbar{u}_I in line 6 of Algorithm 3,
+        // (Bemporad & Paggi, 2015)
+        ViewVector_d b0s_compact_d(kokkosLabelPrefix + "b0_compact_d", activeSetSize);
+        if (activeSetSize > 1)
+        {
+          ViewMatrix_d H_compact_d(kokkosLabelPrefix + "H_compact_d", activeSetSize, activeSetSize);
+
+          Kokkos::parallel_for(
+              activeSetSize, KOKKOS_LAMBDA(const int i) {
+                const int row = activeInactiveSet(i);
+                b0s_compact_d(i) = b0_d(row);
+                for (int j = 0; j < activeSetSize; ++j)
+                {
+                  const int col = activeInactiveSet(j);
+                  H_compact_d(i, j) = matrix_d(row, col);
+                }
+              });
+
+          ViewVectorInt_d ipiv_d(kokkosLabelPrefix + "ipiv_d", activeSetSize);
+
+          // Solve H_I s_I = b0_I; b0s_compact_d becomes s_I
+          KokkosLapack::gesv(H_compact_d, b0s_compact_d, ipiv_d);
+        }
+        else if (activeSetSize == 1)
+        {
+          Kokkos::parallel_for(
+              1, KOKKOS_LAMBDA(const int) {
+                const int ii = activeInactiveSet(0);
+                b0s_compact_d(0) = b0_d(ii) / matrix_d(ii, ii);
+              });
+        }
+
+        bool allGreater = true;
+        Kokkos::parallel_reduce(
+            activeSetSize,
+            KOKKOS_LAMBDA(const int i, bool& rallGreater) {
+              const bool lesser = (b0s_compact_d(i) < -nnlstol);
+              rallGreater = rallGreater && !lesser;
+            },
+            Kokkos::LAnd<bool>(allGreater));
+        if (allGreater)
+        {
+          Kokkos::parallel_for(
+              activeSetSize,
+              KOKKOS_LAMBDA(const int i) { p_d(activeInactiveSet(i)) = b0s_compact_d(i); });
+
+          Kokkos::parallel_for(
+              n0, KOKKOS_LAMBDA(const int i) {
+                double sum = 0.0;
+                for (int j = 0; j < activeSetSize; ++j)
+                  sum += matrix_d(i, activeInactiveSet(j)) * b0s_compact_d(j);
+                w_d(i) = sum - b0_d(i);
+              });
+
+          break;
+        }
+        else
+        {
+          // Find min_i and argmin_i of alpha_i := \frac{p_i}{p_i - s_i}
+          Kokkos::View<minloc_value_t, MemorySpace_ofDefaultExec_t> minloc_alpha_i_d(
+              kokkosLabelPrefix + "minloc_alpha_i_d");
+          Kokkos::parallel_reduce(
+              activeSetSize,
+              KOKKOS_LAMBDA(const int i, minloc_value_t& ml) {
+                if (b0s_compact_d(i) <= 0)
+                {
+                  const double alphai = p_d(activeInactiveSet(i)) /
+                                        (eps + p_d(activeInactiveSet(i)) - b0s_compact_d(i));
+                  if (alphai < ml.val)
+                  {
+                    ml.val = alphai;
+                    ml.loc = i;
+                  }
+                }
+              },
+              minloc_t(minloc_alpha_i_d));
+
+          minloc_value_t minloc_alpha_i;
+          Kokkos::deep_copy(minloc_alpha_i, minloc_alpha_i_d);
+
+          Kokkos::parallel_for(
+              activeSetSize, KOKKOS_LAMBDA(const int i) {
+                p_d(activeInactiveSet(i)) =
+                    p_d(activeInactiveSet(i)) +
+                    minloc_alpha_i_d().val * (b0s_compact_d(i) - p_d(activeInactiveSet(i)));
+              });
+
+          if (minloc_alpha_i.loc > -1)
+          {
+            Kokkos::deep_copy(Kokkos::subview(p_d, activeInactiveSet(minloc_alpha_i.loc)), 0.0);
+            // Note: `swapEntries()` may not be very efficient on GPU because it does not use
+            // `Kokkos::kokkos_swap()`, as that can only be used in parallel lambda
+            swapEntries(activeInactiveSet, minloc_alpha_i.loc, --activeSetSize);
+          }
+        }
+      }
+    }
+    // Construct the final active set (the lower half of activeInactiveSet), as well as the compact
+    // final pressure vector
+    activeSetf_d = ViewVectorInt_d(kokkosLabelPrefix + "activeSet", activeSetSize);
+    pf_d = ViewVector_d("pf_d", activeSetSize);
+    Kokkos::parallel_for(
+        activeSetSize, KOKKOS_LAMBDA(const int i) {
+          activeSetf_d(i) = activeSet0_d(activeInactiveSet(i));
+          pf_d(i) = p_d(activeInactiveSet(i));
+        });
+  }
+
+}  // namespace MIRCO

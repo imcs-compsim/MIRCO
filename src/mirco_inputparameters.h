@@ -1,9 +1,9 @@
-#ifndef SRC_INPUTPARAMETERS_H_
-#define SRC_INPUTPARAMETERS_H_
+#ifndef SRC_INPUTPARAMETERS_KOKKOS_H_
+#define SRC_INPUTPARAMETERS_KOKKOS_H_
 
-#include <Teuchos_SerialDenseMatrix.hpp>
-#include <memory>
 #include <string>
+
+#include "mirco_kokkostypes_kokkos.h"
 
 namespace MIRCO
 {
@@ -78,8 +78,10 @@ namespace MIRCO
     int max_iteration = 0;
     bool warm_starting_flag = false;
     bool pressure_green_funct_flag = false;
-    std::shared_ptr<Teuchos::SerialDenseMatrix<int, double>> topology;
+    // Note: topology_d is a lightweight handle, similar to std::shared_ptr. This struct does not
+    // own topology_d.
+    ViewMatrix_d topology_d;
   };
 }  // namespace MIRCO
 
-#endif  // SRC_INPUTPARAMETERS_H_
+#endif  // SRC_INPUTPARAMETERS_KOKKOS_H_

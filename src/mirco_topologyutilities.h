@@ -1,10 +1,7 @@
-#ifndef SRC_TOPOLOGYUTILITIES_H_
-#define SRC_TOPOLOGYUTILITIES_H_
+#ifndef SRC_TOPOLOGYUTILITIES_KOKKOS_H_
+#define SRC_TOPOLOGYUTILITIES_KOKKOS_H_
 
-#include <Teuchos_RCP.hpp>
-#include <Teuchos_SerialDenseMatrix.hpp>
-#include <cmath>
-#include <vector>
+#include "mirco_kokkostypes_kokkos.h"
 
 namespace MIRCO
 {
@@ -18,7 +15,7 @@ namespace MIRCO
    * @param ngrid Number of grid points in one direction
    * @param GridSize Grid size (length of each cell)
    */
-  std::vector<double> CreateMeshgrid(const int ngrid, const double GridSize);
+  ViewVector_d CreateMeshgrid(const int ngrid, const double GridSize);
 
   /**
    * @brief Store maximum and mean height of the topology
@@ -26,8 +23,8 @@ namespace MIRCO
    */
   struct TopologyMaxAndMean
   {
-    double max_;  /*!< Maximum height of the topology */
-    double mean_; /*!< Mean height of the topology */
+    double max;  /*!< Maximum height of the topology */
+    double mean; /*!< Mean height of the topology */
   };
 
   /**
@@ -35,7 +32,7 @@ namespace MIRCO
    *
    * @param topology Topology matrix containing heights
    */
-  TopologyMaxAndMean ComputeMaxAndMean(const Teuchos::SerialDenseMatrix<int, double>& topology);
+  TopologyMaxAndMean ComputeMaxAndMean(ViewMatrix_d topology_d);
 }  // namespace MIRCO
 
-#endif  // SRC_TOPOLOGYUTILITIES_H_
+#endif  // SRC_TOPOLOGYUTILITIES_KOKKOS_H_

@@ -1,39 +1,43 @@
-#include "mirco_topologyutilities.h"
-
-#include <Teuchos_SerialDenseMatrix.hpp>
 #include <cmath>
-#include <vector>
 
-std::vector<double> MIRCO::CreateMeshgrid(const int ngrid, const double GridSize)
-{
-  std::vector<double> meshgrid(ngrid);
-#pragma omp parallel for schedule(static, 16)  // Same amount of work -> static
-  for (int i = 0; i < ngrid; i++)
-  {
-    meshgrid[i] = (GridSize / 2) + i * GridSize;
-  }
-  return meshgrid;
-}
+#include "mirco_topologyutilities_kokkos.h"
 
-MIRCO::TopologyMaxAndMean MIRCO::ComputeMaxAndMean(
-    const Teuchos::SerialDenseMatrix<int, double>& topology)
+namespace MIRCO
 {
-  double zmax = -1.0;
-  double zmean = 0.0;
-#pragma omp parallel for schedule(guided, 16) reduction(+ : zmean) reduction(max : zmax)
-  // Static and Guided seem even but Guided makes more sense
-  for (int i = 0; i < topology.numRows(); i++)
+  ViewVector_d CreateMeshgrid(const int ngrid, const double GridSize)
   {
-    for (int j = 0; j < topology.numCols(); j++)
-    {
-      zmean += topology(i, j);
-      if (topology(i, j) > zmax)
-      {
-        zmax = topology(i, j);
-      }
-    }
+    ViewVector_d meshgrid("CreateMeshgrid(); meshgrid", ngrid);
+
+    const double GridSize_2 = GridSize / 2;
+    Kokkos::parallel_for(
+        ngrid, KOKKOS_LAMBDA(const int i) { meshgrid(i) = GridSize_2 + i * GridSize; });
+
+    return meshgrid;
   }
 
-  zmean = zmean / (topology.numCols() * topology.numRows());
-  return TopologyMaxAndMean{zmax, zmean};
-}
+  TopologyMaxAndMean ComputeMaxAndMean(ViewMatrix_d topology_d)
+  {
+    const int n0 = topology_d.extent(0);
+    const int n1 = topology_d.extent(1);
+
+    // Note: these reductions could be merged into one, but that would require defining a custom
+    // reducer struct type
+    double zmax = -std::numeric_limits<double>::infinity();
+    Kokkos::parallel_reduce(
+        Kokkos::MDRangePolicy<Kokkos::Rank<2>>({0, 0}, {n0, n1}),
+        KOKKOS_LAMBDA(int i, int j, double& update) {
+          const double val = topology_d(i, j);
+          if (val > update) update = val;
+        },
+        Kokkos::Max<double>(zmax));
+
+    double zmean = 0.0;
+    Kokkos::parallel_reduce(
+        Kokkos::MDRangePolicy<Kokkos::Rank<2>>({0, 0}, {n0, n1}),
+        KOKKOS_LAMBDA(int i, int j, double& update) { update += topology_d(i, j); }, zmean);
+    zmean /= (n0 * n1);
+
+    return TopologyMaxAndMean{zmax, zmean};
+  }
+
+}  // namespace MIRCO

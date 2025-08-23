@@ -1,107 +1,111 @@
-#include "mirco_evaluate.h"
-
-#include <omp.h>
 #include <unistd.h>
 
-#include <Teuchos_Assert.hpp>
-#include <Teuchos_SerialDenseMatrix.hpp>
-#include <Teuchos_SerialDenseSolver.hpp>
 #include <cmath>
 #include <cstdio>
 #include <ctime>
-#include <vector>
 
-#include "mirco_contactpredictors.h"
-#include "mirco_contactstatus.h"
-#include "mirco_matrixsetup.h"
-#include "mirco_nonlinearsolver.h"
+#include "mirco_contactpredictors_kokkos.h"
+#include "mirco_contactstatus_kokkos.h"
+#include "mirco_evaluate_kokkos.h"
+#include "mirco_matrixsetup_kokkos.h"
+#include "mirco_nonlinearsolver_kokkos.h"
+#include "mirco_warmstart_kokkos.h"
 
-void MIRCO::Evaluate(double& pressure, const double Delta, const double LateralLength,
-    const double GridSize, const double Tolerance, const int MaxIteration,
-    const double CompositeYoungs, const bool WarmStartingFlag,
-    const double ElasticComplianceCorrection,
-    const Teuchos::SerialDenseMatrix<int, double>& topology, const double zmax,
-    const std::vector<double>& meshgrid, const bool PressureGreenFunFlag)
+namespace MIRCO
 {
-  // Initialise the area vector and force vector. Each element containing the
-  // area and force calculated at every iteration.
-  std::vector<double> area0;
-  std::vector<double> force0;
-  double w_el = 0.0;
-
-  // Initialise number of iteration, k, and initial number of predicted contact
-  // nodes, n0.
-  int k = 0, n0 = 0;
-
-  // Coordinates of the points predicted to be in contact.
-  std::vector<double> xv0, yv0;
-  // Coordinates of the points in contact in the previous iteration.
-  std::vector<double> xvf, yvf;
-  // Indentation value of the half space at the predicted points of contact.
-  std::vector<double> b0;
-  // Contact force at (xvf,yvf) predicted in the previous iteration.
-  std::vector<double> pf;
-
-  // x0 --> contact forces at (xvf,yvf) predicted in the previous iteration but
-  // are a part of currect predicted contact set. x0 is calculated in the
-  // Warmstart function to be used in the NNLS to accelerate the simulation.
-  Teuchos::SerialDenseMatrix<int, double> x0;
-
-  // The number of nodes in contact in the previous iteration.
-  int nf = 0;
-
-  // The influence coefficient matrix (Discrete version of Green Function)
-  Teuchos::SerialDenseMatrix<int, double> A;
-  // Solution containing force
-  Teuchos::SerialDenseVector<int, double> y;
-
-  // Initialise the error in force
-  double ErrorForce = std::numeric_limits<double>::max();
-  while (ErrorForce > Tolerance && k < MaxIteration)
+  void Evaluate(double& pressure, const double Delta, const double LateralLength,
+      const double GridSize, const double Tolerance, const int MaxIteration,
+      const double CompositeYoungs, const bool WarmStartingFlag,
+      const double ElasticComplianceCorrection, const ViewMatrix_d topology_d, const double zmax,
+      const ViewVector_d meshgrid_d, const bool PressureGreenFunFlag)
   {
-    // First predictor for contact set
-    MIRCO::ContactSetPredictor(n0, xv0, yv0, b0, zmax, Delta, w_el, meshgrid, topology);
+    // Initialise the area vector and force vector. Each element containing the
+    // area and force calculated at every iteration.
+    std::vector<double> totalForceVector;
+    std::vector<double> contactAreaVector;
+    double w_el = 0.0;
 
-    // Construction of the Matrix A
-    MIRCO::MatrixGeneration::SetUpMatrix(
-        A, xv0, yv0, GridSize, CompositeYoungs, n0, PressureGreenFunFlag);
+    // Initialise number of iterations
+    int k = 0;
 
-    // Second predictor for contact set
-    // @{
-    MIRCO::InitialGuessPredictor(WarmStartingFlag, k, n0, xv0, yv0, pf, x0, b0, xvf, yvf);
-    // }
+    // Points in contact in the previous iteration (only needed for warmstart)
+    ViewVectorInt_d activeSetf_d;
 
-    // {
-    // Defined as (u - u(bar)) in (Bemporad & Paggi, 2015)
-    // Gap between the point on the topology and the half space
-    Teuchos::SerialDenseMatrix<int, double> w;
+    // Contact force at (xvf,yvf) predicted in the previous iteration.
+    ViewVector_d pf_d;
 
-    // use Nonlinear solver --> Non-Negative Least Squares (NNLS) as in
-    // (Bemporad & Paggi, 2015)
-    y = MIRCO::NonLinearSolver::Solve(A, b0, x0, w);
+    // Initialise the error in force
+    double ErrorForce = std::numeric_limits<double>::max();
 
-    // Compute number of contact node
-    MIRCO::ComputeContactNodes(xvf, yvf, pf, nf, y, xv0, yv0);
-
-    // Compute contact force and contact area
-    MIRCO::ComputeContactForceAndArea(force0, area0, w_el, nf, pf, k, GridSize, LateralLength,
-        ElasticComplianceCorrection, PressureGreenFunFlag);
-
-    // Compute error due to nonlinear correction
-    if (k > 0)
+    while (ErrorForce > Tolerance && k < MaxIteration)
     {
-      ErrorForce = abs(force0[k] - force0[k - 1]) / force0[k];
+      // Indices of the points predicted to be in contact
+      ViewVectorInt_d activeSet0_d;
+      // Coordinates of the points predicted to be in contact
+      ViewVector_d xv0_d, yv0_d;
+      // Indentation value of the half space at the predicted points of contact
+      ViewVector_d b0_d;
+
+      // First predictor for contact set
+      ContactSetPredictor(
+          activeSet0_d, xv0_d, yv0_d, b0_d, zmax, Delta, w_el, topology_d, meshgrid_d);
+
+      // Initial number of predicted contact nodes.
+      const int n0 = activeSet0_d.extent(0);
+
+      ViewVector_d p0_d;
+      // Second predictor for contact set
+      // p_d --> contact forces at (xvf,yvf) predicted in the previous iteration but
+      // are a part of currect predicted contact set. p_d is calculated in the
+      // Warmstart function to be used in the NNLS to accelerate the simulation.
+      if (WarmStartingFlag && k > 0)
+      {
+        p0_d = Warmstart(activeSet0_d, activeSetf_d, pf_d);
+      }
+      else
+      {
+        p0_d = ViewVector_d("p0_d", n0, 0.0);
+      }
+
+      auto H_d = MatrixGeneration::SetupMatrix(
+          xv0_d, yv0_d, GridSize, CompositeYoungs, n0, PressureGreenFunFlag);
+
+      // Defined as (u - u(bar)) in (Bemporad & Paggi, 2015)
+      // Gap between the point on the topology and the half space
+      // ViewVector_d w_d;
+
+      // use Nonlinear solver --> Non-Negative Least Squares (NNLS) as in
+      // (Bemporad & Paggi, 2015)
+      nonlinearSolve(pf_d, activeSetf_d, p0_d, activeSet0_d, H_d, b0_d);
+
+      // Compute total contact force and contact area
+      double totalForce;
+      double contactArea;
+      ComputeContactForceAndArea(
+          totalForce, contactArea, pf_d, GridSize, LateralLength, PressureGreenFunFlag);
+      totalForceVector.push_back(totalForce);
+      contactAreaVector.push_back(contactArea);
+
+      // Elastic correction, used in the next iteration
+      w_el = totalForce / ElasticComplianceCorrection;
+
+      // Compute error due to nonlinear correction
+      if (k > 0)
+      {
+        ErrorForce = abs(totalForceVector[k] - totalForceVector[k - 1]) / totalForceVector[k];
+      }
+
+      ++k;
     }
-    k += 1;
+
+    if (ErrorForce > Tolerance)
+      std::runtime_error("The solution did not converge in the maximum number of iterations");
+
+    // Calculate the final force value at the end of the iteration.
+    const double finalForce = totalForceVector[k - 1];
+
+    // Mean pressure
+    pressure = finalForce / (LateralLength * LateralLength);
   }
 
-  TEUCHOS_TEST_FOR_EXCEPTION(ErrorForce > Tolerance, std::out_of_range,
-      "The solution did not converge in the maximum number of iternations defined");
-
-  // Calculate the final force value at the end of the iteration.
-  const double force = force0[k - 1];
-
-  // Mean pressure
-  double sigmaz = force / (LateralLength * LateralLength);
-  pressure = sigmaz;
-}
+}  // namespace MIRCO

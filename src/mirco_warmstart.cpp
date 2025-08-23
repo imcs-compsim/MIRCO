@@ -1,24 +1,30 @@
-#include "mirco_warmstart.h"
+#include <algorithm>
 
-#include <Teuchos_SerialDenseMatrix.hpp>
-#include <vector>
+#include "mirco_warmstart_kokkos.h"
 
-void MIRCO::Warmstart(Teuchos::SerialDenseMatrix<int, double>& x0, const std::vector<double>& xv0,
-    const std::vector<double>& yv0, const std::vector<double>& xvf, const std::vector<double>& yvf,
-    const std::vector<double>& pf)
+namespace MIRCO
 {
-  x0.shape(xv0.size(), 1);
-
-  for (size_t i = 0; i < xv0.size(); i++)
+  ViewVector_d Warmstart(const ViewVectorInt_d& activeSet0_d, const ViewVectorInt_d& activeSetf_d,
+      const ViewVector_d& pf_d)
   {
-    auto it_x = std::find(xvf.begin(), xvf.end(), xv0[i]);
-    auto it_y = std::find(yvf.begin(), yvf.end(), yv0[i]);
+    const int n0 = activeSet0_d.extent(0);
+    const int nf = activeSetf_d.extent(0);
+    ViewVector_d p0_d("Warmstart(); p0", n0);
 
-    if (it_x != xvf.end() && it_y != yvf.end() &&
-        std::distance(xvf.begin(), it_x) == std::distance(yvf.begin(), it_y))
-    {
-      size_t j = std::distance(xvf.begin(), it_x);
-      x0(i, 0) = pf[j];
-    }
+    Kokkos::parallel_for(
+        n0, KOKKOS_LAMBDA(const int i) {
+          const int a0_i = activeSet0_d(i);
+          for (int j = 0; j < nf; ++j)
+          {
+            if (activeSetf_d(j) == a0_i)
+            {
+              p0_d(i) = pf_d(j);
+              break;
+            }
+          }
+        });
+
+    return p0_d;
   }
-}
+
+}  // namespace MIRCO

@@ -16,23 +16,13 @@
     },
     {
       "name": "docker_container",
-      "displayName": "Release build for CI/CD testing in a docker container",
-      "inherits": [
-        ".base"
-      ],
-      "cacheVariables": {
-        "USE_KOKKOS_CODE": "OFF",
-        "TRILINOS_PATH": "/opt/mirco-dependencies/trilinos_install"
-      }
-    },
-    {
-      "name": "docker_container_kokkos",
       "displayName": "Release build using Kokkos for CI/CD testing in a docker container",
       "inherits": [
         ".base"
       ],
       "cacheVariables": {
-        "USE_KOKKOS_CODE": "ON",
+        "CMAKE_CXX_COMPILER_LAUNCHER": "ccache",
+        "CMAKE_CXX_FLAGS": "-msse3",
         "KOKKOS_PATH": "/opt/mirco-dependencies/kokkos_install",
         "KOKKOS_KERNELS_PATH": "/opt/mirco-dependencies/kokkos-kernels_install",
         "KOKKOS_IN_MIRCO": "ON",
@@ -46,23 +36,20 @@
         ".base"
       ],
       "cacheVariables": {
-        "USE_KOKKOS_CODE": "OFF",
         "CMAKE_CXX_COMPILER_LAUNCHER": "ccache",
-        "CMAKE_CXX_FLAGS": "-msse3",
-        "TRILINOS_PATH": "/imcs/public/compsim/lib/2022_2/build/lib/cmake/Trilinos",
-        "TRILINOS_IN_MIRCO": "ON"
+        "CMAKE_CXX_FLAGS": "-msse3"
       }
     },
     {
       "name": "imcs_workstation",
-      "displayName": "Release build for an IMCS workstation",
+      "displayName": "Release build for an IMCS workstation [TODO: Add Kokkos and Kokkos-Kernels directories]",
       "inherits": [
         ".imcs_workstation_base"
       ]
     },
     {
       "name": "imcs_workstation_RELWITHDEBINFO",
-      "displayName": "Release build with debug information for an IMCS workstation",
+      "displayName": "Release build with debug information for an IMCS workstation [TODO: Add Kokkos and Kokkos-Kernels directories]",
       "inherits": [
         ".imcs_workstation_base"
       ],
@@ -75,18 +62,16 @@
       "inherits": [
         ".imcs_workstation_base"
       ],
-      "displayName": "Release build on the IMCS cluster",
+      "displayName": "Release build on the IMCS cluster [TODO: Add Kokkos and Kokkos-Kernels directories]",
       "cacheVariables": {
-        "TRILINOS_PATH": "$env{TRILINOS_ROOT}",
         "GTEST_IN_MIRCO": "OFF"
       }
     },
     {
       "name": "imcs_cluster_with_tests",
-      "displayName": "Release build on the IMCS cluster with tests enabled",
+      "displayName": "Release build on the IMCS cluster with tests enabled [TODO: Add Kokkos and Kokkos-Kernels directories]",
       "inherits": ".imcs_workstation_base",
       "cacheVariables": {
-        "TRILINOS_PATH": "$env{TRILINOS_ROOT}",
         "GTEST_IN_MIRCO": "ON"
       }
     }

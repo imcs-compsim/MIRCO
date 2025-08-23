@@ -1,7 +1,7 @@
-#ifndef SRC_WARMSTART_H_
-#define SRC_WARMSTART_H_
+#ifndef SRC_WARMSTART_KOKKOS_H_
+#define SRC_WARMSTART_KOKKOS_H_
 
-#include <Teuchos_SerialDenseMatrix.hpp>
+#include "mirco_kokkostypes_kokkos.h"
 
 namespace MIRCO
 {
@@ -10,17 +10,15 @@ namespace MIRCO
    * from the current contact set. This helps in making an initial guess of the nodes in contact in
    * the current iteration and speeds up the computation.
    *
-   * @param x0 contact forces at (xvf,yvf) predicted in the previous iteration but are a part of
-   * currect predicted contact set.
-   * @param xv0 x-coordinates of the points in contact in the previous iteration.
-   * @param yv0 y-coordinates of the points in contact in the previous iteration.
-   * @param xvf x-coordinates of the points in contact in the previous iteration.
-   * @param yvf y-coordinates of the points in contact in the previous iteration.
-   * @param pf Contact force at (xvf,yvf) predicted in the previous iteration.
+   * @param[in] activeSet0_d Points predicted to be in contact in the current iteration
+   * @param[in] activeSetf_d Points in contact in the previous iteration
+   * @param[in] pf_d Contact force vector predicted in the previous iteration
+   *
+   * @return p0_d vector of contact forces predicted in the previous iteration but which are a part
+   * of the currect predicted contact set (warmstart prediction)
    */
-  void Warmstart(Teuchos::SerialDenseMatrix<int, double>& x0, const std::vector<double>& xv0,
-      const std::vector<double>& yv0, const std::vector<double>& xvf,
-      const std::vector<double>& yvf, const std::vector<double>& pf);
+  ViewVector_d Warmstart(const ViewVectorInt_d& activeSet0_d, const ViewVectorInt_d& activeSetf_d,
+      const ViewVector_d& pf);
 }  // namespace MIRCO
 
-#endif  // SRC_WARMSTART_H_
+#endif  // SRC_WARMSTART_KOKKOS_H_

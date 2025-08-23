@@ -3,7 +3,6 @@ mirco_input:
   RandomTopologyFlag: true
   RandomSeedFlag: false
   RandomGeneratorSeed: 95
-  TopologyFilePath: sup2.dat
   MaxIteration: 100
   PressureGreenFunFlag: true
   parameters:

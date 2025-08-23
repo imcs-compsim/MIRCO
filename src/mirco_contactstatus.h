@@ -1,46 +1,24 @@
-#ifndef SRC_CONTACTSTATUS_H_
-#define SRC_CONTACTSTATUS_H_
+#ifndef SRC_CONTACTSTATUS_KOKKOS_H_
+#define SRC_CONTACTSTATUS_KOKKOS_H_
 
-#include <Teuchos_SerialDenseMatrix.hpp>
-#include <cmath>
-#include <vector>
+#include "mirco_kokkostypes_kokkos.h"
 
 namespace MIRCO
 {
   /**
-   * @brief The aim of this function is to compute to nodes in contact in the current iteration
+   * @brief Calculate the contact force and contact area for the
+   * current iteration.
    *
-   * @param xvf x-coordinates of the points in contact in the previous iteration.
-   * @param yvf y-coordinates of the points in contact in the previous iteration.
-   * @param pf Contact force at (xvf,yvf) predicted in the previous iteration.
-   * @param nf Number of nodes in contact in the previous iteration
-   * @param y Solution containing force
-   * @param xv0 x-coordinates of the points in contact in the previous iteration.
-   * @param yv0 y-coordinates of the points in contact in the previous iteration.
-   */
-  void ComputeContactNodes(std::vector<double> &xvf, std::vector<double> &yvf,
-      std::vector<double> &pf, int &nf, Teuchos::SerialDenseMatrix<int, double> y,
-      std::vector<double> xv0, std::vector<double> yv0);
-
-  /**
-   * @brief The aim of this function is to calulate the contact force and contact area for the
-   * current iteration
-   *
-   * @param force0 Force vector; Each element contating contact force calculated at every iteraion
-   * @param area0 Force vector; Each element contating contact area calculated at every iteraion
-   * @param w_el Elastic correction
-   * @param nf Number of nodes in contact in the previous iteration
-   * @param pf Contact force at (xvf,yvf) predicted in the previous iteration.
-   * @param k Iteration number
-   * @param GridSize Grid size (length of each cell)
-   * @param LateralLength Lateral side of the surface [micrometers]
-   * @param ElasticComplianceCorrection Elastic compliance correction
-   * @param PressureGreenFunFlag Flag to use Green function based on uniform pressure instead of
+   * @param[out] totalForce Total force
+   * @param[out] contactArea Contact area
+   * @param[in] pf Contact force vector.
+   * @param[in] GridSize Grid size (length of each cell)
+   * @param[in] LateralLength Lateral side of the surface [micrometers]
+   * @param[in] PressureGreenFunFlag Flag to use Green function based on uniform pressure instead of
    * point force
    */
-  void ComputeContactForceAndArea(std::vector<double> &force0, std::vector<double> &area0,
-      double &w_el, int nf, std::vector<double> pf, int k, double GridSize, double LateralLength,
-      double ElasticComplianceCorrection, bool PressureGreenFunFlag);
+  void ComputeContactForceAndArea(double& totalForce, double& contactArea, const ViewVector_d pf_d,
+      const double GridSize, const double LateralLength, const bool PressureGreenFunFlag);
 }  // namespace MIRCO
 
-#endif  // SRC_CONTACTSTATUS_H_
+#endif  // SRC_CONTACTSTATUS_KOKKOS_H_
