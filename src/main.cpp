@@ -49,7 +49,7 @@ int main(int argc, char* argv[])
     // Test for correct output if the result_description is given in the input file
     {
       std::ifstream fin(inputFileName);
-      if (!fin) throw std::runtime_error("Cannot open file: " + inputFileName);
+      if (!fin) throw std::runtime_error("Cannot open input file: " + inputFileName);
 
       std::stringstream ss;
       ss << fin.rdbuf();
