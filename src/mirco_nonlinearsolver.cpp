@@ -1,6 +1,6 @@
-#include <KokkosLapack_gesv.hpp>
+#include "mirco_nonlinearsolver.h"
 
-#include "mirco_nonlinearsolver_kokkos.h"
+#include <KokkosLapack_gesv.hpp>
 
 namespace
 {

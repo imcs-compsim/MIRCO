@@ -53,9 +53,6 @@ RUN mkdir -p ${INSTALL_DIR}
 
 COPY dependencies /dependencies
 
-# Install Trilinos 2022_Q1
-RUN /dependencies/trilinos/install.sh ${INSTALL_DIR}/trilinos_install
-
 # Install Kokkos and Kokkos-Kernels
 RUN /dependencies/kokkos/install.sh ${INSTALL_DIR}/kokkos_install
 RUN /dependencies/kokkos-kernels/install.sh ${INSTALL_DIR}/kokkos-kernels_install

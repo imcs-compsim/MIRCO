@@ -1,6 +1,6 @@
-#include <cmath>
+#include "mirco_topologyutilities.h"
 
-#include "mirco_topologyutilities_kokkos.h"
+#include <cmath>
 
 namespace MIRCO
 {

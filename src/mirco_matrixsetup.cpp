@@ -1,6 +1,6 @@
-#include <math.h>
+#include "mirco_matrixsetup.h"
 
-#include "mirco_matrixsetup_kokkos.h"
+#include <math.h>
 
 namespace MIRCO
 {

@@ -1,7 +1,8 @@
+#include "mirco_inputparameters.h"
+
 #include <map>
 
-#include "mirco_inputparameters_kokkos.h"
-#include "mirco_topology_kokkos.h"
+#include "mirco_topology.h"
 
 namespace
 {

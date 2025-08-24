@@ -1,4 +1,4 @@
-#include "mirco_contactpredictors_kokkos.h"
+#include "mirco_contactpredictors.h"
 
 namespace MIRCO
 {

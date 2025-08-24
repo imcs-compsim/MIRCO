@@ -1,7 +1,7 @@
 #ifndef SRC_TOPOLOGYUTILITIES_KOKKOS_H_
 #define SRC_TOPOLOGYUTILITIES_KOKKOS_H_
 
-#include "mirco_kokkostypes_kokkos.h"
+#include "mirco_kokkostypes.h"
 
 namespace MIRCO
 {

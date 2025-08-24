@@ -1,9 +1,9 @@
+#include "mirco_topology.h"
+
 #include <cmath>
 #include <ctime>
 #include <fstream>
 #include <random>
-
-#include "mirco_topology_kokkos.h"
 
 namespace MIRCO
 {

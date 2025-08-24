@@ -3,12 +3,12 @@
 
 #include <vector>
 
-#include "../../src/mirco_inputparameters_kokkos.h"
-#include "../../src/mirco_kokkostypes_kokkos.h"
-#include "../../src/mirco_nonlinearsolver_kokkos.h"
-#include "../../src/mirco_topology_kokkos.h"
-#include "../../src/mirco_utils_kokkos.h"
-#include "../../src/mirco_warmstart_kokkos.h"
+#include "../../src/mirco_inputparameters.h"
+#include "../../src/mirco_kokkostypes.h"
+#include "../../src/mirco_nonlinearsolver.h"
+#include "../../src/mirco_topology.h"
+#include "../../src/mirco_utils.h"
+#include "../../src/mirco_warmstart.h"
 
 TEST(NonlinearSolverTest, primalvariable)
 {

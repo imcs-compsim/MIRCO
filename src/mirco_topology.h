@@ -3,7 +3,7 @@
 
 #include <string>
 
-#include "mirco_kokkostypes_kokkos.h"
+#include "mirco_kokkostypes.h"
 
 namespace MIRCO
 {

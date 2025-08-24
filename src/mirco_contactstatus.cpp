@@ -1,6 +1,6 @@
-#include <cmath>
+#include "mirco_contactstatus.h"
 
-#include "mirco_contactstatus_kokkos.h"
+#include <cmath>
 
 namespace MIRCO
 {

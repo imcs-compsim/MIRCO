@@ -1,6 +1,6 @@
-#include <algorithm>
+#include "mirco_warmstart.h"
 
-#include "mirco_warmstart_kokkos.h"
+#include <algorithm>
 
 namespace MIRCO
 {

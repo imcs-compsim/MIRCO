@@ -1,8 +1,8 @@
 #include <fstream>
 #include <sstream>
 
-#include "mirco_inputparameters_kokkos.h"
-#include "mirco_utils_kokkos.h"
+#include "mirco_inputparameters.h"
+#include "mirco_utils.h"
 
 MIRCO::InputParameters::InputParameters(const std::string& inputFileName)
 {

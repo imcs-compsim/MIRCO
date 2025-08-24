@@ -4,11 +4,11 @@
 #include <sstream>
 #include <string>
 
-#include "mirco_evaluate_kokkos.h"
-#include "mirco_inputparameters_kokkos.h"
-#include "mirco_kokkostypes_kokkos.h"
-#include "mirco_topologyutilities_kokkos.h"
-#include "mirco_utils_kokkos.h"
+#include "mirco_evaluate.h"
+#include "mirco_inputparameters.h"
+#include "mirco_kokkostypes.h"
+#include "mirco_topologyutilities.h"
+#include "mirco_utils.h"
 
 using namespace MIRCO;
 

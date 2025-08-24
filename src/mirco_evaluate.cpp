@@ -1,15 +1,16 @@
+#include "mirco_evaluate.h"
+
 #include <unistd.h>
 
 #include <cmath>
 #include <cstdio>
 #include <ctime>
 
-#include "mirco_contactpredictors_kokkos.h"
-#include "mirco_contactstatus_kokkos.h"
-#include "mirco_evaluate_kokkos.h"
-#include "mirco_matrixsetup_kokkos.h"
-#include "mirco_nonlinearsolver_kokkos.h"
-#include "mirco_warmstart_kokkos.h"
+#include "mirco_contactpredictors.h"
+#include "mirco_contactstatus.h"
+#include "mirco_matrixsetup.h"
+#include "mirco_nonlinearsolver.h"
+#include "mirco_warmstart.h"
 
 namespace MIRCO
 {

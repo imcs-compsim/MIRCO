@@ -1,8 +1,8 @@
 #ifndef SRC_EVALUATE_KOKKOS_H_
 #define SRC_EVALUATE_KOKKOS_H_
 
-#include "mirco_inputparameters_kokkos.h"
-#include "mirco_kokkostypes_kokkos.h"
+#include "mirco_inputparameters.h"
+#include "mirco_kokkostypes.h"
 
 namespace MIRCO
 {

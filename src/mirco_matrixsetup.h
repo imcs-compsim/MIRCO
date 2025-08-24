@@ -1,7 +1,7 @@
 #ifndef SRC_MATRIXSETUP_KOKKOS_H_
 #define SRC_MATRIXSETUP_KOKKOS_H_
 
-#include "mirco_kokkostypes_kokkos.h"
+#include "mirco_kokkostypes.h"
 
 namespace MIRCO
 {
