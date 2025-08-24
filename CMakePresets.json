@@ -16,7 +16,7 @@
     },
     {
       "name": "docker_container",
-      "displayName": "Release build using Kokkos for CI/CD testing in a docker container",
+      "displayName": "Release build using Kokkos with OpenMP backend for CI/CD testing in a docker container",
       "inherits": [
         ".base"
       ],
