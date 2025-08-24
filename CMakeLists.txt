@@ -75,7 +75,7 @@ if(KOKKOS_KERNELS_IN_MIRCO)
   set(CMAKE_PREFIX_PATH ${KOKKOS_KERNELS_PATH} ${CMAKE_PREFIX_PATH})
   find_package(KokkosKernels REQUIRED)
 else()
-# Use a KokkosKernels from an upstream project
+  # Use a KokkosKernels from an upstream project
   if(TARGET KokkosKernels::kokkoskernels)
     message(STATUS "KokkosKernels included from upstream project.")
   else()
