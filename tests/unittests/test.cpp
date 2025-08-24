@@ -223,7 +223,7 @@ TEST(inputParameters, yaml_rmg)
   std::string inputFilePath = "test/data/input_res2_rmg.yaml";
   MIRCO::InputParameters inputParams(inputFilePath);
 
-  MIRCO::ViewMatrix_d topology_d = inputParams.topology_d;
+  MIRCO::ViewMatrix_d topology_d = inputParams.topology;
 
   EXPECT_EQ(topology_d.extent(0), 5);
   EXPECT_EQ(topology_d.extent(1), 5);
@@ -239,7 +239,7 @@ TEST(inputParameters, yaml_dat)
   std::string inputFilePath = "test/data/input_withDat.yaml";
   MIRCO::InputParameters inputParams(inputFilePath);
 
-  MIRCO::ViewMatrix_d topology_d = inputParams.topology_d;
+  MIRCO::ViewMatrix_d topology_d = inputParams.topology;
 
   EXPECT_EQ(topology_d.extent(0), 5);
   EXPECT_EQ(topology_d.extent(1), 5);
@@ -260,7 +260,7 @@ TEST(inputParameters, directInput_rmg)
   MIRCO::InputParameters inputParams(
       1.0, 1.0, 0.2, 0.2, 0.005, 10.0, 1000, 2, 15.0, 0.15, false, 46, 100, false, true);
 
-  MIRCO::ViewMatrix_d topology_d = inputParams.topology_d;
+  MIRCO::ViewMatrix_d topology_d = inputParams.topology;
 
   EXPECT_EQ(topology_d.extent(0), 5);
   EXPECT_EQ(topology_d.extent(1), 5);
@@ -277,7 +277,7 @@ TEST(inputParameters, directInput_dat)
   MIRCO::InputParameters inputParams(
       1.0, 1.0, 0.2, 0.2, 0.005, 10.0, 1000, topologyFilePath, 100, false, false);
 
-  MIRCO::ViewMatrix_d topology_d = inputParams.topology_d;
+  MIRCO::ViewMatrix_d topology_d = inputParams.topology;
 
   EXPECT_EQ(topology_d.extent(0), 5);
   EXPECT_EQ(topology_d.extent(1), 5);

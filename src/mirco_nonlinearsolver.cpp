@@ -27,8 +27,8 @@ namespace
 
 namespace MIRCO
 {
-  void nonlinearSolve(ViewVector_d& pf_d, ViewVectorInt_d& activeSetf_d, ViewVector_d& p_d,
-      const ViewVectorInt_d activeSet0_d, const ViewMatrix_d matrix_d, const ViewVector_d b0_d,
+  void nonlinearSolve(ViewVector_d& pf, ViewVectorInt_d& activeSetf, ViewVector_d& p,
+      const ViewVectorInt_d activeSet0, const ViewMatrix_d matrix, const ViewVector_d b0,
       double nnlstol, int maxiter)
   {
     using minloc_t = Kokkos::MinLoc<double, int, MemorySpace_ofDefaultExec_t>;
@@ -38,9 +38,9 @@ namespace MIRCO
     // 2^{-52}; double machine precision, i.e. smallest number such that 1.0 + eps > 1.0
     constexpr double eps = std::numeric_limits<double>::epsilon();
 
-    const int n0 = b0_d.extent(0);
+    const int n0 = b0.extent(0);
 
-    ViewVector_d w_d("w_d", n0);
+    ViewVector_d w(kokkosLabelPrefix + "w", n0);
 
     ViewVectorInt_d activeInactiveSet(kokkosLabelPrefix + "activeInactiveSet", n0);
 
@@ -50,7 +50,7 @@ namespace MIRCO
     Kokkos::deep_copy(counterInactive, 0);
     Kokkos::parallel_for(
         n0, KOKKOS_LAMBDA(const int i) {
-          if (p_d(i) >= nnlstol)
+          if (p(i) >= nnlstol)
           {
             // Note: atomic_fetch_add() returns the old value
             activeInactiveSet(Kokkos::atomic_fetch_add(&counterActive(), 1)) = i;
@@ -68,7 +68,7 @@ namespace MIRCO
     {
       init = true;
       // Hp - b0 for p = 0
-      Kokkos::parallel_for(n0, KOKKOS_LAMBDA(const int i) { w_d(i) = -b0_d(i); });
+      Kokkos::parallel_for(n0, KOKKOS_LAMBDA(const int i) { w(i) = -b0(i); });
     }
 
     int iter = 0;
@@ -81,7 +81,7 @@ namespace MIRCO
       Kokkos::parallel_reduce(
           n0,
           KOKKOS_LAMBDA(const int i, minloc_value_t& ml) {
-            const double wi = w_d(i);
+            const double wi = w(i);
             if (wi < ml.val)
             {
               ml.val = wi;
@@ -90,10 +90,10 @@ namespace MIRCO
           },
           minloc_t(minloc_w_i_d));
 
-      minloc_value_t minloc_w_i;
-      Kokkos::deep_copy(minloc_w_i, minloc_w_i_d);
+      minloc_value_t minloc_w_i_h;
+      Kokkos::deep_copy(minloc_w_i_h, minloc_w_i_d);
 
-      if (init && (minloc_w_i.val >= -nnlstol)) break;
+      if (init && (minloc_w_i_h.val >= -nnlstol)) break;
 
       if (init)
       {
@@ -102,7 +102,7 @@ namespace MIRCO
         Kokkos::parallel_reduce(
             Kokkos::RangePolicy<ExecSpace_Default_t>(activeSetSize, n0),
             KOKKOS_LAMBDA(const int i, minloc_value_t& ml) {
-              const double wi = w_d(activeInactiveSet(i));
+              const double wi = w(activeInactiveSet(i));
               if (wi < ml.val)
               {
                 ml.val = wi;
@@ -111,10 +111,10 @@ namespace MIRCO
             },
             minloc_t(minloc_w_iInactive_d));
 
-        minloc_value_t minloc_w_iInactive;
-        Kokkos::deep_copy(minloc_w_iInactive, minloc_w_iInactive_d);
+        minloc_value_t minloc_w_iInactive_h;
+        Kokkos::deep_copy(minloc_w_iInactive_h, minloc_w_iInactive_d);
 
-        swapEntries(activeInactiveSet, minloc_w_iInactive.loc, activeSetSize);
+        swapEntries(activeInactiveSet, minloc_w_iInactive_h.loc, activeSetSize);
         ++activeSetSize;
       }
       else
@@ -126,33 +126,33 @@ namespace MIRCO
 
         // Compact versions of H and b0, i.e. H_I and \overbar{u}_I in line 6 of Algorithm 3,
         // (Bemporad & Paggi, 2015)
-        ViewVector_d b0s_compact_d(kokkosLabelPrefix + "b0_compact_d", activeSetSize);
+        ViewVector_d b0s_compact(kokkosLabelPrefix + "b0_compact", activeSetSize);
         if (activeSetSize > 1)
         {
-          ViewMatrix_d H_compact_d(kokkosLabelPrefix + "H_compact_d", activeSetSize, activeSetSize);
+          ViewMatrix_d H_compact(kokkosLabelPrefix + "H_compact", activeSetSize, activeSetSize);
 
           Kokkos::parallel_for(
               activeSetSize, KOKKOS_LAMBDA(const int i) {
                 const int row = activeInactiveSet(i);
-                b0s_compact_d(i) = b0_d(row);
+                b0s_compact(i) = b0(row);
                 for (int j = 0; j < activeSetSize; ++j)
                 {
                   const int col = activeInactiveSet(j);
-                  H_compact_d(i, j) = matrix_d(row, col);
+                  H_compact(i, j) = matrix(row, col);
                 }
               });
 
-          ViewVectorInt_d ipiv_d(kokkosLabelPrefix + "ipiv_d", activeSetSize);
+          ViewVectorInt_d ipiv(kokkosLabelPrefix + "ipiv", activeSetSize);
 
           // Solve H_I s_I = b0_I; b0s_compact_d becomes s_I
-          KokkosLapack::gesv(H_compact_d, b0s_compact_d, ipiv_d);
+          KokkosLapack::gesv(H_compact, b0s_compact, ipiv);
         }
         else if (activeSetSize == 1)
         {
           Kokkos::parallel_for(
               1, KOKKOS_LAMBDA(const int) {
                 const int ii = activeInactiveSet(0);
-                b0s_compact_d(0) = b0_d(ii) / matrix_d(ii, ii);
+                b0s_compact(0) = b0(ii) / matrix(ii, ii);
               });
         }
 
@@ -160,7 +160,7 @@ namespace MIRCO
         Kokkos::parallel_reduce(
             activeSetSize,
             KOKKOS_LAMBDA(const int i, bool& rallGreater) {
-              const bool lesser = (b0s_compact_d(i) < -nnlstol);
+              const bool lesser = (b0s_compact(i) < -nnlstol);
               rallGreater = rallGreater && !lesser;
             },
             Kokkos::LAnd<bool>(allGreater));
@@ -168,14 +168,14 @@ namespace MIRCO
         {
           Kokkos::parallel_for(
               activeSetSize,
-              KOKKOS_LAMBDA(const int i) { p_d(activeInactiveSet(i)) = b0s_compact_d(i); });
+              KOKKOS_LAMBDA(const int i) { p(activeInactiveSet(i)) = b0s_compact(i); });
 
           Kokkos::parallel_for(
               n0, KOKKOS_LAMBDA(const int i) {
                 double sum = 0.0;
                 for (int j = 0; j < activeSetSize; ++j)
-                  sum += matrix_d(i, activeInactiveSet(j)) * b0s_compact_d(j);
-                w_d(i) = sum - b0_d(i);
+                  sum += matrix(i, activeInactiveSet(j)) * b0s_compact(j);
+                w(i) = sum - b0(i);
               });
 
           break;
@@ -188,10 +188,10 @@ namespace MIRCO
           Kokkos::parallel_reduce(
               activeSetSize,
               KOKKOS_LAMBDA(const int i, minloc_value_t& ml) {
-                if (b0s_compact_d(i) <= 0)
+                if (b0s_compact(i) <= 0)
                 {
-                  const double alphai = p_d(activeInactiveSet(i)) /
-                                        (eps + p_d(activeInactiveSet(i)) - b0s_compact_d(i));
+                  const double alphai =
+                      p(activeInactiveSet(i)) / (eps + p(activeInactiveSet(i)) - b0s_compact(i));
                   if (alphai < ml.val)
                   {
                     ml.val = alphai;
@@ -201,34 +201,34 @@ namespace MIRCO
               },
               minloc_t(minloc_alpha_i_d));
 
-          minloc_value_t minloc_alpha_i;
-          Kokkos::deep_copy(minloc_alpha_i, minloc_alpha_i_d);
+          minloc_value_t minloc_alpha_i_h;
+          Kokkos::deep_copy(minloc_alpha_i_h, minloc_alpha_i_d);
 
           Kokkos::parallel_for(
               activeSetSize, KOKKOS_LAMBDA(const int i) {
-                p_d(activeInactiveSet(i)) =
-                    p_d(activeInactiveSet(i)) +
-                    minloc_alpha_i_d().val * (b0s_compact_d(i) - p_d(activeInactiveSet(i)));
+                p(activeInactiveSet(i)) =
+                    p(activeInactiveSet(i)) +
+                    minloc_alpha_i_d().val * (b0s_compact(i) - p(activeInactiveSet(i)));
               });
 
-          if (minloc_alpha_i.loc > -1)
+          if (minloc_alpha_i_h.loc > -1)
           {
-            Kokkos::deep_copy(Kokkos::subview(p_d, activeInactiveSet(minloc_alpha_i.loc)), 0.0);
+            Kokkos::deep_copy(Kokkos::subview(p, activeInactiveSet(minloc_alpha_i_h.loc)), 0.0);
             // Note: `swapEntries()` may not be very efficient on GPU because it does not use
             // `Kokkos::kokkos_swap()`, as that can only be used in parallel lambda
-            swapEntries(activeInactiveSet, minloc_alpha_i.loc, --activeSetSize);
+            swapEntries(activeInactiveSet, minloc_alpha_i_h.loc, --activeSetSize);
           }
         }
       }
     }
     // Construct the final active set (the lower half of activeInactiveSet), as well as the compact
     // final pressure vector
-    activeSetf_d = ViewVectorInt_d(kokkosLabelPrefix + "activeSet", activeSetSize);
-    pf_d = ViewVector_d("pf_d", activeSetSize);
+    activeSetf = ViewVectorInt_d("activeSetf", activeSetSize);
+    pf = ViewVector_d("pf", activeSetSize);
     Kokkos::parallel_for(
         activeSetSize, KOKKOS_LAMBDA(const int i) {
-          activeSetf_d(i) = activeSet0_d(activeInactiveSet(i));
-          pf_d(i) = p_d(activeInactiveSet(i));
+          activeSetf(i) = activeSet0(activeInactiveSet(i));
+          pf(i) = p(activeInactiveSet(i));
         });
   }
 

@@ -15,10 +15,10 @@ namespace MIRCO
     return meshgrid;
   }
 
-  TopologyMaxAndMean ComputeMaxAndMean(ViewMatrix_d topology_d)
+  TopologyMaxAndMean ComputeMaxAndMean(ViewMatrix_d topology)
   {
-    const int n0 = topology_d.extent(0);
-    const int n1 = topology_d.extent(1);
+    const int n0 = topology.extent(0);
+    const int n1 = topology.extent(1);
 
     // Note: these reductions could be merged into one, but that would require defining a custom
     // reducer struct type
@@ -26,7 +26,7 @@ namespace MIRCO
     Kokkos::parallel_reduce(
         Kokkos::MDRangePolicy<Kokkos::Rank<2>>({0, 0}, {n0, n1}),
         KOKKOS_LAMBDA(int i, int j, double& update) {
-          const double val = topology_d(i, j);
+          const double val = topology(i, j);
           if (val > update) update = val;
         },
         Kokkos::Max<double>(zmax));
@@ -34,7 +34,7 @@ namespace MIRCO
     double zmean = 0.0;
     Kokkos::parallel_reduce(
         Kokkos::MDRangePolicy<Kokkos::Rank<2>>({0, 0}, {n0, n1}),
-        KOKKOS_LAMBDA(int i, int j, double& update) { update += topology_d(i, j); }, zmean);
+        KOKKOS_LAMBDA(int i, int j, double& update) { update += topology(i, j); }, zmean);
     zmean /= (n0 * n1);
 
     return TopologyMaxAndMean{zmax, zmean};

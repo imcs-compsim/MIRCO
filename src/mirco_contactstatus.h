@@ -17,7 +17,7 @@ namespace MIRCO
    * @param[in] PressureGreenFunFlag Flag to use Green function based on uniform pressure instead of
    * point force
    */
-  void ComputeContactForceAndArea(double& totalForce, double& contactArea, const ViewVector_d pf_d,
+  void ComputeContactForceAndArea(double& totalForce, double& contactArea, const ViewVector_d pf,
       const double GridSize, const double LateralLength, const bool PressureGreenFunFlag);
 }  // namespace MIRCO
 

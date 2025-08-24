@@ -80,7 +80,7 @@ namespace MIRCO
     bool pressure_green_funct_flag = false;
     // Note: topology_d is a lightweight handle, similar to std::shared_ptr. This struct does not
     // own topology_d.
-    ViewMatrix_d topology_d;
+    ViewMatrix_d topology;
   };
 }  // namespace MIRCO
 

@@ -50,7 +50,7 @@ namespace MIRCO
   {
     auto topology_h = CreateRmgSurface(
         Resolution, InitialTopologyStdDeviation, Hurst, RandomSeedFlag, RandomGeneratorSeed);
-    topology_d = Kokkos::create_mirror_view_and_copy(ExecSpace_Default_t(), topology_h);
+    topology = Kokkos::create_mirror_view_and_copy(ExecSpace_Default_t(), topology_h);
 
     // resolution is available; no interpolation needed
     if (PressureGreenFunFlag)
@@ -79,7 +79,7 @@ namespace MIRCO
         pressure_green_funct_flag(PressureGreenFunFlag)
   {
     auto topology_h = CreateSurfaceFromFile(TopologyFilePath, N);
-    topology_d = Kokkos::create_mirror_view_and_copy(ExecSpace_Default_t(), topology_h);
+    topology = Kokkos::create_mirror_view_and_copy(ExecSpace_Default_t(), topology_h);
 
     // interpolation needed
     if (PressureGreenFunFlag)

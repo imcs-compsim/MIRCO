@@ -4,14 +4,14 @@
 
 namespace MIRCO
 {
-  ViewMatrix_d MatrixGeneration::SetupMatrix(const ViewVector_d xv0_d, const ViewVector_d yv0_d,
+  ViewMatrix_d MatrixGeneration::SetupMatrix(const ViewVector_d xv0, const ViewVector_d yv0,
       const double GridSize, const double CompositeYoungs, const int systemsize,
       const bool PressureGreenFunFlag)
   {
     constexpr double pi = M_PI;
     const double frac_GridSize_2 = GridSize / 2;
 
-    ViewMatrix_d H_d("MatrixGeneration::SetupMatrix(); H_d", systemsize, systemsize);
+    ViewMatrix_d H("MatrixGeneration::SetupMatrix(); H_d", systemsize, systemsize);
     if (PressureGreenFunFlag)
     {
       // The pressure-based Green's function is based on the work of Pohrt and Li (2014)
@@ -27,15 +27,15 @@ namespace MIRCO
       Kokkos::parallel_for(
           Kokkos::MDRangePolicy<Kokkos::Rank<2>>({0, 0}, {systemsize, systemsize}),
           KOKKOS_LAMBDA(const int i, const int j) {
-            const double k = xv0_d(i) - xv0_d(j) + frac_GridSize_2;
+            const double k = xv0(i) - xv0(j) + frac_GridSize_2;
             const double l = k - GridSize;
-            const double m = yv0_d(i) - yv0_d(j) + frac_GridSize_2;
+            const double m = yv0(i) - yv0(j) + frac_GridSize_2;
             const double n = m - GridSize;
 
-            H_d(i, j) = coeff * (k * log((sqrt(k * k + m * m) + m) / (sqrt(k * k + n * n) + n)) +
-                                    l * log((sqrt(l * l + n * n) + n) / (sqrt(l * l + m * m) + m)) +
-                                    m * log((sqrt(m * m + k * k) + k) / (sqrt(m * m + l * l) + l)) +
-                                    n * log((sqrt(n * n + l * l) + l) / (sqrt(n * n + k * k) + k)));
+            H(i, j) = coeff * (k * log((sqrt(k * k + m * m) + m) / (sqrt(k * k + n * n) + n)) +
+                                  l * log((sqrt(l * l + n * n) + n) / (sqrt(l * l + m * m) + m)) +
+                                  m * log((sqrt(m * m + k * k) + k) / (sqrt(m * m + l * l) + l)) +
+                                  n * log((sqrt(n * n + l * l) + l) / (sqrt(n * n + k * k) + k)));
           });
     }
 
@@ -48,18 +48,18 @@ namespace MIRCO
           Kokkos::MDRangePolicy<Kokkos::Rank<2>>({0, 0}, {systemsize, systemsize}),
           KOKKOS_LAMBDA(const int i, const int j) {
             if (j >= i) return;
-            const double tmp1 = xv0_d(j) - xv0_d(i);
-            const double tmp2 = yv0_d(j) - yv0_d(i);
+            const double tmp1 = xv0(j) - xv0(i);
+            const double tmp2 = yv0(j) - yv0(i);
             const double r = sqrt(tmp1 * tmp1 + tmp2 * tmp2);
             const double tmp3 = C * asin(frac_GridSize_2 / r);
-            H_d(i, j) = tmp3;
-            H_d(j, i) = tmp3;
+            H(i, j) = tmp3;
+            H(j, i) = tmp3;
           });
 
-      Kokkos::parallel_for(systemsize, KOKKOS_LAMBDA(const int i) { H_d(i, i) = C; });
+      Kokkos::parallel_for(systemsize, KOKKOS_LAMBDA(const int i) { H(i, i) = C; });
     }
 
-    return H_d;
+    return H;
   }
 
 }  // namespace MIRCO

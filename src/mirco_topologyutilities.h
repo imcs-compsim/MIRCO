@@ -32,7 +32,7 @@ namespace MIRCO
    *
    * @param topology Topology matrix containing heights
    */
-  TopologyMaxAndMean ComputeMaxAndMean(ViewMatrix_d topology_d);
+  TopologyMaxAndMean ComputeMaxAndMean(ViewMatrix_d topology);
 }  // namespace MIRCO
 
 #endif  // SRC_TOPOLOGYUTILITIES_KOKKOS_H_

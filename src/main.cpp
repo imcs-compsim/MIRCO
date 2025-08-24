@@ -32,12 +32,12 @@ int main(int argc, char* argv[])
 
     InputParameters inputParams(inputFileName);
 
-    ViewVector_d meshgrid_d = CreateMeshgrid(inputParams.N, inputParams.grid_size);
-    auto maxAndMean = ComputeMaxAndMean(inputParams.topology_d);
+    ViewVector_d meshgrid = CreateMeshgrid(inputParams.N, inputParams.grid_size);
+    auto maxAndMean = ComputeMaxAndMean(inputParams.topology);
 
     // Main evaluation agorithm
     double meanPressure;
-    Evaluate(meanPressure, inputParams, maxAndMean.max, meshgrid_d);
+    Evaluate(meanPressure, inputParams, maxAndMean.max, meshgrid);
 
     std::cout << "Mean pressure is: " << std::to_string(meanPressure) << std::endl;
 

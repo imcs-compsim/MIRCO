@@ -20,15 +20,15 @@ namespace MIRCO
    * @param[in] ElasticComplianceCorrection Elastic compliance correction
    * @param[in] topology Topology matrix containing heights
    * @param[in] zmax Maximum height
-   * @param[in] meshgrid_d Meshgrid vector
+   * @param[in] meshgrid Meshgrid vector
    * @param[in] PressureGreenFunFlag Flag to use Green function based on uniform pressure instead of
    * point force
    */
   void Evaluate(double& pressure, const double Delta, const double LateralLength,
       const double GridSize, const double Tolerance, const int MaxIteration,
       const double CompositeYoungs, const bool WarmStartingFlag,
-      const double ElasticComplianceCorrection, const ViewMatrix_d topology_d, const double zmax,
-      const ViewVector_d meshgrid_d, const bool PressureGreenFunFlag);
+      const double ElasticComplianceCorrection, const ViewMatrix_d topology, const double zmax,
+      const ViewVector_d meshgrid, const bool PressureGreenFunFlag);
 
   /**
    * @brief Relate the far-field displacement with pressure, taking the parameters from an
@@ -40,12 +40,12 @@ namespace MIRCO
    * @param[in] meshgrid_d Meshgrid vector
    */
   inline void Evaluate(double& pressure, const InputParameters& inputParams, const double zmax,
-      const ViewVector_d meshgrid_d)
+      const ViewVector_d meshgrid)
   {
     Evaluate(pressure, inputParams.delta, inputParams.lateral_length, inputParams.grid_size,
         inputParams.tolerance, inputParams.max_iteration, inputParams.composite_youngs,
         inputParams.warm_starting_flag, inputParams.elastic_compliance_correction,
-        inputParams.topology_d, zmax, meshgrid_d, inputParams.pressure_green_funct_flag);
+        inputParams.topology, zmax, meshgrid, inputParams.pressure_green_funct_flag);
   }
 }  // namespace MIRCO
 
