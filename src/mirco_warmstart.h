@@ -1,5 +1,5 @@
-#ifndef SRC_WARMSTART_KOKKOS_H_
-#define SRC_WARMSTART_KOKKOS_H_
+#ifndef SRC_WARMSTART_H_
+#define SRC_WARMSTART_H_
 
 #include "mirco_kokkostypes.h"
 
@@ -21,4 +21,4 @@ namespace MIRCO
       const ViewVectorInt_d& activeSet0, const ViewVectorInt_d& activeSetf, const ViewVector_d& pf);
 }  // namespace MIRCO
 
-#endif  // SRC_WARMSTART_KOKKOS_H_
+#endif  // SRC_WARMSTART_H_

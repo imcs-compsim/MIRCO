@@ -20,8 +20,6 @@ namespace MIRCO
     const int n0 = topology.extent(0);
     const int n1 = topology.extent(1);
 
-    // Note: these reductions could be merged into one, but that would require defining a custom
-    // reducer struct type
     double zmax = -std::numeric_limits<double>::infinity();
     Kokkos::parallel_reduce(
         Kokkos::MDRangePolicy<Kokkos::Rank<2>>({0, 0}, {n0, n1}),

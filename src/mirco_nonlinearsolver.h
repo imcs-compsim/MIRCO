@@ -1,5 +1,5 @@
-#ifndef SRC_NONLINEARSOLVER_KOKKOS_H_
-#define SRC_NONLINEARSOLVER_KOKKOS_H_
+#ifndef SRC_NONLINEARSOLVER_H_
+#define SRC_NONLINEARSOLVER_H_
 
 #include "mirco_kokkostypes.h"
 
@@ -27,4 +27,4 @@ namespace MIRCO
       double nnlstol = 1.0e-08, int maxiter = 10000);
 }  // namespace MIRCO
 
-#endif  // SRC_NONLINEARSOLVER_KOKKOS_H_
+#endif  // SRC_NONLINEARSOLVER_H_

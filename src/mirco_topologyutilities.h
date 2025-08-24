@@ -1,5 +1,5 @@
-#ifndef SRC_TOPOLOGYUTILITIES_KOKKOS_H_
-#define SRC_TOPOLOGYUTILITIES_KOKKOS_H_
+#ifndef SRC_TOPOLOGYUTILITIES_H_
+#define SRC_TOPOLOGYUTILITIES_H_
 
 #include "mirco_kokkostypes.h"
 
@@ -35,4 +35,4 @@ namespace MIRCO
   TopologyMaxAndMean ComputeMaxAndMean(ViewMatrix_d topology);
 }  // namespace MIRCO
 
-#endif  // SRC_TOPOLOGYUTILITIES_KOKKOS_H_
+#endif  // SRC_TOPOLOGYUTILITIES_H_

@@ -1,5 +1,5 @@
-#ifndef SRC_MATRIXSETUP_KOKKOS_H_
-#define SRC_MATRIXSETUP_KOKKOS_H_
+#ifndef SRC_MATRIXSETUP_H_
+#define SRC_MATRIXSETUP_H_
 
 #include "mirco_kokkostypes.h"
 
@@ -25,4 +25,4 @@ namespace MIRCO
   };  // namespace MatrixGeneration
 }  // namespace MIRCO
 
-#endif  // SRC_MATRIXSETUP_KOKKOS_H_
+#endif  // SRC_MATRIXSETUP_H_

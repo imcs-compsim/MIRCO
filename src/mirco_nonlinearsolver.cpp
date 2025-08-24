@@ -35,7 +35,7 @@ namespace MIRCO
     using minloc_value_t = typename minloc_t::value_type;
     const std::string kokkosLabelPrefix = "nonlinearSolve(); ";
 
-    constexpr double eps = std::numeric_limits<double>::epsilon();
+    constexpr double machine_eps = std::numeric_limits<double>::epsilon();
 
     const int n0 = b0.extent(0);
 
@@ -189,8 +189,8 @@ namespace MIRCO
               KOKKOS_LAMBDA(const int i, minloc_value_t& ml) {
                 if (b0s_compact(i) <= 0)
                 {
-                  const double alphai =
-                      p(activeInactiveSet(i)) / (eps + p(activeInactiveSet(i)) - b0s_compact(i));
+                  const double alphai = p(activeInactiveSet(i)) /
+                                        (machine_eps + p(activeInactiveSet(i)) - b0s_compact(i));
                   if (alphai < ml.val)
                   {
                     ml.val = alphai;

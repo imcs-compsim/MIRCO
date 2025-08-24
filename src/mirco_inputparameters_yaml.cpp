@@ -19,8 +19,13 @@ MIRCO::InputParameters::InputParameters(const std::string& inputFileName)
   ryml::ConstNodeRef geoParams = parameters["geometrical_parameters"];
   ryml::ConstNodeRef matParams = parameters["material_parameters"];
 
-  if (root.invalid() || parameters.invalid() || geoParams.invalid() || matParams.invalid())
-    throw std::runtime_error("Input incomplete");
+  if (root.invalid()) throw std::runtime_error("Input incomplete: missing root `mirco_input`");
+  if (parameters.invalid())
+    throw std::runtime_error("Input incomplete: missing section `parameters`");
+  if (geoParams.invalid())
+    throw std::runtime_error("Input incomplete: missing section `geometrical_parameters`");
+  if (matParams.invalid())
+    throw std::runtime_error("Input incomplete: missing section `material_parameters`");
 
   // Set the surface generator based on RandomTopologyFlag
   if (Utils::get_bool(root, "RandomTopologyFlag"))

@@ -1,5 +1,5 @@
-#ifndef SRC_INPUTPARAMETERS_KOKKOS_H_
-#define SRC_INPUTPARAMETERS_KOKKOS_H_
+#ifndef SRC_INPUTPARAMETERS_H_
+#define SRC_INPUTPARAMETERS_H_
 
 #include <string>
 
@@ -84,4 +84,4 @@ namespace MIRCO
   };
 }  // namespace MIRCO
 
-#endif  // SRC_INPUTPARAMETERS_KOKKOS_H_
+#endif  // SRC_INPUTPARAMETERS_H_

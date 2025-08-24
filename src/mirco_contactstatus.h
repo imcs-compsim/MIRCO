@@ -1,5 +1,5 @@
-#ifndef SRC_CONTACTSTATUS_KOKKOS_H_
-#define SRC_CONTACTSTATUS_KOKKOS_H_
+#ifndef SRC_CONTACTSTATUS_H_
+#define SRC_CONTACTSTATUS_H_
 
 #include "mirco_kokkostypes.h"
 
@@ -21,4 +21,4 @@ namespace MIRCO
       const double GridSize, const double LateralLength, const bool PressureGreenFunFlag);
 }  // namespace MIRCO
 
-#endif  // SRC_CONTACTSTATUS_KOKKOS_H_
+#endif  // SRC_CONTACTSTATUS_H_

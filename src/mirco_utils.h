@@ -1,5 +1,5 @@
-#ifndef SRC_UTILS_KOKKOS_H_
-#define SRC_UTILS_KOKKOS_H_
+#ifndef SRC_UTILS_H_
+#define SRC_UTILS_H_
 
 #include <ryml.hpp>
 #include <ryml_std.hpp>
@@ -32,4 +32,4 @@ namespace MIRCO
   }  // namespace Utils
 }  // namespace MIRCO
 
-#endif /* SRC_UTILS_KOKKOS_H_ */
+#endif  // SRC_UTILS_H_

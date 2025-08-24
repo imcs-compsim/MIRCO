@@ -1,5 +1,5 @@
-#ifndef SRC_TOPOLOGY_KOKKOS_H_
-#define SRC_TOPOLOGY_KOKKOS_H_
+#ifndef SRC_TOPOLOGY_H_
+#define SRC_TOPOLOGY_H_
 
 #include <string>
 
@@ -35,4 +35,4 @@ namespace MIRCO
 
 }  // namespace MIRCO
 
-#endif  // SRC_TOPOLOGY_KOKKOS_H_
+#endif  // SRC_TOPOLOGY_H_

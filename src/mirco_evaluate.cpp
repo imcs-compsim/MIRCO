@@ -32,13 +32,14 @@ namespace MIRCO
     // Points in contact in the previous iteration (only needed for warmstart)
     ViewVectorInt_d activeSetf;
 
-    // Contact force at (xvf,yvf) predicted in the previous iteration.
+    // Contact force at (xvf,yvf) predicted in the previous iteration
     ViewVector_d pf;
 
-    // Initialise the error in force
-    double ErrorForce = std::numeric_limits<double>::max();
+    // Difference in total force between current and previous iteration; used as a convergence
+    // criterion
+    double deltaTotalForce = std::numeric_limits<double>::max();
 
-    while (ErrorForce > Tolerance && k < MaxIteration)
+    while (deltaTotalForce > Tolerance && k < MaxIteration)
     {
       // Indices of the points predicted to be in contact
       ViewVectorInt_d activeSet0;
@@ -92,16 +93,16 @@ namespace MIRCO
       // Compute error due to nonlinear correction
       if (k > 0)
       {
-        ErrorForce = abs(totalForceVector[k] - totalForceVector[k - 1]) / totalForceVector[k];
+        deltaTotalForce = abs(totalForceVector[k] - totalForceVector[k - 1]) / totalForceVector[k];
       }
 
       ++k;
     }
 
-    if (ErrorForce > Tolerance)
-      std::runtime_error("The solution did not converge in the maximum number of iterations");
+    if (deltaTotalForce > Tolerance)
+      std::runtime_error("The solver did not converge in the maximum number of iterations.");
 
-    // Calculate the final force value at the end of the iteration.
+    // Calculate the final force value at the end of the iteration
     const double finalForce = totalForceVector[k - 1];
 
     // Mean pressure

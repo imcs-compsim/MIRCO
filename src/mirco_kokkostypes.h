@@ -1,5 +1,5 @@
-#ifndef SRC_KOKKOSTYPES_KOKKOS_H_
-#define SRC_KOKKOSTYPES_KOKKOS_H_
+#ifndef SRC_KOKKOSTYPES_H_
+#define SRC_KOKKOSTYPES_H_
 
 #include <Kokkos_Core.hpp>
 
@@ -29,4 +29,4 @@ namespace MIRCO
   using ViewVectorInt_d = Kokkos::View<int*, Kokkos::LayoutLeft, Device_Default_t>;
 }  // namespace MIRCO
 
-#endif  // SRC_KOKKOSTYPES_KOKKOS_H_
+#endif  // SRC_KOKKOSTYPES_H_

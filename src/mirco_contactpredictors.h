@@ -1,5 +1,5 @@
-#ifndef SRC_CONTACTPREDICTORS_KOKKOS_H_
-#define SRC_CONTACTPREDICTORS_KOKKOS_H_
+#ifndef SRC_CONTACTPREDICTORS_H_
+#define SRC_CONTACTPREDICTORS_H_
 
 #include "mirco_kokkostypes.h"
 
@@ -27,4 +27,4 @@ namespace MIRCO
       const ViewVector_d meshgrid);
 }  // namespace MIRCO
 
-#endif  // SRC_CONTACTPREDICTORS_KOKKOS_H_
+#endif  // SRC_CONTACTPREDICTORS_H_
