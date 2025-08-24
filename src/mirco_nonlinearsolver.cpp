@@ -35,7 +35,6 @@ namespace MIRCO
     using minloc_value_t = typename minloc_t::value_type;
     const std::string kokkosLabelPrefix = "nonlinearSolve(); ";
 
-    // 2^{-52}; double machine precision, i.e. smallest number such that 1.0 + eps > 1.0
     constexpr double eps = std::numeric_limits<double>::epsilon();
 
     const int n0 = b0.extent(0);
