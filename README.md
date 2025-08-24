@@ -1,14 +1,19 @@
 # MIRCO (MUSAM-IMCS Rough Contact cOde)
 
 `MIRCO` is a Boundary element algorithm for simulating linear elastic frictionless normal contact between a rigid rough indentor and an elastic half-space.
-The research code is implemented throughout in object-oriented programming (C++) and is parallelized with OpenMP for shared memory hardware architectures.
+The research code is implemented throughout in object-oriented programming (C++) and is parallelized with Kokkos (previously OpenMP) for shared memory hardware architectures as well as GPUs.
 
 ## Getting up and running
 
 ### Prerequesites
 
-MIRCO requires
+The latest version of MIRCO requires:
+- C++ compiler
+- [CMake](www.cmake.org) (version: >= 3.28)
+- [Kokkos](https://github.com/kokkos/kokkos) (version >= 3.7)
+- [Kokkos-Kernels](https://github.com/kokkos/kokkos-kernels) (version >= 3.7) with BLAS and LAPACK enabled (additional APIs need to be enabled when using a GPU backend, depending on the vendor)
 
+Previous versions require:
 - C++ compiler
 - [CMake](www.cmake.org) (version: >= 3.28)
 - OpenMP
@@ -16,7 +21,7 @@ MIRCO requires
 
 ### Clone the repository
 
-You can clone the repository along with its submodules using:
+The repository can be cloned along with its submodules using:
 
 ```bash
 cd <someBaseDir>
