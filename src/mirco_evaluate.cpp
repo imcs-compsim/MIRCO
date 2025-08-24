@@ -20,7 +20,7 @@ namespace MIRCO
       const double ElasticComplianceCorrection, const ViewMatrix_d topology, const double zmax,
       const ViewVector_d meshgrid, const bool PressureGreenFunFlag)
   {
-    // Initialise the area vector and force vector. Each element containing the
+    // Initialise the area vector and force vector. Each element contains the
     // area and force calculated at every iteration.
     std::vector<double> totalForceVector;
     std::vector<double> contactAreaVector;
