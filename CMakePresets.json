@@ -7,7 +7,7 @@
       "generator": "Ninja",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RELEASE",
-        "CMAKE_CXX_COMPILER": "g++",
+        "CMAKE_CXX_COMPILER": "mpicxx",
         "CMAKE_C_COMPILER": "gcc",
         "CMAKE_C_COMPILER_LAUNCHER": "ccache",
         "CMAKE_CXX_FLAGS": "",
@@ -21,8 +21,6 @@
         ".base"
       ],
       "cacheVariables": {
-        "CMAKE_CXX_COMPILER_LAUNCHER": "ccache",
-        "CMAKE_CXX_FLAGS": "-msse3",
         "KOKKOS_PATH": "/opt/mirco-dependencies/kokkos_install",
         "KOKKOS_KERNELS_PATH": "/opt/mirco-dependencies/kokkos-kernels_install",
         "KOKKOS_IN_MIRCO": "ON",
