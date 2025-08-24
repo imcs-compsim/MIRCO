@@ -33,7 +33,7 @@ int main(int argc, char* argv[])
     InputParameters inputParams(inputFileName);
 
     ViewVector_d meshgrid = CreateMeshgrid(inputParams.N, inputParams.grid_size);
-    auto maxAndMean = ComputeMaxAndMean(inputParams.topology);
+    const auto maxAndMean = ComputeMaxAndMean(inputParams.topology);
 
     // Main evaluation agorithm
     double meanPressure;
