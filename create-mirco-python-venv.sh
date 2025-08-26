@@ -8,8 +8,10 @@ if [ ! -f "./create-mirco-python-venv.sh" ]; then
     exit 1
 fi
 
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
+
 # Path to the python virtual environment.
-PYTHON_VENV="`dirname "$0"`/utilities/mirco-python-venv"
+PYTHON_VENV="${SCRIPT_DIR}/utilities/mirco-python-venv"
 
 # If the virtual environment already exists, delete it.
 if [ -d "$PYTHON_VENV" ]; then rm -Rf $PYTHON_VENV; fi
@@ -28,3 +30,5 @@ pip install -r requirements.txt
 
 # Install the pre-commit hooks.
 pre-commit install
+
+set +e

@@ -48,13 +48,14 @@ RUN apt-get update && apt-get install -y \
 # Create directory for dependencies
 ARG NPROCS=12
 ENV NPROCS=$NPROCS \
-    INSTALL_DIR="/opt/mirco-dependencies/"
+    INSTALL_DIR="/opt/mirco-dependencies"
 RUN mkdir -p ${INSTALL_DIR}
 
 COPY dependencies /dependencies
 
-# Install Trilinos 2022_Q1
-RUN /dependencies/trilinos/install.sh ${INSTALL_DIR}
+# Install Kokkos and Kokkos-Kernels
+RUN /dependencies/kokkos/install.sh ${INSTALL_DIR}/kokkos_install
+RUN /dependencies/kokkos-kernels/install.sh ${INSTALL_DIR}/kokkos-kernels_install
 
 # Add dependencies hash
 # The label is added at the end because the label causes a cache miss

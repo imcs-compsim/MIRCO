@@ -1,0 +1,19 @@
+mirco_input:
+  WarmStartingFlag: true
+  RandomTopologyFlag: false
+  TopologyFilePath: sup2.dat
+  MaxIteration: 100
+  PressureGreenFunFlag: false
+  parameters:
+    material_parameters:
+      E1: 1
+      nu1: 0.3
+      E2: 1
+      nu2: 0.3
+    geometrical_parameters:
+      LateralLength: 1000.0
+      Delta: 15.0
+      Tolerance: 0.01
+  result_description:
+    ExpectedPressure: 0.006069099831252897
+    ExpectedPressureTolerance: 1e-10
