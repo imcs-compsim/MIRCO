@@ -7,6 +7,7 @@
 #include "mirco_setparameters.h"
 #include "mirco_topology.h"
 #include "mirco_topologyutilities.h"
+#include "mirco_iterate.h"
 
 
 int main(int argc, char* argv[])
@@ -58,15 +59,31 @@ int main(int argc, char* argv[])
 
   // Initialise Pressure
   double pressure = 0.0;
+  double contactarea = 0.0;
 
-  MIRCO::Evaluate(pressure, Delta, LateralLength, GridSize, Tolerance, MaxIteration,
+  MIRCO::Evaluate(contactarea, pressure, Delta, LateralLength, GridSize, Tolerance, MaxIteration,
       CompositeYoungs, WarmStartingFlag, ElasticComplianceCorrection, topology, max_and_mean.max_,
       meshgrid, PressureGreenFunFlag);
 
   std::cout << "Mean pressure is: " << std::to_string(pressure) << std::endl;
+  std::cout << std::setprecision(16) << "Mean pressure is: " << pressure << std::endl;
+  std::cout << "Contact area is: " << std::to_string(contactarea) << std::endl;
 
   const auto finish = std::chrono::high_resolution_clock::now();
   const double elapsedTime =
       std::chrono::duration_cast<std::chrono::seconds>(finish - start).count();
   std::cout << "Elapsed time is: " + std::to_string(elapsedTime) + "s." << std::endl;
+
+	// Compute contact area for a given pressure by iterating to find the correct gap
+  double newcontactarea = 0.0;
+	//Initial guess for the gap (hardcoded for testing)
+	double initialguessDelta = 7.0;
+	//Pressure to solve for (hardcoded for testing)
+	double targetpressure = 0.000492321316110599;
+  MIRCO::Iterate(newcontactarea, targetpressure, initialguessDelta, LateralLength, GridSize, Tolerance, MaxIteration,
+      CompositeYoungs, WarmStartingFlag, ElasticComplianceCorrection, topology, max_and_mean.max_,
+      meshgrid, PressureGreenFunFlag);
+
+	std::cout << "After iteration, contact area is: " << std::to_string(newcontactarea) << std::endl;
+    
 }

@@ -21,7 +21,7 @@
 #include "mirco_nonlinearsolver.h"
 
 
-void MIRCO::Evaluate(double& pressure, double Delta, double LateralLength, double GridSize,
+void MIRCO::Evaluate(double& contactarea, double& pressure, double Delta, double LateralLength, double GridSize,
     double Tolerance, int MaxIteration, double CompositeYoungs, bool WarmStartingFlag,
     double ElasticComplianceCorrection, Teuchos::SerialDenseMatrix<int, double>& topology,
     double zmax, std::vector<double>& meshgrid, bool PressureGreenFunFlag)
@@ -108,13 +108,19 @@ void MIRCO::Evaluate(double& pressure, double Delta, double LateralLength, doubl
     // }
   }
 
-  TEUCHOS_TEST_FOR_EXCEPTION(ErrorForce > Tolerance, std::out_of_range,
+  if (MaxIteration != 1 )
+  {
+    TEUCHOS_TEST_FOR_EXCEPTION(ErrorForce > Tolerance, std::out_of_range,
       "The solution did not converge in the maximum number of iternations defined");
+  }
+  
   // @{
 
   // Calculate the final force value at the end of the iteration.
   const double force = force0[k - 1];
-
+  // Calculate the final contact area at the end of the iteration.
+  contactarea = area0[k - 1];
+  std::cout << "Contact area is: " << std::to_string(contactarea) << std::endl;
   // Mean pressure
   double sigmaz = force / pow(LateralLength, 2);
   pressure = sigmaz;

@@ -94,6 +94,7 @@ add_library(mirco_core
   src/mirco_topologyutilities.cpp
   src/mirco_contactpredictors.cpp
   src/mirco_contactstatus.cpp
+  src/mirco_iterate.cpp
   )
 target_link_libraries(mirco_core PUBLIC Trilinos::all_selected_libs OpenMP::OpenMP_CXX)
 

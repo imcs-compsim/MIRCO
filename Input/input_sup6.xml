@@ -4,7 +4,7 @@
   <Parameter name="RandomSeedFlag" type="bool" value="false"/>
   <Parameter name="RandomGeneratorSeed" type="int" value="95"/>
   <Parameter name="TopologyFilePath" type="string" value="sup2.dat"/>
-  <Parameter name="MaxIteration" type="int" value="100"/>
+  <Parameter name="MaxIteration" type="int" value="1"/>
   <Parameter name="PressureGreenFunFlag" type="bool" value="false"/>
 
   <ParameterList name="parameters">

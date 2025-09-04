@@ -1,5 +1,5 @@
-#ifndef SRC_EVALUATE_H_
-#define SRC_EVALUATE_H_
+#ifndef SRC_ITERATE_H_
+#define SRC_ITERATE_H_
 
 #include <Teuchos_SerialDenseMatrix.hpp>
 #include <string>
@@ -10,8 +10,8 @@ namespace MIRCO
    * @brief Relate the far-field displacement with pressure
    *
    * @param contactarea Contact area
-   * @param pressure Pressure
-   * @param Delta Far-field displacement (Gap)
+   * @param targetpressure Pressure
+   * @param initialguessDelta Far-field displacement (Gap) initial guess
    * @param LateralLength Lateral side of the surface [micrometers]
    * @param GridSize Grid size (length of each cell)
    * @param Tolerance Tolerance for the convergence of force
@@ -25,11 +25,11 @@ namespace MIRCO
    * @param PressureGreenFunFlag Flag to use Green function based on uniform pressure instead of
    * point force
    */
-  void Evaluate(double& contactarea, double& pressure, double Delta, double LateralLength, double GridSize,
+  void Iterate(double& contactarea, double& targetpressure, double initialguessDelta, double LateralLength, double GridSize,
       double Tolerance, int MaxIteration, double CompositeYoungs, bool WarmStartingFlag,
       double ElasticComplianceCorrection, Teuchos::SerialDenseMatrix<int, double>& topology,
       double zmax, std::vector<double>& meshgrid, bool PressureGreenFunFlag);
 }  // namespace MIRCO
 
 
-#endif  // SRC_EVALUATE_H_
+#endif  // SRC_ITERATE_H_
