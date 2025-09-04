@@ -120,7 +120,7 @@ void MIRCO::Evaluate(double& contactarea, double& pressure, double Delta, double
   const double force = force0[k - 1];
   // Calculate the final contact area at the end of the iteration.
   contactarea = area0[k - 1];
-  std::cout << "Contact area is: " << std::to_string(contactarea) << std::endl;
+  // std::cout << "Contact area is: " << std::to_string(contactarea) << std::endl;
   // Mean pressure
   double sigmaz = force / pow(LateralLength, 2);
   pressure = sigmaz;

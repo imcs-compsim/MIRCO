@@ -79,7 +79,7 @@ int main(int argc, char* argv[])
 	//Initial guess for the gap (hardcoded for testing)
 	double initialguessDelta = 7.0;
 	//Pressure to solve for (hardcoded for testing)
-	double targetpressure = 0.000492321316110599;
+	double targetpressure = 30.72027363549114;
   MIRCO::Iterate(newcontactarea, targetpressure, initialguessDelta, LateralLength, GridSize, Tolerance, MaxIteration,
       CompositeYoungs, WarmStartingFlag, ElasticComplianceCorrection, topology, max_and_mean.max_,
       meshgrid, PressureGreenFunFlag);
