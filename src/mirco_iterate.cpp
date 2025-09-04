@@ -2,7 +2,7 @@
 #include "mirco_iterate.h"
 
 
-void MIRCO::Iterate(double& contactarea, double& targetpressure, double initialguessDelta, double LateralLength, double GridSize,
+void MIRCO::Iterate(double& contactarea, double targetpressure, double initialguessDelta, double LateralLength, double GridSize,
     double Tolerance, int MaxIteration, double CompositeYoungs, bool WarmStartingFlag,
     double ElasticComplianceCorrection, Teuchos::SerialDenseMatrix<int, double>& topology,
     double zmax, std::vector<double>& meshgrid, bool PressureGreenFunFlag)

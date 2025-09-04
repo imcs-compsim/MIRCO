@@ -25,7 +25,7 @@ namespace MIRCO
    * @param PressureGreenFunFlag Flag to use Green function based on uniform pressure instead of
    * point force
    */
-  void Iterate(double& contactarea, double& targetpressure, double initialguessDelta, double LateralLength, double GridSize,
+  void Iterate(double& contactarea, double targetpressure, double initialguessDelta, double LateralLength, double GridSize,
       double Tolerance, int MaxIteration, double CompositeYoungs, bool WarmStartingFlag,
       double ElasticComplianceCorrection, Teuchos::SerialDenseMatrix<int, double>& topology,
       double zmax, std::vector<double>& meshgrid, bool PressureGreenFunFlag);

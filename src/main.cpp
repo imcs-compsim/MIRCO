@@ -85,5 +85,10 @@ int main(int argc, char* argv[])
       meshgrid, PressureGreenFunFlag);
 
 	std::cout << "After iteration, contact area is: " << std::to_string(newcontactarea) << std::endl;
+
+	std::cout << GridSize << std::endl;
+	std::cout << CompositeYoungs << std::endl;
+	std::cout << ElasticComplianceCorrection << std::endl;
+	std::cout << max_and_mean.max_ << std::endl;
     
 }
