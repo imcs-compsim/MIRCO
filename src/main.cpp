@@ -16,13 +16,14 @@ int main(int argc, char* argv[])
 {
   Kokkos::initialize(argc, argv);
   {
-    std::cout << "-- Kokkos info --\n";
+    std::cout << "-- Kokkos information --\n";
     std::cout << "threads_in_use = " << ExecSpace_Default_t::concurrency() << "\n";
-    std::cout << "ExecSpace_Default = " << typeid(ExecSpace_Default_t).name() << "\n";
-    std::cout << "ExecSpace_DefaultHost = " << typeid(ExecSpace_DefaultHost_t).name() << "\n";
-    std::cout << "MemorySpace_Host_t = " << typeid(MemorySpace_Host_t).name() << "\n";
-    std::cout << "MemorySpace_ofDefaultExec_t = " << typeid(MemorySpace_ofDefaultExec_t).name()
-              << "\n\n";
+    std::cout << "Default execution space = " << typeid(ExecSpace_Default_t).name() << "\n";
+    std::cout << "Default host execution space = " << typeid(ExecSpace_DefaultHost_t).name()
+              << "\n";
+    std::cout << "Default memory space = " << typeid(MemorySpace_ofDefaultExec_t).name() << "\n";
+    std::cout << "Default host memory space = " << typeid(MemorySpace_Host_t).name() << "\n";
+    std::cout << "\n";
 
     if (argc != 2) std::runtime_error("The code expects (only) an input file as argument");
     // Read the input file name from the command line
@@ -68,9 +69,6 @@ int main(int argc, char* argv[])
           std::cerr << "The output pressure does not match the expected result" << std::endl;
           return EXIT_FAILURE;
         }
-        std::cout << "meanPressure=" << meanPressure << "\n";
-        std::cout << "\tExpectedPressure=" << ExpectedPressure << "\n";
-        std::cout << "\tExpectedPressureTolerance=" << ExpectedPressureTolerance << "\n";
       }
     }
   }

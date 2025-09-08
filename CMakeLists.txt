@@ -127,14 +127,95 @@ add_library(mirco_inputparameters
 target_link_libraries(mirco_inputparameters PRIVATE mirco_topology Kokkos::kokkos)
 
 # Fetch rapidyaml (ryml) directly
-include(FetchContent)
-FetchContent_Declare(rapidyaml GIT_REPOSITORY https://github.com/biojppm/rapidyaml.git GIT_TAG 47ec2fa184209687c20fd5bc05621e1cb1200311)
-FetchContent_MakeAvailable(rapidyaml)
+#include(FetchContent)
+##set(C4CORE_WITH_FASTFLOAT OFF CACHE BOOL "disable fastfloat in c4core" FORCE)
+#FetchContent_Declare(rapidyaml GIT_REPOSITORY https://github.com/biojppm/rapidyaml.git GIT_TAG 47ec2fa184209687c20fd5bc05621e1cb1200311)
+#FetchContent_MakeAvailable(rapidyaml)
+
+
+
+
+
+
+
+
+
+
+include(ExternalProject)
+
+set(HOST_PREFIX ${CMAKE_BINARY_DIR}/_hostdeps)
+set(HOST_CXX /usr/bin/g++-12)
+
+ExternalProject_Add(ryml_build
+  GIT_REPOSITORY https://github.com/biojppm/rapidyaml.git
+  GIT_TAG 47ec2fa184209687c20fd5bc05621e1cb1200311
+  INSTALL_DIR ${HOST_PREFIX}
+  CMAKE_ARGS
+    -DCMAKE_CXX_COMPILER=${HOST_CXX}
+    -DCMAKE_BUILD_TYPE=Release
+    -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
+    -DCMAKE_POLICY_DEFAULT_CMP0077=NEW
+    -DC4CORE_WITH_FASTFLOAT=OFF
+    -DC4CORE_INSTALL=ON
+    -DRYML_BUILD_TESTS=OFF
+    -DRYML_BUILD_BENCHMARKS=OFF
+    -DCMAKE_CXX_FLAGS=-w
+    -DCMAKE_C_FLAGS=-w
+  INSTALL_COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR> --target install --config $<CONFIG>
+  BUILD_BYPRODUCTS ${HOST_PREFIX}/lib/libryml.a
+)
+
+file(MAKE_DIRECTORY ${HOST_PREFIX}/include ${HOST_PREFIX}/lib)
+
+add_library(ryml_import STATIC IMPORTED)
+set_target_properties(ryml_import PROPERTIES
+  IMPORTED_LOCATION ${HOST_PREFIX}/lib/libryml.a
+  INTERFACE_INCLUDE_DIRECTORIES ${HOST_PREFIX}/include
+  INTERFACE_COMPILE_DEFINITIONS C4CORE_NO_FAST_FLOAT)
+add_dependencies(ryml_import ryml_build)
+
+add_library(ryml_host INTERFACE)
+add_dependencies(ryml_host ryml_build)
+target_include_directories(ryml_host INTERFACE ${HOST_PREFIX}/include)
+target_link_libraries(ryml_host INTERFACE ${HOST_PREFIX}/lib/libryml.a)
+target_compile_definitions(ryml_host INTERFACE C4CORE_NO_FAST_FLOAT)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 add_library(mirco_utils
   src/mirco_utils.cpp
   )
-target_link_libraries(mirco_utils PUBLIC ryml)
+
+target_link_libraries(mirco_utils PUBLIC ryml_host)#ryml)
+
+
+
+
+
+
+
+
+
+
+
 
 add_library(mirco_inputparameters_yaml
   src/mirco_inputparameters_yaml.cpp
