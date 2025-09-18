@@ -80,20 +80,20 @@ int main(int argc, char* argv[])
             ExpectedEffectiveContactAreaFractionTolerance)
         {
           std::cerr << "The output effective contact area does not match the expected result."
-                    << std::endl;
-          std::cerr << "\tmeanPressure = " << meanPressure << "\n";
-          std::cerr << "\tExpectedPressure = " << ExpectedPressure << "\n";
-          std::cerr << "\tExpectedPressureTolerance = " << ExpectedPressureTolerance << "\n";
-          std::cerr << "effectiveContactArea = " << effectiveContactAreaFraction << "\n";
-          std::cerr << "\tExpectedEffectiveContactAreaFraction = "
-                  << ExpectedEffectiveContactAreaFraction << "\n";
-          std::cerr << "\tExpectedEffectiveContactAreaFractionTolerance = "
-                  << ExpectedEffectiveContactAreaFractionTolerance << std::endl;
+                    << "\n";
+          std::cerr << "\tMean pressure = " << meanPressure << "\n";
+          std::cerr << "\tExpected pressure = " << ExpectedPressure << "\n";
+          std::cerr << "\tExpected pressureTolerance = " << ExpectedPressureTolerance << "\n";
+          std::cerr << "effective contact area = " << effectiveContactAreaFraction << "\n";
+          std::cerr << "\tExpected effective contact area fraction = "
+                    << ExpectedEffectiveContactAreaFraction << "\n";
+          std::cerr << "\tExpected effective contact area fraction tolerance = "
+                    << ExpectedEffectiveContactAreaFractionTolerance << "\n";
           return EXIT_FAILURE;
         }
         else
         {
-          std::cout << "All result checks passed" << std::endl;
+          std::cout << "All result checks passed" << "\n";
         }
       }
     }
