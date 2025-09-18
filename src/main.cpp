@@ -84,7 +84,7 @@ int main(int argc, char* argv[])
           std::cerr << "\tMean pressure = " << meanPressure << "\n";
           std::cerr << "\tExpected pressure = " << ExpectedPressure << "\n";
           std::cerr << "\tExpected pressureTolerance = " << ExpectedPressureTolerance << "\n";
-          std::cerr << "effective contact area = " << effectiveContactAreaFraction << "\n";
+          std::cerr << "\tEffective contact area = " << effectiveContactAreaFraction << "\n";
           std::cerr << "\tExpected effective contact area fraction = "
                     << ExpectedEffectiveContactAreaFraction << "\n";
           std::cerr << "\tExpected effective contact area fraction tolerance = "
