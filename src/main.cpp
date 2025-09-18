@@ -63,6 +63,7 @@ int main(int argc, char* argv[])
       ryml::ConstNodeRef resultDescription = root["result_description"];
       if (!resultDescription.invalid())
       {
+        bool passedResultChecks = true;
         const double ExpectedPressure = Utils::get_double(resultDescription, "ExpectedPressure");
         const double ExpectedPressureTolerance =
             Utils::get_double(resultDescription, "ExpectedPressureTolerance");
@@ -73,15 +74,16 @@ int main(int argc, char* argv[])
 
         if (std::abs(meanPressure - ExpectedPressure) > ExpectedPressureTolerance)
         {
+          passedResultChecks = false;
           std::cerr << "The output pressure does not match the expected result." << "\n";
           std::cerr << "\tMean pressure = " << meanPressure << "\n";
           std::cerr << "\tExpected pressure = " << ExpectedPressure << "\n";
           std::cerr << "\tExpected pressureTolerance = " << ExpectedPressureTolerance << "\n";
-          return EXIT_FAILURE;
         }
-        else if (std::abs(effectiveContactAreaFraction - ExpectedEffectiveContactAreaFraction) >
-                 ExpectedEffectiveContactAreaFractionTolerance)
+        if (std::abs(effectiveContactAreaFraction - ExpectedEffectiveContactAreaFraction) >
+            ExpectedEffectiveContactAreaFractionTolerance)
         {
+          passedResultChecks = false;
           std::cerr << "The output effective contact area does not match the expected result."
                     << "\n";
           std::cerr << "\tEffective contact area = " << effectiveContactAreaFraction << "\n";
@@ -89,12 +91,12 @@ int main(int argc, char* argv[])
                     << ExpectedEffectiveContactAreaFraction << "\n";
           std::cerr << "\tExpected effective contact area fraction tolerance = "
                     << ExpectedEffectiveContactAreaFractionTolerance << "\n";
-          return EXIT_FAILURE;
         }
-        else
-        {
+
+        if (passedResultChecks)
           std::cout << "All result checks passed" << "\n";
-        }
+        else
+          return EXIT_FAILURE;
       }
     }
   }
