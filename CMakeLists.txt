@@ -126,7 +126,6 @@ add_library(mirco_inputparameters
   )
 target_link_libraries(mirco_inputparameters PRIVATE mirco_topology Kokkos::kokkos)
 
-
 if(Kokkos_ENABLE_CUDA OR Kokkos_ENABLE_HIP OR Kokkos_ENABLE_SYCL OR Kokkos_ENABLE_OPENMPTARGET)
   # Compile rapidyaml (ryml) separately to avoid conflicts with device-side/offloaded compilers (e.g. nvcc_wrapper)
   include(ExternalProject)
