@@ -78,7 +78,7 @@ int main(int argc, char* argv[])
           std::cerr << "The output pressure does not match the expected result." << "\n";
           std::cerr << "\tMean pressure = " << meanPressure << "\n";
           std::cerr << "\tExpected pressure = " << ExpectedPressure << "\n";
-          std::cerr << "\tExpected pressureTolerance = " << ExpectedPressureTolerance << "\n";
+          std::cerr << "\tExpected pressureTolerance = " << ExpectedPressureTolerance << std::endl;
         }
         if (std::abs(effectiveContactAreaFraction - ExpectedEffectiveContactAreaFraction) >
             ExpectedEffectiveContactAreaFractionTolerance)
@@ -90,11 +90,11 @@ int main(int argc, char* argv[])
           std::cerr << "\tExpected effective contact area fraction = "
                     << ExpectedEffectiveContactAreaFraction << "\n";
           std::cerr << "\tExpected effective contact area fraction tolerance = "
-                    << ExpectedEffectiveContactAreaFractionTolerance << "\n";
+                    << ExpectedEffectiveContactAreaFractionTolerance << std::endl;
         }
 
         if (passedResultChecks)
-          std::cout << "All result checks passed" << "\n";
+          std::cout << "All result checks passed" << std::endl;
         else
           return EXIT_FAILURE;
       }
