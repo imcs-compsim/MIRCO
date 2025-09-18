@@ -1,5 +1,6 @@
 #include <chrono>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -36,10 +37,12 @@ int main(int argc, char* argv[])
     const auto maxAndMean = ComputeMaxAndMean(inputParams.topology);
 
     // Main evaluation agorithm
-    double meanPressure;
-    Evaluate(meanPressure, inputParams, maxAndMean.max, meshgrid);
+    double meanPressure, effectiveContactAreaFraction;
+    Evaluate(meanPressure, effectiveContactAreaFraction, inputParams, maxAndMean.max, meshgrid);
 
-    std::cout << "Mean pressure is: " << std::to_string(meanPressure) << std::endl;
+    std::cout << std::setprecision(16) << "Mean pressure is: " << meanPressure
+              << "\nEffective contact area fraction is: " << effectiveContactAreaFraction
+              << std::endl;
 
     const auto finish = std::chrono::high_resolution_clock::now();
     const double elapsedTime =
@@ -63,9 +66,29 @@ int main(int argc, char* argv[])
         const double ExpectedPressure = Utils::get_double(resultDescription, "ExpectedPressure");
         const double ExpectedPressureTolerance =
             Utils::get_double(resultDescription, "ExpectedPressureTolerance");
+        const double ExpectedEffectiveContactAreaFraction =
+            Utils::get_double(resultDescription, "ExpectedEffectiveContactAreaFraction");
+        const double ExpectedEffectiveContactAreaFractionTolerance =
+            Utils::get_double(resultDescription, "ExpectedEffectiveContactAreaFractionTolerance");
+
         if (std::abs(meanPressure - ExpectedPressure) > ExpectedPressureTolerance)
         {
-          std::cerr << "The output pressure does not match the expected result" << std::endl;
+          std::cerr << "The output pressure does not match the expected result." << std::endl;
+          return EXIT_FAILURE;
+        }
+        if (std::abs(effectiveContactAreaFraction - ExpectedEffectiveContactAreaFraction) >
+            ExpectedEffectiveContactAreaFractionTolerance)
+        {
+          std::cerr << "The output effective contact area does not match the expected result."
+                    << std::endl;
+          std::cerr << "\tmeanPressure = " << meanPressure << "\n";
+          std::cerr << "\tExpectedPressure = " << ExpectedPressure << "\n";
+          std::cerr << "\tExpectedPressureTolerance = " << ExpectedPressureTolerance << "\n";
+          std::cerr << "effectiveContactArea = " << effectiveContactAreaFraction << "\n";
+          std::cerr << "\tExpectedEffectiveContactAreaFraction = "
+                  << ExpectedEffectiveContactAreaFraction << "\n";
+          std::cerr << "\tExpectedEffectiveContactAreaFractionTolerance = "
+                  << ExpectedEffectiveContactAreaFractionTolerance << std::endl;
           return EXIT_FAILURE;
         }
         else
