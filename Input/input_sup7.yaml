@@ -21,3 +21,5 @@ mirco_input:
   result_description:
     ExpectedPressure: 0.0004526213923013545
     ExpectedPressureTolerance: 1e-10
+    ExpectedEffectiveContactAreaFraction: 0.006970734931794964
+    ExpectedEffectiveContactAreaFractionTolerance: 1e-10
