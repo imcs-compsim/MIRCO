@@ -1,5 +1,6 @@
 #include <chrono>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -39,7 +40,7 @@ int main(int argc, char* argv[])
     double meanPressure;
     Evaluate(meanPressure, inputParams, maxAndMean.max, meshgrid);
 
-    std::cout << "Mean pressure is: " << std::to_string(meanPressure) << std::endl;
+    std::cout << std::setprecision(16) << "Mean pressure is: " << meanPressure << std::endl;
 
     const auto finish = std::chrono::high_resolution_clock::now();
     const double elapsedTime =
