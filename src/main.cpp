@@ -68,6 +68,10 @@ int main(int argc, char* argv[])
           std::cerr << "The output pressure does not match the expected result" << std::endl;
           return EXIT_FAILURE;
         }
+        else
+        {
+          std::cout << "All result checks passed" << std::endl;
+        }
       }
     }
   }
