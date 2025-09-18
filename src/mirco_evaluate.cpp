@@ -14,9 +14,9 @@
 
 namespace MIRCO
 {
-  void Evaluate(double& pressure, const double Delta, const double LateralLength,
-      const double GridSize, const double Tolerance, const int MaxIteration,
-      const double CompositeYoungs, const bool WarmStartingFlag,
+  void Evaluate(double& pressure, double& effectiveContactAreaFraction, const double Delta,
+      const double LateralLength, const double GridSize, const double Tolerance,
+      const int MaxIteration, const double CompositeYoungs, const bool WarmStartingFlag,
       const double ElasticComplianceCorrection, const ViewMatrix_d topology, const double zmax,
       const ViewVector_d meshgrid, const bool PressureGreenFunFlag)
   {
@@ -103,10 +103,13 @@ namespace MIRCO
       std::runtime_error("The solver did not converge in the maximum number of iterations.");
 
     // Calculate the final force value at the end of the iteration
-    const double finalForce = totalForceVector[k - 1];
+    const double finalForce = totalForceVector.back();
 
     // Mean pressure
     pressure = finalForce / (LateralLength * LateralLength);
+
+    // Effective contact area in converged state
+    effectiveContactAreaFraction = contactAreaVector.back() / (LateralLength * LateralLength);
   }
 
 }  // namespace MIRCO
