@@ -79,8 +79,8 @@ int main(int argc, char* argv[])
           std::cerr << "\tExpected pressureTolerance = " << ExpectedPressureTolerance << "\n";
           return EXIT_FAILURE;
         }
-        if (std::abs(effectiveContactAreaFraction - ExpectedEffectiveContactAreaFraction) >
-            ExpectedEffectiveContactAreaFractionTolerance)
+        else if (std::abs(effectiveContactAreaFraction - ExpectedEffectiveContactAreaFraction) >
+                 ExpectedEffectiveContactAreaFractionTolerance)
         {
           std::cerr << "The output effective contact area does not match the expected result."
                     << "\n";
