@@ -21,7 +21,7 @@ cd kokkos-kernels
 git checkout $VERSION
 cd .. && mkdir kokkos-kernels_build && cd kokkos-kernels_build
 
-# Buld and install with OpenMP backend
+# Build and install with OpenMP backend
 $CMAKE_COMMAND \
   -D CMAKE_BUILD_TYPE:STRING="RELEASE" \
   -D CMAKE_CXX_STANDARD:STRING="17" \
@@ -29,7 +29,7 @@ $CMAKE_COMMAND \
   -D CMAKE_INSTALL_PREFIX:STRING=$DEPS_ROOT/kokkos-kernels_install_openmp \
   -D BUILD_SHARED_LIBS:BOOL=OFF \
   \
-  -D Kokkos_ROOT=$DEPS_ROOT/../kokkos_install_openmp \
+  -D Kokkos_ROOT=$DEPS_ROOT/kokkos_install_openmp \
   \
   -D KokkosKernels_ENABLE_TPL_BLAS=ON \
   -D KokkosKernels_ENABLE_TPL_LAPACK=ON \
@@ -42,24 +42,24 @@ make -j${NPROCS} install
 # Clean build dir
 rm -rf *
 
-# Buld and install with Serial+CUDA backend
-$CMAKE_COMMAND \
-  -D CMAKE_BUILD_TYPE:STRING="RELEASE" \
-  -D CMAKE_CXX_STANDARD:STRING="17" \
-  -D CMAKE_CXX_COMPILER=g++ \
-  -D CMAKE_INSTALL_PREFIX:STRING=$DEPS_ROOT/kokkos-kernels_install_cuda \
-  -D BUILD_SHARED_LIBS:BOOL=OFF \
-  \
-  -D Kokkos_ROOT=$DEPS_ROOT/../kokkos_install_cuda \
-  \
-  -D KokkosKernels_ENABLE_TPL_BLAS=ON \
-  -D KokkosKernels_ENABLE_TPL_LAPACK=ON \
-  -D KokkosKernels_ENABLE_TPL_CUSOLVER=ON \
-  \
-  -D Kokkos_ENABLE_SERIAL=ON \
-  -D Kokkos_ENABLE_CUDA=ON \
-  \
-  ../kokkos-kernels
-make -j${NPROCS} install
+# Build and install with Serial+CUDA backend
+#$CMAKE_COMMAND \
+#  -D CMAKE_BUILD_TYPE:STRING="RELEASE" \
+#  -D CMAKE_CXX_STANDARD:STRING="17" \
+#  -D CMAKE_CXX_COMPILER=g++ \
+#  -D CMAKE_INSTALL_PREFIX:STRING=$DEPS_ROOT/kokkos-kernels_install_cuda \
+#  -D BUILD_SHARED_LIBS:BOOL=OFF \
+#  \
+#  -D Kokkos_ROOT=$DEPS_ROOT/kokkos_install_cuda \
+#  \
+#  -D KokkosKernels_ENABLE_TPL_BLAS=ON \
+#  -D KokkosKernels_ENABLE_TPL_LAPACK=ON \
+#  -D KokkosKernels_ENABLE_TPL_CUSOLVER=ON \
+#  \
+#  -D Kokkos_ENABLE_SERIAL=ON \
+#  -D Kokkos_ENABLE_CUDA=ON \
+#  \
+#  ../kokkos-kernels
+#make -j${NPROCS} install
 
-rm -rf kokkos-kernels kokkos-kernels_build
+cd .. && rm -rf kokkos-kernels kokkos-kernels_build

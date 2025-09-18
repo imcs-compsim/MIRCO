@@ -21,7 +21,7 @@ cd kokkos
 git checkout $VERSION
 cd .. && mkdir kokkos_build && cd kokkos_build
 
-# Buld and install with OpenMP backend
+# Build and install with OpenMP backend
 $CMAKE_COMMAND \
   -D CMAKE_BUILD_TYPE:STRING="RELEASE" \
   -D CMAKE_CXX_STANDARD:STRING="17" \
@@ -37,19 +37,19 @@ make -j${NPROCS} install
 # Clean build dir
 rm -rf *
 
-# Buld and install with Serial+CUDA backend
-$CMAKE_COMMAND \
-  -D CMAKE_BUILD_TYPE:STRING="RELEASE" \
-  -D CMAKE_CXX_STANDARD:STRING="17" \
-  -D CMAKE_CXX_COMPILER=g++ \
-  -D CMAKE_INSTALL_PREFIX:STRING=$DEPS_ROOT/kokkos_install_cuda \
-  -D BUILD_SHARED_LIBS:BOOL=OFF \
-  \
-  -D Kokkos_ENABLE_SERIAL=ON \
-  -D Kokkos_ENABLE_CUDA=ON \
-  \
-  ../kokkos
-make -j${NPROCS} install
+# Build and install with Serial+CUDA backend
+#$CMAKE_COMMAND \
+#  -D CMAKE_BUILD_TYPE:STRING="RELEASE" \
+#  -D CMAKE_CXX_STANDARD:STRING="17" \
+#  -D CMAKE_CXX_COMPILER=g++ \
+#  -D CMAKE_INSTALL_PREFIX:STRING=$DEPS_ROOT/kokkos_install_cuda \
+#  -D BUILD_SHARED_LIBS:BOOL=OFF \
+#  \
+#  -D Kokkos_ENABLE_SERIAL=ON \
+#  -D Kokkos_ENABLE_CUDA=ON \
+#  \
+#  ../kokkos
+#make -j${NPROCS} install
 
 # keep kokkos (src) for nvcc_wrapper
-rm -rf kokkos_build
+cd .. && rm -rf kokkos_build
