@@ -48,14 +48,14 @@ RUN apt-get update && apt-get install -y \
 # Create directory for dependencies
 ARG NPROCS=12
 ENV NPROCS=$NPROCS \
-    INSTALL_DIR="/opt/mirco-dependencies"
-RUN mkdir -p ${INSTALL_DIR}
+    DEPS_ROOT="/opt/mirco-dependencies"
+RUN mkdir -p ${DEPS_ROOT}
 
 COPY dependencies /dependencies
 
 # Install Kokkos and Kokkos-Kernels
-RUN /dependencies/kokkos/install.sh ${INSTALL_DIR}/kokkos_install
-RUN /dependencies/kokkos-kernels/install.sh ${INSTALL_DIR}/kokkos-kernels_install
+RUN /dependencies/kokkos/install.sh ${DEPS_ROOT}
+RUN /dependencies/kokkos-kernels/install.sh ${DEPS_ROOT}
 
 # Add dependencies hash
 # The label is added at the end because the label causes a cache miss

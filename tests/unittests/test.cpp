@@ -1,8 +1,6 @@
 #include <gtest/gtest.h>
 #include <stdlib.h>
 
-#include <vector>
-
 #include "../../src/mirco_inputparameters.h"
 #include "../../src/mirco_kokkostypes.h"
 #include "../../src/mirco_nonlinearsolver.h"
@@ -10,6 +8,14 @@
 #include "../../src/mirco_utils.h"
 #include "../../src/mirco_warmstart.h"
 
+// Functors are sometimes necessary for device-side/offloaded compilation
+struct NonlinearSolverTest_primalvariable_1
+{
+  MIRCO::ViewVectorInt_d v_;
+  explicit NonlinearSolverTest_primalvariable_1(MIRCO::ViewVectorInt_d v) : v_(v) {}
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const int i) const { v_(i) = i; }
+};
 TEST(NonlinearSolverTest, primalvariable)
 {
   MIRCO::ViewMatrix_h matrix_h("matrix_h", 9, 9);
@@ -133,7 +139,7 @@ TEST(NonlinearSolverTest, primalvariable)
       Kokkos::create_mirror_view_and_copy(MIRCO::ExecSpace_Default_t(), b0_h);
 
   MIRCO::ViewVectorInt_d activeSet0_d("activeSet0_d", 9);
-  Kokkos::parallel_for(9, KOKKOS_LAMBDA(const int i) { activeSet0_d(i) = i; });
+  Kokkos::parallel_for(9, NonlinearSolverTest_primalvariable_1(activeSet0_d));
 
   MIRCO::ViewVector_d pf_d;
   MIRCO::ViewVectorInt_d activeSetf_d;
@@ -319,7 +325,7 @@ TEST(warmstarting, warmstart)
       Kokkos::create_mirror_view_and_copy(MIRCO::MemorySpace_ofDefaultExec_t(), pf_h);
 
   MIRCO::ViewVector_d p0_d = MIRCO::Warmstart(activeSet0_d, activeSetf_d, pf_d);
-  MIRCO::ViewVector_d p0_h = Kokkos::create_mirror_view_and_copy(MIRCO::MemorySpace_Host_t(), p0_d);
+  MIRCO::ViewVector_h p0_h = Kokkos::create_mirror_view_and_copy(MIRCO::MemorySpace_Host_t(), p0_d);
 
   EXPECT_EQ(p0_h(0), 10);
   EXPECT_EQ(p0_h(1), 0);
@@ -355,7 +361,7 @@ TEST(warmstarting, warmstart2)
       Kokkos::create_mirror_view_and_copy(MIRCO::MemorySpace_ofDefaultExec_t(), pf_h);
 
   MIRCO::ViewVector_d p0_d = MIRCO::Warmstart(activeSet0_d, activeSetf_d, pf_d);
-  MIRCO::ViewVector_d p0_h = Kokkos::create_mirror_view_and_copy(MIRCO::MemorySpace_Host_t(), p0_d);
+  MIRCO::ViewVector_h p0_h = Kokkos::create_mirror_view_and_copy(MIRCO::MemorySpace_Host_t(), p0_d);
 
   EXPECT_EQ(p0_h(0), 10);
   EXPECT_EQ(p0_h(1), 0);

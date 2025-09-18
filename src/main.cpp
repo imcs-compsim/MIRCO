@@ -17,13 +17,13 @@ int main(int argc, char* argv[])
 {
   Kokkos::initialize(argc, argv);
   {
-    std::cout << "-- Kokkos info --\n";
-    std::cout << "threads_in_use = " << ExecSpace_Default_t::concurrency() << "\n";
-    std::cout << "ExecSpace_Default = " << typeid(ExecSpace_Default_t).name() << "\n";
-    std::cout << "ExecSpace_DefaultHost = " << typeid(ExecSpace_DefaultHost_t).name() << "\n";
-    std::cout << "MemorySpace_Host_t = " << typeid(MemorySpace_Host_t).name() << "\n";
-    std::cout << "MemorySpace_ofDefaultExec_t = " << typeid(MemorySpace_ofDefaultExec_t).name()
-              << "\n\n";
+    std::cout << "-- Kokkos information --\n";
+    std::cout << "Threads in use: " << ExecSpace_Default_t::concurrency() << "\n";
+    std::cout << "Default execution space: " << typeid(ExecSpace_Default_t).name() << "\n";
+    std::cout << "Default host execution space: " << typeid(ExecSpace_DefaultHost_t).name() << "\n";
+    std::cout << "Default memory space: " << typeid(MemorySpace_ofDefaultExec_t).name() << "\n";
+    std::cout << "Default host memory space: " << typeid(MemorySpace_Host_t).name() << "\n";
+    std::cout << "\n";
 
     if (argc != 2) std::runtime_error("The code expects (only) an input file as argument");
     // Read the input file name from the command line
@@ -63,6 +63,7 @@ int main(int argc, char* argv[])
       ryml::ConstNodeRef resultDescription = root["result_description"];
       if (!resultDescription.invalid())
       {
+        bool passedResultChecks = true;
         const double ExpectedPressure = Utils::get_double(resultDescription, "ExpectedPressure");
         const double ExpectedPressureTolerance =
             Utils::get_double(resultDescription, "ExpectedPressureTolerance");
@@ -73,24 +74,29 @@ int main(int argc, char* argv[])
 
         if (std::abs(meanPressure - ExpectedPressure) > ExpectedPressureTolerance)
         {
-          std::cerr << "The output pressure does not match the expected result." << std::endl;
-          return EXIT_FAILURE;
+          passedResultChecks = false;
+          std::cerr << "The output pressure does not match the expected result." << "\n";
+          std::cerr << "\tMean pressure = " << meanPressure << "\n";
+          std::cerr << "\tExpected pressure = " << ExpectedPressure << "\n";
+          std::cerr << "\tExpected pressureTolerance = " << ExpectedPressureTolerance << std::endl;
         }
         if (std::abs(effectiveContactAreaFraction - ExpectedEffectiveContactAreaFraction) >
             ExpectedEffectiveContactAreaFractionTolerance)
         {
+          passedResultChecks = false;
           std::cerr << "The output effective contact area does not match the expected result."
-                    << std::endl;
-          return EXIT_FAILURE;
+                    << "\n";
+          std::cerr << "\tEffective contact area = " << effectiveContactAreaFraction << "\n";
+          std::cerr << "\tExpected effective contact area fraction = "
+                    << ExpectedEffectiveContactAreaFraction << "\n";
+          std::cerr << "\tExpected effective contact area fraction tolerance = "
+                    << ExpectedEffectiveContactAreaFractionTolerance << std::endl;
         }
-        std::cout << "meanPressure = " << meanPressure << "\n";
-        std::cout << "\tExpectedPressure = " << ExpectedPressure << "\n";
-        std::cout << "\tExpectedPressureTolerance = " << ExpectedPressureTolerance << "\n";
-        std::cout << "effectiveContactArea = " << effectiveContactAreaFraction << "\n";
-        std::cout << "\tExpectedEffectiveContactAreaFraction = "
-                  << ExpectedEffectiveContactAreaFraction << "\n";
-        std::cout << "\tExpectedEffectiveContactAreaFractionTolerance = "
-                  << ExpectedEffectiveContactAreaFractionTolerance << std::endl;
+
+        if (passedResultChecks)
+          std::cout << "All result checks passed" << std::endl;
+        else
+          return EXIT_FAILURE;
       }
     }
   }

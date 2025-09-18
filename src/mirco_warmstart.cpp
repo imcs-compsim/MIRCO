@@ -1,7 +1,5 @@
 #include "mirco_warmstart.h"
 
-#include <algorithm>
-
 namespace MIRCO
 {
   ViewVector_d Warmstart(

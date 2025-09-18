@@ -8,21 +8,35 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RELEASE",
         "CMAKE_CXX_COMPILER": "mpicxx",
-        "CMAKE_C_COMPILER": "gcc",
         "CMAKE_C_COMPILER_LAUNCHER": "ccache",
         "CMAKE_CXX_FLAGS": "",
         "GTEST_IN_MIRCO": "ON"
       }
     },
     {
-      "name": "docker_container",
+      "name": "docker_container_kokkosopenmp",
       "displayName": "Release build using Kokkos with OpenMP backend for CI/CD testing in a docker container",
       "inherits": [
         ".base"
       ],
       "cacheVariables": {
-        "KOKKOS_PATH": "/opt/mirco-dependencies/kokkos_install",
-        "KOKKOS_KERNELS_PATH": "/opt/mirco-dependencies/kokkos-kernels_install",
+        "KOKKOS_PATH": "/opt/mirco-dependencies/kokkos_install_openmp",
+        "KOKKOS_KERNELS_PATH": "/opt/mirco-dependencies/kokkos-kernels_install_openmp",
+        "KOKKOS_IN_MIRCO": "ON",
+        "KOKKOS_KERNELS_IN_MIRCO": "ON"
+      }
+    },
+    {
+      "name": "docker_container_kokkoscuda",
+      "displayName": "Release build using Kokkos with CUDA backend for CI/CD testing in a docker container",
+      "inherits": [
+        ".base"
+      ],
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "/opt/mirco-dependencies/kokkos/bin/nvcc_wrapper",
+        "MIRCO_HOST_CXX_COMPILER": "g++-12",
+        "KOKKOS_PATH": "/opt/mirco-dependencies/kokkos_install_cuda",
+        "KOKKOS_KERNELS_PATH": "/opt/mirco-dependencies/kokkos-kernels_install_cuda",
         "KOKKOS_IN_MIRCO": "ON",
         "KOKKOS_KERNELS_IN_MIRCO": "ON"
       }
