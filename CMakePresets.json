@@ -60,9 +60,24 @@
       }
     },
     {
+      "name": ".imcs_cluster_base",
+      "hidden": true,
+      "inherits": [
+        ".base"
+      ],
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER_LAUNCHER": "ccache",
+        "CMAKE_CXX_FLAGS": "-msse3",
+        "KOKKOS_PATH": "$env{TRILINOS_ROOT}",
+        "KOKKOS_KERNELS_PATH": "$env{TRILINOS_ROOT}",
+        "KOKKOS_IN_MIRCO": "ON",
+        "KOKKOS_KERNELS_IN_MIRCO": "ON"
+      }
+    },
+    {
       "name": "imcs_cluster",
       "inherits": [
-        ".imcs_workstation_base"
+        ".imcs_cluster_base"
       ],
       "displayName": "Release build on the IMCS cluster [TODO: Add Kokkos and Kokkos-Kernels directories]",
       "cacheVariables": {
@@ -72,7 +87,9 @@
     {
       "name": "imcs_cluster_with_tests",
       "displayName": "Release build on the IMCS cluster with tests enabled [TODO: Add Kokkos and Kokkos-Kernels directories]",
-      "inherits": ".imcs_workstation_base",
+      "inherits": [
+        ".imcs_cluster_base"
+      ],
       "cacheVariables": {
         "GTEST_IN_MIRCO": "ON"
       }
