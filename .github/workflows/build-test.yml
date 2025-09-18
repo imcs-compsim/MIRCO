@@ -29,8 +29,8 @@ jobs:
             exit 1
           fi
 
-  mirco-test:
-    name: mirco_test_full
+  mirco-test-kokkosopenmp:
+    name: mirco_test_kokkosopenmp
     runs-on: ubuntu-latest
 
     container:
@@ -49,8 +49,8 @@ jobs:
 
       - name: Build and test
         run: |
-          mkdir mirco-build
-          cd mirco-build
-          cmake --preset=docker_container ../mirco-src/
+          mkdir mirco-build_kokkosopenmp
+          cd mirco-build_kokkosopenmp
+          cmake --preset=docker_container_kokkosopenmp ../mirco-src/
           ninja -j 12
           ctest --output-on-failure

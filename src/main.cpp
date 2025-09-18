@@ -17,12 +17,11 @@ int main(int argc, char* argv[])
   Kokkos::initialize(argc, argv);
   {
     std::cout << "-- Kokkos information --\n";
-    std::cout << "threads_in_use = " << ExecSpace_Default_t::concurrency() << "\n";
-    std::cout << "Default execution space = " << typeid(ExecSpace_Default_t).name() << "\n";
-    std::cout << "Default host execution space = " << typeid(ExecSpace_DefaultHost_t).name()
-              << "\n";
-    std::cout << "Default memory space = " << typeid(MemorySpace_ofDefaultExec_t).name() << "\n";
-    std::cout << "Default host memory space = " << typeid(MemorySpace_Host_t).name() << "\n";
+    std::cout << "Threads in use: " << ExecSpace_Default_t::concurrency() << "\n";
+    std::cout << "Default execution space: " << typeid(ExecSpace_Default_t).name() << "\n";
+    std::cout << "Default host execution space: " << typeid(ExecSpace_DefaultHost_t).name() << "\n";
+    std::cout << "Default memory space: " << typeid(MemorySpace_ofDefaultExec_t).name() << "\n";
+    std::cout << "Default host memory space: " << typeid(MemorySpace_Host_t).name() << "\n";
     std::cout << "\n";
 
     if (argc != 2) std::runtime_error("The code expects (only) an input file as argument");
