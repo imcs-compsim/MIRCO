@@ -29,9 +29,9 @@ MIRCO::InputParameters::InputParameters(const std::string& inputFileName)
 
   // Check if single-scale simulation is requested
   bool singleScale = Utils::get_bool(root, "SingleScaleFlag");
-  int maxIter = 1; // default for single-scale
+  int maxIter = 1;  // default for single-scale
 
-  if(!singleScale)
+  if (!singleScale)
   {
     // Only read from file if multi-scale simulation is requested
     maxIter = Utils::get_int(root, "MaxIteration");
@@ -58,8 +58,7 @@ MIRCO::InputParameters::InputParameters(const std::string& inputFileName)
     *this = InputParameters(Utils::get_double(matParams, "E1"), Utils::get_double(matParams, "E2"),
         Utils::get_double(matParams, "nu1"), Utils::get_double(matParams, "nu2"),
         Utils::get_double(geoParams, "Tolerance"), Utils::get_double(geoParams, "Delta"),
-        Utils::get_double(geoParams, "LateralLength"), topology_file_path,
-        maxIter, Utils::get_bool(root, "WarmStartingFlag"),
-        Utils::get_bool(root, "PressureGreenFunFlag"));
+        Utils::get_double(geoParams, "LateralLength"), topology_file_path, maxIter,
+        Utils::get_bool(root, "WarmStartingFlag"), Utils::get_bool(root, "PressureGreenFunFlag"));
   }
 }
