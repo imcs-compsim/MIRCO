@@ -27,6 +27,16 @@ MIRCO::InputParameters::InputParameters(const std::string& inputFileName)
   if (matParams.invalid())
     throw std::runtime_error("Input incomplete: missing section `material_parameters`");
 
+  // Check if single-scale simulation is requested
+  bool singleScale = Utils::get_bool(root, "SingleScaleFlag");
+  int maxIter = 1; // default for single-scale
+
+  if(!singleScale)
+  {
+    // Only read from file if multi-scale simulation is requested
+    maxIter = Utils::get_int(root, "MaxIteration");
+  }
+
   // Set the surface generator based on RandomTopologyFlag
   if (Utils::get_bool(root, "RandomTopologyFlag"))
   {
@@ -36,7 +46,7 @@ MIRCO::InputParameters::InputParameters(const std::string& inputFileName)
         Utils::get_double(geoParams, "LateralLength"), Utils::get_int(geoParams, "Resolution"),
         Utils::get_double(geoParams, "InitialTopologyStdDeviation"),
         Utils::get_double(geoParams, "HurstExponent"), Utils::get_bool(root, "RandomSeedFlag"),
-        Utils::get_int(root, "RandomGeneratorSeed"), Utils::get_int(root, "MaxIteration"),
+        Utils::get_int(root, "RandomGeneratorSeed"), maxIter,
         Utils::get_bool(root, "WarmStartingFlag"), Utils::get_bool(root, "PressureGreenFunFlag"));
   }
   else
@@ -49,7 +59,7 @@ MIRCO::InputParameters::InputParameters(const std::string& inputFileName)
         Utils::get_double(matParams, "nu1"), Utils::get_double(matParams, "nu2"),
         Utils::get_double(geoParams, "Tolerance"), Utils::get_double(geoParams, "Delta"),
         Utils::get_double(geoParams, "LateralLength"), topology_file_path,
-        Utils::get_int(root, "MaxIteration"), Utils::get_bool(root, "WarmStartingFlag"),
+        maxIter, Utils::get_bool(root, "WarmStartingFlag"),
         Utils::get_bool(root, "PressureGreenFunFlag"));
   }
 }

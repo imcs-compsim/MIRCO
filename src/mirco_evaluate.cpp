@@ -5,6 +5,7 @@
 #include <cmath>
 #include <cstdio>
 #include <ctime>
+#include <iostream>
 
 #include "mirco_contactpredictors.h"
 #include "mirco_contactstatus.h"
@@ -100,8 +101,12 @@ namespace MIRCO
       ++k;
     }
 
-    if (deltaTotalForce > Tolerance)
-      std::runtime_error("The solver did not converge in the maximum number of iterations.");
+    // Do not check for convergence for single scale simulation
+    if (MaxIteration != 1)
+    {
+      if (deltaTotalForce > Tolerance)
+        std::runtime_error("The solver did not converge in the maximum number of iterations.");
+    }
 
     // Calculate the final force value at the end of the iteration
     const double finalForce = totalForceVector.back();

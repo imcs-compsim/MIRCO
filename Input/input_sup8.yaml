@@ -1,26 +1,25 @@
 mirco_input:
-  SingleScaleFlag: false
-  WarmStartingFlag: true
+  SingleScaleFlag: true
+  WarmStartingFlag: false
   RandomTopologyFlag: true
   RandomSeedFlag: false
-  RandomGeneratorSeed: 95
-  MaxIteration: 100
-  PressureGreenFunFlag: false
+  RandomGeneratorSeed: 60
+  PressureGreenFunFlag: true
   parameters:
     material_parameters:
-      E1: 1
+      E1: 1.0
       nu1: 0.3
-      E2: 1
+      E2: 1.0
       nu2: 0.3
     geometrical_parameters:
       LateralLength: 1000.0
-      Resolution: 6
-      HurstExponent: 0.7
+      Resolution: 8
+      HurstExponent: 0.6
       InitialTopologyStdDeviation: 20.0
       Delta: 10.0
       Tolerance: 0.01
   result_description:
-    ExpectedPressure: 0.0005942101230076477
+    ExpectedPressure: 0.0006256053591657026
     ExpectedPressureTolerance: 1e-10
-    ExpectedEffectiveContactAreaFraction: 0.006390532544378697
+    ExpectedEffectiveContactAreaFraction: 0.005480779421338703
     ExpectedEffectiveContactAreaFractionTolerance: 1e-10
