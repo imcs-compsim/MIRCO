@@ -100,7 +100,7 @@ namespace MIRCO
       // Compute error due to nonlinear correction
       if (k > 0)
       {
-        deltaTotalForce = abs(totalForceVector[k] - totalForceVector[k - 1]) / totalForceVector[k];
+        deltaTotalForce = std::abs(totalForceVector[k] - totalForceVector[k - 1]) / totalForceVector[k];
       }
 
       ++k;
