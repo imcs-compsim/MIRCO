@@ -1,6 +1,7 @@
 #include "mirco_shapefactors.h"
 
 #include <stdexcept>
+#include <string>
 
 namespace
 {
