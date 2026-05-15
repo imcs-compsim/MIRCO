@@ -2,6 +2,7 @@
 #define SRC_EXPORTVISUALIZATION_H_
 
 #include <string>
+#include <vector>
 
 #include "mirco_kokkostypes.h"
 

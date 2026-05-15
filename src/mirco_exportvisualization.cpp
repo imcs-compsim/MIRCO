@@ -1,16 +1,6 @@
 #include "mirco_exportvisualization.h"
 
-#include <vtkFloatArray.h>
-#include <vtkImageData.h>
-#include <vtkNew.h>
-#include <vtkPointData.h>
-#include <vtkUnsignedCharArray.h>
-#include <vtkXMLImageDataWriter.h>
-#include <vtkZLibDataCompressor.h>
-
-#include <cstring>  // for memset
-#include <string>
-#include <vector>
+#include "mirco_exportvisualization_vtk.h"
 
 namespace MIRCO
 {
@@ -20,59 +10,26 @@ namespace MIRCO
     const int n = otherFields[0].extent(0);
     const int n2 = n * n;
 
-    vtkNew<vtkImageData> img;
-    img->SetDimensions(n, n, 1);
-    img->SetSpacing(gridSize, gridSize, 1.0);
-    img->SetOrigin(0.0, 0.0, 0.0);
+    ViewVectorInt_h activeSet_h =
+        Kokkos::create_mirror_view_and_copy(ExecSpace_DefaultHost_t(), activeSet);
 
-    // Active set
-    {
-      ViewVectorInt_h activeSet_h =
-          Kokkos::create_mirror_view_and_copy(ExecSpace_DefaultHost_t(), activeSet);
+    std::vector<unsigned char> activeSetPlain(n2, 0);
 
-      vtkNew<vtkUnsignedCharArray> vtkArr;
-      vtkArr->SetName("Active Set");
-      vtkArr->SetNumberOfComponents(1);
-      vtkArr->SetNumberOfTuples(n2);
+    for (int indA = 0; indA < activeSet_h.extent(0); ++indA) activeSetPlain[activeSet_h(indA)] = 1;
 
-      auto* vtkArrArr = static_cast<unsigned char*>(vtkArr->WriteVoidPointer(0, n2));
-      std::memset(vtkArrArr, 0, static_cast<size_t>(n2));
+    std::vector<std::vector<float>> fieldsPlain(otherFields.size());
 
-      for (int indA = 0; indA < activeSet_h.extent(0); ++indA)
-        vtkArr->SetValue(activeSet_h(indA), 1);
-
-      img->GetPointData()->AddArray(vtkArr);
-    }
-
-    // Other fields
     for (int f = 0; f < otherFields.size(); ++f)
     {
       ViewMatrix_h field_h =
           Kokkos::create_mirror_view_and_copy(ExecSpace_DefaultHost_t(), otherFields[f]);
 
-      vtkNew<vtkFloatArray> vtkArr;
-      vtkArr->SetName(otherFieldNames[f].c_str());
-      vtkArr->SetNumberOfComponents(1);
-      vtkArr->SetNumberOfTuples(n2);
+      fieldsPlain[f].resize(n2);
 
       for (int i = 0; i < n; ++i)
-        for (int j = 0; j < n; ++j) vtkArr->SetValue(i + n * j, field_h(i, j));
-
-      img->GetPointData()->AddArray(vtkArr);
+        for (int j = 0; j < n; ++j) fieldsPlain[f][i + n * j] = static_cast<float>(field_h(i, j));
     }
 
-    vtkNew<vtkXMLImageDataWriter> w;
-    w->SetFileName((path + ".vti").c_str());
-    w->SetInputData(img);
-
-    vtkNew<vtkZLibDataCompressor> z;
-    w->SetCompressor(z);
-    w->SetDataModeToAppended();
-    w->EncodeAppendedDataOff();
-
-    if (!w->Write())
-    {
-      std::cerr << "WARNING: ExportVisualization() failed to write to file\n\n";
-    }
+    ExportVisualizationVTK(path, gridSize, n, activeSetPlain, fieldsPlain, otherFieldNames);
   }
 }  // namespace MIRCO

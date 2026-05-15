@@ -127,10 +127,6 @@ endfunction()
 
 option(MIRCO_ENABLE_VISUALIZATIONEXPORT "Enable exporting the results for visualization. This requires VTK, either explicitly provided through VTK_PATH, or from an upstream project." OFF)
 if(MIRCO_ENABLE_VISUALIZATIONEXPORT)
-  if(MIRCO_CLANGCUDA)
-    message(FATAL "MIRCO_ENABLE_VISUALIZATIONEXPORT with MIRCO_CLANGCUDA is currently not supported. Please use nvcc_wrapper.")
-  endif()
-
   # If user provided a prefix, help CMake find VTK there
   if(DEFINED VTK_PATH)
     set(CMAKE_PREFIX_PATH ${VTK_PATH} ${CMAKE_PREFIX_PATH})
@@ -162,23 +158,19 @@ if(MIRCO_CLANGCUDA)
 endif()
 
 if(MIRCO_ENABLE_VISUALIZATIONEXPORT)
-  add_library(mirco_vis
-    src/mirco_exportvisualization.cpp
+  add_library(mirco_vis_vtk
+    src/mirco_exportvisualization_vtk.cpp
     )
-  target_link_libraries(mirco_vis PRIVATE
-    Kokkos::kokkos
+  target_link_libraries(mirco_vis_vtk PRIVATE
     VTK::CommonCore
     VTK::CommonDataModel
     VTK::IOCore
     VTK::IOXML
   )
-  if(MIRCO_CLANGCUDA)
-    mirco_configure_clangcuda_target(mirco_vis CLANGCUDA_MODE_HOST)
-  endif()
 
-  #target_sources(mirco_core PRIVATE src/mirco_exportvisualization.cpp)
+  target_sources(mirco_core PRIVATE src/mirco_exportvisualization.cpp)
   target_link_libraries(mirco_core PRIVATE
-    mirco_vis
+    mirco_vis_vtk
   )
 endif()
 
@@ -337,11 +329,9 @@ set(MIRCO_INSTALL_TARGETS
   mirco_inputparameters
   mirco_shapefactors
 )
-
 if(MIRCO_ENABLE_VISUALIZATIONEXPORT)
-  list(APPEND MIRCO_INSTALL_TARGETS mirco_vis)
+  list(APPEND MIRCO_INSTALL_TARGETS mirco_vis_vtk)
 endif()
-
 install(TARGETS ${MIRCO_INSTALL_TARGETS}
   EXPORT mirco_libTargets
   ARCHIVE LIBRARY PUBLIC_HEADER

@@ -74,7 +74,7 @@
         "KOKKOS_PATH": "/opt/mirco-dependencies/kokkos_install_cuda",
         "KOKKOS_KERNELS_PATH": "/opt/mirco-dependencies/kokkos-kernels_install_cuda",
         "MIRCO_ENABLE_FLAT": "ON",
-        "MIRCO_ENABLE_VISUALIZATIONEXPORT": "OFF"
+        "MIRCO_ENABLE_VISUALIZATIONEXPORT": "ON"
       }
     },
     {
