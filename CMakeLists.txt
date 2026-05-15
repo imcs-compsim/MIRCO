@@ -110,8 +110,8 @@ if(MIRCO_CLANGCUDA)
 endif()
 
 # A function to set the necessary properties/definitions so a target can be compiled with clangcuda++
-# `compile_type` can be either CLANGCUDA_HOST or CLANGCUDA_DEVICE
-function(mirco_configure_clangcuda_target target_name compile_type)
+# `compile_mode` can be either CLANGCUDA_MODE_HOST or CLANGCUDA_MODE_DEVICE
+function(mirco_configure_clangcuda_target target_name compile_mode)
   set_target_properties("${target_name}" PROPERTIES
     CXX_COMPILER_LAUNCHER ""
     C_COMPILER_LAUNCHER ""
@@ -121,23 +121,22 @@ function(mirco_configure_clangcuda_target target_name compile_type)
   )
 
   target_compile_definitions("${target_name}" PRIVATE
-    compile_type
+    ${compile_mode}
   )
 endfunction()
 
 option(MIRCO_ENABLE_VISUALIZATIONEXPORT "Enable exporting the results for visualization. This requires VTK, either explicitly provided through VTK_PATH, or from an upstream project." OFF)
 if(MIRCO_ENABLE_VISUALIZATIONEXPORT)
+  if(MIRCO_CLANGCUDA)
+    message(FATAL "MIRCO_ENABLE_VISUALIZATIONEXPORT with MIRCO_CLANGCUDA is currently not supported. Please use nvcc_wrapper.")
+  endif()
+
   # If user provided a prefix, help CMake find VTK there
   if(DEFINED VTK_PATH)
     set(CMAKE_PREFIX_PATH ${VTK_PATH} ${CMAKE_PREFIX_PATH})
   endif()
 
-  find_package(VTK QUIET COMPONENTS CommonCore CommonDataModel IOCore IOXML REQUIRED)
-
-  if(NOT VTK_FOUND)
-    message(WARNING "MIRCO_ENABLE_VISUALIZATIONEXPORT is ON, but VTK could not be found!")
-    set(MIRCO_WITH_VTK OFF CACHE BOOL "" FORCE)
-  endif()
+  find_package(VTK REQUIRED COMPONENTS CommonCore CommonDataModel IOCore IOXML REQUIRED)
 endif()
 
 # File(s) which need(s) Kokkos-Kernels
@@ -146,7 +145,7 @@ add_library(mirco_needKK
   )
 target_link_libraries(mirco_needKK PRIVATE Kokkos::kokkos KokkosKernels::kokkoskernels)
 if(MIRCO_CLANGCUDA)
-  mirco_configure_clangcuda_target(mirco_needKK CLANGCUDA_DEVICE)
+  mirco_configure_clangcuda_target(mirco_needKK CLANGCUDA_MODE_DEVICE)
 endif()
 
 # Compile mirco library
@@ -159,20 +158,28 @@ add_library(mirco_core
   )
 target_link_libraries(mirco_core PRIVATE mirco_needKK Kokkos::kokkos)
 if(MIRCO_CLANGCUDA)
-  mirco_configure_clangcuda_target(mirco_core CLANGCUDA_DEVICE)
+  mirco_configure_clangcuda_target(mirco_core CLANGCUDA_MODE_DEVICE)
 endif()
 
 if(MIRCO_ENABLE_VISUALIZATIONEXPORT)
-  target_sources(mirco_core PRIVATE src/mirco_exportvisualization.cpp)
-  target_link_libraries(mirco_core PRIVATE
+  add_library(mirco_vis
+    src/mirco_exportvisualization.cpp
+    )
+  target_link_libraries(mirco_vis PRIVATE
+    Kokkos::kokkos
     VTK::CommonCore
     VTK::CommonDataModel
     VTK::IOCore
     VTK::IOXML
   )
   if(MIRCO_CLANGCUDA)
-    mirco_configure_clangcuda_target(mirco_core CLANGCUDA_DEVICE)
+    mirco_configure_clangcuda_target(mirco_vis CLANGCUDA_MODE_HOST)
   endif()
+
+  #target_sources(mirco_core PRIVATE src/mirco_exportvisualization.cpp)
+  target_link_libraries(mirco_core PRIVATE
+    mirco_vis
+  )
 endif()
 
 add_library(mirco_topology
@@ -181,7 +188,7 @@ add_library(mirco_topology
   )
 target_link_libraries(mirco_topology PRIVATE Kokkos::kokkos)
 if(MIRCO_CLANGCUDA)
-  mirco_configure_clangcuda_target(mirco_core CLANGCUDA_DEVICE)
+  mirco_configure_clangcuda_target(mirco_topology CLANGCUDA_MODE_DEVICE)
 endif()
 
 add_library(mirco_shapefactors
@@ -193,13 +200,13 @@ add_library(mirco_inputparameters
   )
 target_link_libraries(mirco_inputparameters PRIVATE mirco_topology mirco_shapefactors Kokkos::kokkos)
 if(MIRCO_CLANGCUDA)
-  mirco_configure_clangcuda_target(mirco_inputparameters CLANGCUDA_HOST)
+  mirco_configure_clangcuda_target(mirco_inputparameters CLANGCUDA_MODE_HOST)
 endif()
 
-option(RYML_IN_MIRCO "Find ryml in MIRCO project. If set to OFF, use the ryml installation from an upstream project" OFF)
+option(RYML_IN_MIRCO "Find rapidyaml (ryml) in MIRCO project. If set to OFF, use the ryml installation from an upstream project" OFF)
 
 if(RYML_IN_MIRCO)
-  message(STATUS "Building ryml within MIRCO project.")
+  message(STATUS "Building rapidyaml within MIRCO project.")
   if((NOT MIRCO_CLANGCUDA) AND (Kokkos_ENABLE_CUDA OR Kokkos_ENABLE_HIP OR Kokkos_ENABLE_SYCL OR Kokkos_ENABLE_OPENMPTARGET))
     # Compile rapidyaml (ryml) separately to avoid conflicts with device-side/offloaded compilers (e.g. nvcc_wrapper). clangcuda++ does not have this issue
     message(STATUS "Building rapidyaml using MIRCO_HOST_CXX_COMPILER")
@@ -215,6 +222,7 @@ if(RYML_IN_MIRCO)
       GIT_TAG 47ec2fa184209687c20fd5bc05621e1cb1200311
       INSTALL_DIR ${RYML_INSTALL_DIR}
       CMAKE_ARGS
+        -Wno-dev # Suppress developer warnings
         -DCMAKE_CXX_COMPILER=${MIRCO_HOST_CXX_COMPILER}
         -DCMAKE_BUILD_TYPE=Release
         -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
@@ -286,7 +294,7 @@ add_library(mirco_inputparameters_yaml
   )
 target_link_libraries(mirco_inputparameters_yaml PRIVATE mirco_inputparameters mirco_utils Kokkos::kokkos)
 if(MIRCO_CLANGCUDA)
-  mirco_configure_clangcuda_target(mirco_inputparameters_yaml CLANGCUDA_HOST)
+  mirco_configure_clangcuda_target(mirco_inputparameters_yaml CLANGCUDA_MODE_HOST)
 endif()
 
 add_library(mirco_lib INTERFACE)
@@ -308,7 +316,7 @@ target_compile_definitions(mirco_core PUBLIC
 add_executable(mirco src/main.cpp)
 target_link_libraries(mirco PUBLIC mirco::mirco_lib mirco_inputparameters_yaml mirco_utils Kokkos::kokkos)
 if(MIRCO_CLANGCUDA)
-  mirco_configure_clangcuda_target(mirco CLANGCUDA_DEVICE)
+  mirco_configure_clangcuda_target(mirco CLANGCUDA_MODE_DEVICE)
 endif()
 
 # Compile the flatMirco utility
@@ -316,15 +324,28 @@ if(MIRCO_ENABLE_FLAT)
   add_executable(flatMirco src/main_flat.cpp)
   target_link_libraries(flatMirco PUBLIC mirco_core mirco_topology mirco_shapefactors Kokkos::kokkos KokkosKernels::kokkoskernels)
   if(MIRCO_CLANGCUDA)
-    mirco_configure_clangcuda_target(flatMirco CLANGCUDA_DEVICE)
+    mirco_configure_clangcuda_target(flatMirco CLANGCUDA_MODE_DEVICE)
   endif()
 endif()
 
 # Install mirco (to be used as a library by other codes)
-install(TARGETS mirco_lib mirco_needKK mirco_core mirco_topology mirco_inputparameters mirco_shapefactors
+set(MIRCO_INSTALL_TARGETS
+  mirco_lib
+  mirco_needKK
+  mirco_core
+  mirco_topology
+  mirco_inputparameters
+  mirco_shapefactors
+)
+
+if(MIRCO_ENABLE_VISUALIZATIONEXPORT)
+  list(APPEND MIRCO_INSTALL_TARGETS mirco_vis)
+endif()
+
+install(TARGETS ${MIRCO_INSTALL_TARGETS}
   EXPORT mirco_libTargets
   ARCHIVE LIBRARY PUBLIC_HEADER
-  )
+)
 
 install(EXPORT mirco_libTargets
   NAMESPACE mirco::
@@ -355,7 +376,7 @@ if(GTEST_IN_MIRCO)
     )
   target_link_libraries(tests PUBLIC mirco::mirco_lib mirco_inputparameters_yaml mirco_utils mirco_shapefactors gtest Kokkos::kokkos)
   if(MIRCO_CLANGCUDA)
-    mirco_configure_clangcuda_target(tests CLANGCUDA_DEVICE)
+    mirco_configure_clangcuda_target(tests CLANGCUDA_MODE_DEVICE)
   endif()
 
   # Copy tests/unittests/data folder to the build dir

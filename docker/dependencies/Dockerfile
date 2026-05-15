@@ -27,8 +27,14 @@ RUN apt-get update && apt-get install -y \
       unzip \
       vim \
       wget \
+      gfortran \
+      ca-certificates \
+      clang \
       && \
-    apt-get update && apt-get install -y \
+    wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb && \
+    dpkg -i cuda-keyring_1.1-1_all.deb && \
+    rm cuda-keyring_1.1-1_all.deb && \
+    apt-get update && apt-get install -y --no-install-recommends \
       libblas-dev \
       libboost-all-dev \
       libcln-dev \
@@ -44,6 +50,16 @@ RUN apt-get update && apt-get install -y \
       ninja-build \
       libomp-dev \
       libvtk9-dev \
+      cuda-nvcc-12-8 \
+      cuda-cudart-dev-12-8 \
+      cuda-driver-dev-12-8 \
+      libcublas-dev-12-8 \
+      libcusolver-dev-12-8 \
+      libcusparse-dev-12-8 \
+      libcurand-dev-12-8 \
+      libnvjitlink-12-8 \
+      libnvjitlink-dev-12-8 \
+      cuda-nvtx-12-8 \
   && rm -rf /var/lib/apt/lists/*
 
 # Create directory for dependencies
@@ -53,6 +69,9 @@ ENV NPROCS=$NPROCS \
 RUN mkdir -p ${DEPS_ROOT}
 
 COPY dependencies /dependencies
+
+# Make `nvcc` available as an environment variable
+ENV PATH=/usr/local/cuda/bin:${PATH}
 
 # Install Kokkos and Kokkos-Kernels
 RUN /dependencies/kokkos/install.sh ${DEPS_ROOT}

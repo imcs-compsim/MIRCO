@@ -61,47 +61,4 @@ namespace MIRCO
     return H;
   }
 
-  double SetupMatrixOneEntry(const int ix, const int iy, const int jx, const int jy,
-      const double GridSize, const double CompositeYoungs, const int N,
-      const bool PressureGreenFunFlag)
-  {
-    constexpr double pi = M_PI;
-    const double frac_GridSize_2 = GridSize / 2;
-
-    const double xi = ix * GridSize;
-    const double yi = iy * GridSize;
-    const double xj = jx * GridSize;
-    const double yj = jy * GridSize;
-
-    if (PressureGreenFunFlag)
-    {
-      const double k = xi - xj + frac_GridSize_2;
-      const double l = k - GridSize;
-      const double m = yi - yj + frac_GridSize_2;
-      const double n = m - GridSize;
-
-      return 1.0 / (pi * CompositeYoungs) *
-             (k * log((sqrt(k * k + m * m) + m) / (sqrt(k * k + n * n) + n)) +
-                 l * log((sqrt(l * l + n * n) + n) / (sqrt(l * l + m * m) + m)) +
-                 m * log((sqrt(m * m + k * k) + k) / (sqrt(m * m + l * l) + l)) +
-                 n * log((sqrt(n * n + l * l) + l) / (sqrt(n * n + k * k) + k)));
-    }
-
-    else
-    {
-      const double C = 1 / (CompositeYoungs * pi * frac_GridSize_2);
-
-      if (ix == jx && iy == jy)
-        return C;
-
-      else
-      {
-        const double tmp1 = xj - xi;
-        const double tmp2 = yj - yi;
-        const double r = sqrt(tmp1 * tmp1 + tmp2 * tmp2);
-        return C * asin(frac_GridSize_2 / r);
-      }
-    }
-  }
-
 }  // namespace MIRCO

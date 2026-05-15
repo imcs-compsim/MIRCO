@@ -15,7 +15,8 @@
         "RYML_IN_MIRCO": "ON",
         "GTEST_IN_MIRCO": "ON",
         "MIRCO_ENABLE_FLAT": "OFF",
-        "MIRCO_ENABLE_VISUALIZATIONEXPORT": "OFF"
+        "MIRCO_ENABLE_VISUALIZATIONEXPORT": "OFF",
+        "CMAKE_POSITION_INDEPENDENT_CODE": "ON"
       }
     },
     {
@@ -51,11 +52,29 @@
       ],
       "cacheVariables": {
         "CMAKE_CXX_COMPILER": "/opt/mirco-dependencies/kokkos/bin/nvcc_wrapper",
-        "MIRCO_HOST_CXX_COMPILER": "g++-12",
+        "MIRCO_HOST_CXX_COMPILER": "g++",
+        "MIRCO_CLANGCUDA": "OFF",
+        "CMAKE_GTEST_DISCOVER_TESTS_DISCOVERY_MODE": "PRE_TEST",
         "KOKKOS_PATH": "/opt/mirco-dependencies/kokkos_install_cuda",
         "KOKKOS_KERNELS_PATH": "/opt/mirco-dependencies/kokkos-kernels_install_cuda",
         "MIRCO_ENABLE_FLAT": "ON",
         "MIRCO_ENABLE_VISUALIZATIONEXPORT": "ON"
+      }
+    },
+    {
+      "name": "docker_container_kokkoscuda_clangcuda++",
+      "displayName": "Release build using Kokkos with CUDA backend and the clangcuda++ wrapper as the compiler for CI/CD testing in a docker container",
+      "inherits": [
+        ".base"
+      ],
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "${sourceDir}/clangcuda++",
+        "MIRCO_CLANGCUDA": "ON",
+        "CMAKE_GTEST_DISCOVER_TESTS_DISCOVERY_MODE": "PRE_TEST",
+        "KOKKOS_PATH": "/opt/mirco-dependencies/kokkos_install_cuda",
+        "KOKKOS_KERNELS_PATH": "/opt/mirco-dependencies/kokkos-kernels_install_cuda",
+        "MIRCO_ENABLE_FLAT": "ON",
+        "MIRCO_ENABLE_VISUALIZATIONEXPORT": "OFF"
       }
     },
     {
