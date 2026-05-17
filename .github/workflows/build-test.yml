@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
 
     container:
-      image: ghcr.io/philipoesterlepekrun/mirco-kokkos-dependencies:latest
+      image: ghcr.io/imcs-compsim/mirco-dependencies:latest
 
     env:
       CTEST_FAIL_ON_WARNING: "1"
@@ -54,14 +54,14 @@ jobs:
           cmake --preset=docker_container_kokkosserial ../mirco-src/
           ninja -j 12
           ctest --output-on-failure
-          cd ..&&rm -rf build_kokkosserial
+          cd ..&&rm -rf mirco-build_kokkosserial
 
   mirco-test-kokkosopenmp:
     name: mirco_test_kokkosopenmp
     runs-on: ubuntu-latest
 
     container:
-      image: ghcr.io/philipoesterlepekrun/mirco-kokkos-dependencies:latest
+      image: ghcr.io/imcs-compsim/mirco-dependencies:latest
 
     env:
       CTEST_FAIL_ON_WARNING: "1"
@@ -81,14 +81,14 @@ jobs:
           cmake --preset=docker_container_kokkosopenmp ../mirco-src/
           ninja -j 12
           ctest --output-on-failure
-          cd ..&&rm -rf build_kokkosopenmp
+          cd ..&&rm -rf mirco-build_kokkosopenmp
 
   mirco-buildtest-kokkoscuda:
     name: mirco_buildtest_kokkoscuda
     runs-on: ubuntu-latest
 
     container:
-      image: ghcr.io/philipoesterlepekrun/mirco-kokkos-dependencies:latest
+      image: ghcr.io/imcs-compsim/mirco-dependencies:latest
 
     env:
       CTEST_FAIL_ON_WARNING: "1"
@@ -112,4 +112,4 @@ jobs:
           cmake --preset=docker_container_kokkoscuda_clangcuda++ ../mirco-src/
           ninja -j 1
           #ctest --output-on-failure
-          cd ..&&rm -rf build_kokkosopenmp
+          cd ..&&rm -rf mirco-build_kokkosopenmp
