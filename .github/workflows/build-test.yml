@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
 
     container:
-      image: ghcr.io/philipoesterlepekrun/mirco-kokkos-dependencies:latest
+      image: ghcr.io/imcs-compsim/mirco-dependencies:latest
 
     env:
       CTEST_FAIL_ON_WARNING: "1"
@@ -54,14 +54,14 @@ jobs:
           cmake --preset=docker_container_kokkosserial ../mirco-src/
           ninja -j 12
           ctest --output-on-failure
-          cd ..&&rm -rf build_kokkosserial
+          cd ..&&rm -rf mirco-build_kokkosserial
 
   mirco-test-kokkosopenmp:
     name: mirco_test_kokkosopenmp
     runs-on: ubuntu-latest
 
     container:
-      image: ghcr.io/philipoesterlepekrun/mirco-kokkos-dependencies:latest
+      image: ghcr.io/imcs-compsim/mirco-dependencies:latest
 
     env:
       CTEST_FAIL_ON_WARNING: "1"
@@ -81,4 +81,35 @@ jobs:
           cmake --preset=docker_container_kokkosopenmp ../mirco-src/
           ninja -j 12
           ctest --output-on-failure
-          cd ..&&rm -rf build_kokkosopenmp
+          cd ..&&rm -rf mirco-build_kokkosopenmp
+
+  mirco-buildtest-kokkoscuda:
+    name: mirco_buildtest_kokkoscuda
+    runs-on: ubuntu-latest
+
+    container:
+      image: ghcr.io/imcs-compsim/mirco-dependencies:latest
+
+    env:
+      CTEST_FAIL_ON_WARNING: "1"
+
+    steps:
+      - name: Checkout code with submodules
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+          path: mirco-src
+          fetch-depth: 0  # Necessary for full git history and tags
+
+      - name: Build and test
+        run: |
+          mkdir mirco-build_kokkoscuda
+          cd mirco-build_kokkoscuda
+          cmake --preset=docker_container_kokkoscuda ../mirco-src/
+          ninja -j 1
+          #ctest --output-on-failure
+          rm -rf *
+          cmake --preset=docker_container_kokkoscuda_clangcuda++ ../mirco-src/
+          ninja -j 1
+          #ctest --output-on-failure
+          cd ..&&rm -rf mirco-build_kokkosopenmp
