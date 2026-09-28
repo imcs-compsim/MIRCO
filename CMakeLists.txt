@@ -36,6 +36,14 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 option(MIRCO_ENABLE_FLAT "Build the flatMirco utility, which can be used to compute shape factors" OFF)
 
+option(MIRCO_CLANGCUDA "Enable the relevant CMake compile definitions needed to use clangcuda++ as the compiler. Alternatively, one can use Kokkos' nvcc_wrapper." OFF)
+
+# clangcuda++ selects the compiler mode for each target. Prevent Kokkos from installing
+# its own compile and link launchers when its package is loaded below.
+if(MIRCO_CLANGCUDA)
+  set(Kokkos_LAUNCH_COMPILER OFF)
+endif()
+
 # Add libraries
 if(GTEST_IN_MIRCO)
   add_subdirectory("extern/googletest")
@@ -101,27 +109,36 @@ if(KOKKOS_KERNELS_IN_MIRCO)
   endif()
 endif()
 
-option(MIRCO_CLANGCUDA "Enable the relevant CMake compile definitions needed to use clangcuda++ as the compiler. Alternatively, one can use Kokkos' nvcc_wrapper." OFF)
+# A function to set the necessary properties/definitions so a target can be compiled with clangcuda++,
+# while preserving intentional (non-Kokkos) compiler and rule launchers.
+# `clangcuda_mode` can be either CLANGCUDA_MODE_HOST or CLANGCUDA_MODE_DEVICE
+function(mirco_set_clangcuda_mode target clangcuda_mode)
+  get_target_property(_compiler_launcher ${target} CXX_COMPILER_LAUNCHER)
+  if(NOT _compiler_launcher MATCHES "-NOTFOUND$" AND NOT _compiler_launcher STREQUAL "")
+    list(LENGTH _compiler_launcher _compiler_launcher_arg_count)
 
-if(MIRCO_CLANGCUDA)
-  set(CMAKE_CXX_COMPILER_LAUNCHER "" CACHE STRING "" FORCE)
-  set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "")
-  set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK "")
-endif()
+    set(_clangcuda_compiler_launcher
+        "${CMAKE_COMMAND}"
+        -E
+        env
+        "CLANGCUDA_COMPILER_LAUNCHER_ARG_COUNT=${_compiler_launcher_arg_count}"
+        )
 
-# A function to set the necessary properties/definitions so a target can be compiled with clangcuda++
-# `compile_mode` can be either CLANGCUDA_MODE_HOST or CLANGCUDA_MODE_DEVICE
-function(mirco_configure_clangcuda_target target_name compile_mode)
-  set_target_properties("${target_name}" PROPERTIES
-    CXX_COMPILER_LAUNCHER ""
-    C_COMPILER_LAUNCHER ""
-    CUDA_COMPILER_LAUNCHER ""
-    RULE_LAUNCH_COMPILE ""
-    RULE_LAUNCH_LINK ""
-  )
+    set(_compiler_launcher_arg_index 0)
+    foreach(_compiler_launcher_arg IN LISTS _compiler_launcher)
+      list(
+        APPEND
+        _clangcuda_compiler_launcher
+        "CLANGCUDA_COMPILER_LAUNCHER_ARG_${_compiler_launcher_arg_index}=${_compiler_launcher_arg}"
+        )
+      math(EXPR _compiler_launcher_arg_index "${_compiler_launcher_arg_index} + 1")
+    endforeach()
 
-  target_compile_definitions("${target_name}" PRIVATE
-    ${compile_mode}
+    set_property(TARGET ${target} PROPERTY CXX_COMPILER_LAUNCHER "${_clangcuda_compiler_launcher}")
+  endif()
+
+  target_compile_definitions("${target}" PRIVATE
+    ${clangcuda_mode}
   )
 endfunction()
 
@@ -141,7 +158,7 @@ add_library(mirco_needKK
   )
 target_link_libraries(mirco_needKK PRIVATE Kokkos::kokkos KokkosKernels::kokkoskernels)
 if(MIRCO_CLANGCUDA)
-  mirco_configure_clangcuda_target(mirco_needKK CLANGCUDA_MODE_DEVICE)
+  mirco_set_clangcuda_mode(mirco_needKK CLANGCUDA_MODE_DEVICE)
 endif()
 
 # Compile mirco library
@@ -154,7 +171,7 @@ add_library(mirco_core
   )
 target_link_libraries(mirco_core PRIVATE mirco_needKK Kokkos::kokkos)
 if(MIRCO_CLANGCUDA)
-  mirco_configure_clangcuda_target(mirco_core CLANGCUDA_MODE_DEVICE)
+  mirco_set_clangcuda_mode(mirco_core CLANGCUDA_MODE_DEVICE)
 endif()
 
 if(MIRCO_ENABLE_VISUALIZATIONEXPORT)
@@ -180,7 +197,7 @@ add_library(mirco_topology
   )
 target_link_libraries(mirco_topology PRIVATE Kokkos::kokkos)
 if(MIRCO_CLANGCUDA)
-  mirco_configure_clangcuda_target(mirco_topology CLANGCUDA_MODE_DEVICE)
+  mirco_set_clangcuda_mode(mirco_topology CLANGCUDA_MODE_DEVICE)
 endif()
 
 add_library(mirco_shapefactors
@@ -192,7 +209,7 @@ add_library(mirco_inputparameters
   )
 target_link_libraries(mirco_inputparameters PRIVATE mirco_topology mirco_shapefactors Kokkos::kokkos)
 if(MIRCO_CLANGCUDA)
-  mirco_configure_clangcuda_target(mirco_inputparameters CLANGCUDA_MODE_HOST)
+  mirco_set_clangcuda_mode(mirco_inputparameters CLANGCUDA_MODE_HOST)
 endif()
 
 option(RYML_IN_MIRCO "Find rapidyaml (ryml) in MIRCO project. If set to OFF, use the ryml installation from an upstream project" OFF)
@@ -286,7 +303,7 @@ add_library(mirco_inputparameters_yaml
   )
 target_link_libraries(mirco_inputparameters_yaml PRIVATE mirco_inputparameters mirco_utils Kokkos::kokkos)
 if(MIRCO_CLANGCUDA)
-  mirco_configure_clangcuda_target(mirco_inputparameters_yaml CLANGCUDA_MODE_HOST)
+  mirco_set_clangcuda_mode(mirco_inputparameters_yaml CLANGCUDA_MODE_HOST)
 endif()
 
 add_library(mirco_lib INTERFACE)
@@ -308,7 +325,7 @@ target_compile_definitions(mirco_core PUBLIC
 add_executable(mirco src/main.cpp)
 target_link_libraries(mirco PUBLIC mirco::mirco_lib mirco_inputparameters_yaml mirco_utils Kokkos::kokkos)
 if(MIRCO_CLANGCUDA)
-  mirco_configure_clangcuda_target(mirco CLANGCUDA_MODE_DEVICE)
+  mirco_set_clangcuda_mode(mirco CLANGCUDA_MODE_DEVICE)
 endif()
 
 # Compile the flatMirco utility
@@ -316,7 +333,7 @@ if(MIRCO_ENABLE_FLAT)
   add_executable(flatMirco src/main_flat.cpp)
   target_link_libraries(flatMirco PUBLIC mirco_core mirco_topology mirco_shapefactors Kokkos::kokkos KokkosKernels::kokkoskernels)
   if(MIRCO_CLANGCUDA)
-    mirco_configure_clangcuda_target(flatMirco CLANGCUDA_MODE_DEVICE)
+    mirco_set_clangcuda_mode(flatMirco CLANGCUDA_MODE_DEVICE)
   endif()
 endif()
 
@@ -366,7 +383,7 @@ if(GTEST_IN_MIRCO)
     )
   target_link_libraries(tests PUBLIC mirco::mirco_lib mirco_inputparameters_yaml mirco_utils mirco_shapefactors gtest Kokkos::kokkos)
   if(MIRCO_CLANGCUDA)
-    mirco_configure_clangcuda_target(tests CLANGCUDA_MODE_DEVICE)
+    mirco_set_clangcuda_mode(tests CLANGCUDA_MODE_DEVICE)
   endif()
 
   # Copy tests/unittests/data folder to the build dir
