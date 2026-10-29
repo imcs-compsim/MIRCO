@@ -256,6 +256,7 @@ if(RYML_IN_MIRCO)
     add_dependencies(ryml_import ryml_build)
 
     add_library(ryml INTERFACE)
+    add_library(ryml::ryml ALIAS ryml)
     add_dependencies(ryml ryml_build)
     target_include_directories(ryml INTERFACE ${RYML_INSTALL_DIR}/include)
     target_link_libraries(ryml INTERFACE ${RYML_INSTALL_DIR}/lib/libryml.a)
@@ -296,7 +297,7 @@ add_library(mirco_utils
   src/mirco_utils.cpp
   )
 
-target_link_libraries(mirco_utils PUBLIC ryml)
+target_link_libraries(mirco_utils PUBLIC ryml::ryml)
 
 add_library(mirco_inputparameters_yaml
   src/mirco_inputparameters_yaml.cpp
